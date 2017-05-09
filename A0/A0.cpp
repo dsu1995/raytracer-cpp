@@ -208,6 +208,7 @@ void A0::guiLogic()
 		ImGui::SliderFloat("Red Channel", &m_shape_color.r, 0.0f, 1.0f);
 		ImGui::SliderFloat("Green Channel", &m_shape_color.g, 0.0f, 1.0f);
 		ImGui::SliderFloat("Blue Channel", &m_shape_color.b, 0.0f, 1.0f);
+		ImGui::SliderFloat("Rotation", &m_shape_rotation, 0.0f, 2 * PI);
 
 		// Add more gui elements here here ...
 
