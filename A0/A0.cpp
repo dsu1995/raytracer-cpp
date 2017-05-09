@@ -14,14 +14,18 @@ using namespace std;
 
 const float PI = 3.14159265f;
 
+const glm::vec3 DEFAULT_COLOR(glm::vec3(1.0f, 1.0f, 1.0f));
+const glm::vec2 DEFAULT_TRANSLATION(vec2(0.0f));
+const float DEFAULT_SIZE = 1.0f;
+const float DEFAULT_ROTATION = 0.0f;
 
 //----------------------------------------------------------------------------------------
 // Constructor
 A0::A0()
-	: m_shape_color(glm::vec3(1.0f, 1.0f, 1.0f)),
-	  m_shape_translation(vec2(0.0f)),
-	  m_shape_size(1.0f),
-	  m_shape_rotation(0.0f),
+	: m_shape_color(DEFAULT_COLOR),
+	  m_shape_translation(DEFAULT_TRANSLATION),
+	  m_shape_size(DEFAULT_SIZE),
+	  m_shape_rotation(DEFAULT_ROTATION),
 	  m_mouse_GL_coordinate(dvec2(0.0)),
 	  m_mouseButtonActive(false)
 {
@@ -203,6 +207,14 @@ void A0::guiLogic()
 			glfwSetWindowShouldClose(m_window, GL_TRUE);
 		}
 
+		// reset button
+		if (ImGui::Button("Reset")) {
+			m_shape_color = DEFAULT_COLOR;
+			m_shape_translation = DEFAULT_TRANSLATION;
+			m_shape_size = DEFAULT_SIZE;
+			m_shape_rotation = DEFAULT_ROTATION;
+		}
+
 		// Retrieve red color component from slider and store in the first element of
 		// m_shape_color.
 		ImGui::SliderFloat("Red Channel", &m_shape_color.r, 0.0f, 1.0f);
@@ -340,7 +352,7 @@ bool A0::keyInputEvent(int key, int action, int mods) {
 		if (key == GLFW_KEY_EQUAL) {
 			cout << "+ key pressed" << endl;
 
-			// TODO - increase shape size.
+			// increase shape size.
 			m_shape_size *= 1.1;
 
 			eventHandled = true;
@@ -348,7 +360,7 @@ bool A0::keyInputEvent(int key, int action, int mods) {
 		if (key == GLFW_KEY_MINUS) {
 			cout << "- key pressed" << endl;
 
-			// TODO - decrease shape size.
+			// decrease shape size.
 			m_shape_size /= 1.1;
 
 			eventHandled = true;
@@ -356,6 +368,15 @@ bool A0::keyInputEvent(int key, int action, int mods) {
 		if (key == GLFW_KEY_Q) {
 			// close window
 			glfwSetWindowShouldClose(m_window, GL_TRUE);
+
+			eventHandled = true;
+		}
+		if (key == GLFW_KEY_R) {
+			// reset triangle
+			m_shape_color = DEFAULT_COLOR;
+			m_shape_translation = DEFAULT_TRANSLATION;
+			m_shape_size = DEFAULT_SIZE;
+			m_shape_rotation = DEFAULT_ROTATION;
 
 			eventHandled = true;
 		}
