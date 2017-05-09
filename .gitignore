@@ -31,3 +31,13 @@ A4/A4
 A4_[Ss]olution/A4
 
 */Assets/backup
+
+
+
+# Ignore submission artifacts
+A0.zip
+A1.zip
+A2.zip
+A3.zip
+A4.zip
+piazza.txt
