@@ -66,6 +66,19 @@ void A1::init()
 		1.0f, 1000.0f );
 }
 
+void A1::drawCube(int x, unsigned int y, int z) {
+	float verts[] = {
+		0, 0, 0,
+		0, 1, 0,
+		0, 1, 1,
+		0, 0, 1,
+		1, 0, 1,
+		1, 0, 0,
+		1, 1, 0,
+		1, 1, 1
+	};
+}
+
 void A1::initGrid()
 {
 	size_t sz = 3 * 2 * 2 * (DIM+3);
@@ -73,17 +86,23 @@ void A1::initGrid()
 	float *verts = new float[ sz ];
 	size_t ct = 0;
 	for( int idx = 0; idx < DIM+3; ++idx ) {
+		// horizontal line
+		// left point
 		verts[ ct ] = -1;
 		verts[ ct+1 ] = 0;
 		verts[ ct+2 ] = idx-1;
+		// right point
 		verts[ ct+3 ] = DIM+1;
 		verts[ ct+4 ] = 0;
 		verts[ ct+5 ] = idx-1;
 		ct += 6;
 
+		// vertical line
+		// top point
 		verts[ ct ] = idx-1;
 		verts[ ct+1 ] = 0;
 		verts[ ct+2 ] = -1;
+		// bottom point
 		verts[ ct+3 ] = idx-1;
 		verts[ ct+4 ] = 0;
 		verts[ ct+5 ] = DIM+1;
