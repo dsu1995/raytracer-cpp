@@ -1,29 +1,33 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+/Makefile
+A*/Makefile
+Index_Example*/Makefile
+Instanced_Example*/Makefile
+shared/glfw**/Makefile
+shared/imgui**/Makefile
 
-# Precompiled Headers
-*.gch
-*.pch
+build
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
 *.a
-*.lib
+*.o
+*.swp
+*.swo
+*.idea
+*.xcodeproj/xcuserdata
+*.xcodeproj/project.xcworkspace/xcuserdata
+*.xcscmblueprint
+*.DS_Store
+imgui.ini
 
-# Executables
-*.exe
-*.out
-*.app
+# Ignore Assignment binary names
+A0/A0
+A0_[Ss]olution/A0
+A1/A1
+A1_[Ss]olution/A1
+A2/A2
+A2_[Ss]olution/A2
+A3/A3
+A3_[Ss]olution/A3
+A4/A4
+A4_[Ss]olution/A4
+
+*/Assets/backup
