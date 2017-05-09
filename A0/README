@@ -1,0 +1,8 @@
+Compilation:
+
+No changes to default compilation steps.
+Developed on computer to the right of gl10.student.cs in MC3007 (this computer does not have a number labelled on it).
+
+Manual:
+
+No additional features were added. Assumed that A0.hpp should not be modified, so did not add a private member function for resetting, which resulted in duplicate code for using the button to reset and using the keyboard shortcut to reset.
