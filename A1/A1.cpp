@@ -66,8 +66,8 @@ void A1::init()
 		1.0f, 1000.0f );
 }
 
-void A1::drawCube(int x, unsigned int y, int z) {
-	float verts[] = {
+void A1::drawCube(unsigned int x, unsigned int y, unsigned int z) {
+	GLfloat vertices[] = {
 		0, 0, 0,
 		0, 1, 0,
 		0, 1, 1,
@@ -75,8 +75,52 @@ void A1::drawCube(int x, unsigned int y, int z) {
 		1, 0, 1,
 		1, 0, 0,
 		1, 1, 0,
-		1, 1, 1
+		1, 1, 1,
 	};
+
+	GLubyte indices[] = {
+		0,1,2, 2,3,0,
+		0,3,4, 4,5,0,
+		0,5,6, 6,1,0,
+
+		1,6,7, 7,2,1,
+		7,4,3, 3,2,7,
+		4,7,6, 6,5,4
+	};
+
+	glGenVertexArrays(1, &cube_vao);
+	glBindVertexArray(cube_vao);
+	{
+		glGenBuffers(1, &cube_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
+		{	
+			glBufferData(
+				GL_ARRAY_BUFFER,
+				sizeof(vertices),
+				vertices,
+				GL_STATIC_DRAW
+			);
+
+			// Specify the means of extracting the position values properly.
+			GLint posAttrib = m_shader.getAttribLocation("position");
+			glEnableVertexAttribArray(posAttrib);
+			glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+		}
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glGenBuffers(1, &cube_ibo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
+		{
+			glBufferData(
+				GL_ELEMENT_ARRAY_BUFFER,
+				sizeof(indices),
+				indices,
+				GL_STATIC_DRAW
+			);
+		}
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+	glBindVertexArray(0);
 }
 
 void A1::initGrid()
@@ -132,6 +176,8 @@ void A1::initGrid()
 
 	// OpenGL has the buffer now, there's no need for us to keep a copy.
 	delete [] verts;
+
+	drawCube(0, 0, 0);
 
 	CHECK_GL_ERRORS;
 }
@@ -226,6 +272,15 @@ void A1::draw()
 		glDrawArrays( GL_LINES, 0, (3+DIM)*4 );
 
 		// Draw the cubes
+		glBindVertexArray(cube_vao);
+		glUniform3f(col_uni, 1, 0, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
+		glDrawElements(
+			GL_TRIANGLES,
+			36,
+			GL_UNSIGNED_BYTE,
+			nullptr
+		);
 		// Highlight the active square.
 	m_shader.disable();
 
