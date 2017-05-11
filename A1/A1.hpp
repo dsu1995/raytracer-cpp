@@ -34,6 +34,8 @@ private:
 	void drawGrid(const glm::mat4& finalTransform);
 	void drawCubes(const glm::mat4& finalTransform);
 
+	Grid grid;
+
 	// Fields related to the shader and uniforms.
 	ShaderProgram m_shader;
 	GLint P_uni; // Uniform location for Projection matrix.

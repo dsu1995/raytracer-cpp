@@ -22,7 +22,8 @@ static const size_t DIM = 16;
 // Constructor
 A1::A1()
 : current_col(0),
-	colour {0, 0, 0} {}
+	colour {0, 0, 0},
+	grid(DIM) {}
 
 //----------------------------------------------------------------------------------------
 // Destructor
@@ -32,8 +33,7 @@ A1::~A1() {}
 /*
  * Called once, at program start.
  */
-void A1::init()
-{
+void A1::init() {
 	// Set the background colour.
 	glClearColor(0.3, 0.5, 0.7, 1.0);
 
@@ -107,8 +107,7 @@ void A1::initCube() {
 	CHECK_GL_ERRORS;
 }
 
-void A1::initGrid()
-{
+void A1::initGrid() {
 	size_t sz = 3 * 2 * 2 * (DIM+3);
 
 	float *verts = new float[ sz ];
@@ -167,8 +166,7 @@ void A1::initGrid()
 /*
  * Called once per frame, before guiLogic().
  */
-void A1::appLogic()
-{
+void A1::appLogic() {
 	// Place per frame, application logic here ...
 }
 
@@ -176,8 +174,7 @@ void A1::appLogic()
 /*
  * Called once per frame, after appLogic(), but before the draw() method.
  */
-void A1::guiLogic()
-{
+void A1::guiLogic() {
 	// We already know there's only going to be one window, so for
 	// simplicity we'll store button states in static local variables.
 	// If there was ever a possibility of having multiple instances of
@@ -234,8 +231,7 @@ void A1::guiLogic()
 /*
  * Called once per frame, after guiLogic().
  */
-void A1::draw()
-{
+void A1::draw() {
 	// Create a global transformation for the model (centre it).
 	mat4 modelMatrix;
 	modelMatrix = glm::translate(
@@ -280,20 +276,23 @@ void A1::drawCubes(const mat4& finalTransform) {
 		// set colour
 		glUniform3f(col_uni, 1, 0, 0);
 
-		// transform
-		mat4 modelMatrix;
-		modelMatrix = glm::scale(modelMatrix, vec3(1, 2, 1));
-		modelMatrix *= finalTransform;
+		int height = grid.getHeight(0, 0);
 
-		glUniformMatrix4fv(M_uni, 1, GL_FALSE, value_ptr(modelMatrix));
+		if (height > 0) {
+			// transform
+			mat4 modelMatrix;
+			modelMatrix = glm::scale(modelMatrix, vec3(1, height, 1));
+			modelMatrix *= finalTransform;
+			glUniformMatrix4fv(M_uni, 1, GL_FALSE, value_ptr(modelMatrix));
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
-		glDrawElements(
-			GL_TRIANGLES,
-			cube::TRIANGLES.size(),
-			GL_UNSIGNED_BYTE,
-			nullptr
-		);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
+			glDrawElements(
+				GL_TRIANGLES,
+				cube::TRIANGLES.size(),
+				GL_UNSIGNED_BYTE,
+				nullptr
+			);
+		}
 	} glBindVertexArray(0);
 }
 
@@ -377,12 +376,19 @@ bool A1::windowResizeEvent(int width, int height) {
  * Event handler.  Handles key input events.
  */
 bool A1::keyInputEvent(int key, int action, int mods) {
-	bool eventHandled = false;
-
 	// Fill in with event handling code...
-	if( action == GLFW_PRESS ) {
+	if(action == GLFW_PRESS) {
 		// Respond to some key events.
+
+		if (key == GLFW_KEY_SPACE) {
+			grid.incHeight(0, 0);
+			return true;
+		} else if (key == GLFW_KEY_BACKSPACE) {
+			grid.decHeight(0, 0);
+			return true;
+		}
+
 	}
 
-	return eventHandled;
+	return false;
 }
