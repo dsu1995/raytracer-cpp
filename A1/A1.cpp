@@ -214,7 +214,7 @@ void A1::guiLogic()
 /*
 		// For convenience, you can uncomment this to show ImGui's massive
 		// demonstration window right in your application.  Very handy for
-		// browsing around to get the widget you want.  Then look in 
+		// browsing around to get the widget you want.  Then look in
 		// shared/imgui/imgui_demo.cpp to see how it's done.
 		if( ImGui::Button( "Test Window" ) ) {
 			showTestWindow = !showTestWindow;
@@ -237,9 +237,9 @@ void A1::guiLogic()
 void A1::draw()
 {
 	// Create a global transformation for the model (centre it).
-	mat4 W;
-	W = glm::translate(
-		W,
+	mat4 modelMatrix;
+	modelMatrix = glm::translate(
+		modelMatrix,
 		vec3(
 			-float(DIM) / 2.0f,
 			0,
@@ -252,31 +252,49 @@ void A1::draw()
 
 		glUniformMatrix4fv(P_uni, 1, GL_FALSE, value_ptr(proj));
 		glUniformMatrix4fv(V_uni, 1, GL_FALSE, value_ptr(view));
-		glUniformMatrix4fv(M_uni, 1, GL_FALSE, value_ptr(W));
 
 		// Just draw the grid for now.
-		glBindVertexArray(m_grid_vao); {
-			glUniform3f(col_uni, 1, 1, 1);
-			glDrawArrays(GL_LINES, 0, (3 + DIM) * 4);
-		} glBindVertexArray(0);
+		drawGrid(modelMatrix);
 
 		// Draw the cubes
-		glBindVertexArray(cube_vao); {
-			glUniform3f(col_uni, 1, 0, 0);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
-			glDrawElements(
-				GL_TRIANGLES,
-				cube::TRIANGLES.size(),
-				GL_UNSIGNED_BYTE,
-				nullptr
-			);
-		} glBindVertexArray(0);
+		drawCubes(modelMatrix);
 
 		// Highlight the active square.
 
 	} m_shader.disable();
 
 	CHECK_GL_ERRORS;
+}
+
+void A1::drawGrid(const mat4& finalTransform) {
+	glUniformMatrix4fv(M_uni, 1, GL_FALSE, value_ptr(finalTransform));
+
+	glBindVertexArray(m_grid_vao); {
+		glUniform3f(col_uni, 1, 1, 1);
+		glDrawArrays(GL_LINES, 0, (3 + DIM) * 4);
+	} glBindVertexArray(0);
+}
+
+void A1::drawCubes(const mat4& finalTransform) {
+	glBindVertexArray(cube_vao); {
+		// set colour
+		glUniform3f(col_uni, 1, 0, 0);
+
+		// transform
+		mat4 modelMatrix;
+		modelMatrix = glm::scale(modelMatrix, vec3(1, 2, 1));
+		modelMatrix *= finalTransform;
+
+		glUniformMatrix4fv(M_uni, 1, GL_FALSE, value_ptr(modelMatrix));
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
+		glDrawElements(
+			GL_TRIANGLES,
+			cube::TRIANGLES.size(),
+			GL_UNSIGNED_BYTE,
+			nullptr
+		);
+	} glBindVertexArray(0);
 }
 
 //----------------------------------------------------------------------------------------
