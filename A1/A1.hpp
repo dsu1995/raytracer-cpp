@@ -29,7 +29,7 @@ protected:
 
 private:
 	void initGrid();
-	void drawCube(unsigned int x, unsigned int y, unsigned int z);
+	void initCube();
 
 	// Fields related to the shader and uniforms.
 	ShaderProgram m_shader;

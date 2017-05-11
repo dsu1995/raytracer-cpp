@@ -1,6 +1,3 @@
-#include "A1.hpp"
-#include "cs488-framework/GlErrorCheck.hpp"
-
 #include <iostream>
 
 #include <imgui/imgui.h>
@@ -8,25 +5,28 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "cs488-framework/GlErrorCheck.hpp"
+
+#include "utils.hpp"
+
+#include "A1.hpp"
+#include "cube.hpp"
+
+
 using namespace glm;
-using namespace std;
 
 static const size_t DIM = 16;
+
 
 //----------------------------------------------------------------------------------------
 // Constructor
 A1::A1()
-	: current_col( 0 )
-{
-	colour[0] = 0.0f;
-	colour[1] = 0.0f;
-	colour[2] = 0.0f;
-}
+: current_col(0),
+	colour {0, 0, 0} {}
 
 //----------------------------------------------------------------------------------------
 // Destructor
-A1::~A1()
-{}
+A1::~A1() {}
 
 //----------------------------------------------------------------------------------------
 /*
@@ -35,69 +35,54 @@ A1::~A1()
 void A1::init()
 {
 	// Set the background colour.
-	glClearColor( 0.3, 0.5, 0.7, 1.0 );
+	glClearColor(0.3, 0.5, 0.7, 1.0);
 
 	// Build the shader
 	m_shader.generateProgramObject();
-	m_shader.attachVertexShader(
-		getAssetFilePath( "VertexShader.vs" ).c_str() );
-	m_shader.attachFragmentShader(
-		getAssetFilePath( "FragmentShader.fs" ).c_str() );
+	m_shader.attachVertexShader(getAssetFilePath("VertexShader.vs").c_str());
+	m_shader.attachFragmentShader(getAssetFilePath("FragmentShader.fs").c_str());
 	m_shader.link();
 
 	// Set up the uniforms
-	P_uni = m_shader.getUniformLocation( "P" );
-	V_uni = m_shader.getUniformLocation( "V" );
-	M_uni = m_shader.getUniformLocation( "M" );
-	col_uni = m_shader.getUniformLocation( "colour" );
+	P_uni = m_shader.getUniformLocation("P");
+	V_uni = m_shader.getUniformLocation("V");
+	M_uni = m_shader.getUniformLocation("M");
+	col_uni = m_shader.getUniformLocation("colour");
 
 	initGrid();
+	initCube();
 
 	// Set up initial view and projection matrices (need to do this here,
 	// since it depends on the GLFW window being set up correctly).
-	view = glm::lookAt( 
-		glm::vec3( 0.0f, float(DIM)*2.0*M_SQRT1_2, float(DIM)*2.0*M_SQRT1_2 ),
-		glm::vec3( 0.0f, 0.0f, 0.0f ),
-		glm::vec3( 0.0f, 1.0f, 0.0f ) );
+	view = glm::lookAt(
+		glm::vec3(
+			0.0f,
+			float(DIM) * 2.0 * M_SQRT1_2,
+			float(DIM) * 2.0 * M_SQRT1_2
+		),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f)
+	);
 
-	proj = glm::perspective( 
-		glm::radians( 45.0f ),
-		float( m_framebufferWidth ) / float( m_framebufferHeight ),
-		1.0f, 1000.0f );
+	proj = glm::perspective(
+		glm::radians(45.0f),
+		float(m_framebufferWidth) / float(m_framebufferHeight),
+		1.0f,
+		1000.0f
+	);
 }
 
-void A1::drawCube(unsigned int x, unsigned int y, unsigned int z) {
-	GLfloat vertices[] = {
-		0, 0, 0,
-		0, 1, 0,
-		0, 1, 1,
-		0, 0, 1,
-		1, 0, 1,
-		1, 0, 0,
-		1, 1, 0,
-		1, 1, 1,
-	};
-
-	GLubyte indices[] = {
-		0,1,2, 2,3,0,
-		0,3,4, 4,5,0,
-		0,5,6, 6,1,0,
-
-		1,6,7, 7,2,1,
-		7,4,3, 3,2,7,
-		4,7,6, 6,5,4
-	};
-
+void A1::initCube() {
 	glGenVertexArrays(1, &cube_vao);
-	glBindVertexArray(cube_vao);
-	{
+	glBindVertexArray(cube_vao); {
+
+		// upload vertices
 		glGenBuffers(1, &cube_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
-		{	
+		glBindBuffer(GL_ARRAY_BUFFER, cube_vbo); {
 			glBufferData(
 				GL_ARRAY_BUFFER,
-				sizeof(vertices),
-				vertices,
+				utils::sizeOfVector(cube::VERTICES),
+				utils::vectorToPointer(cube::VERTICES),
 				GL_STATIC_DRAW
 			);
 
@@ -105,22 +90,21 @@ void A1::drawCube(unsigned int x, unsigned int y, unsigned int z) {
 			GLint posAttrib = m_shader.getAttribLocation("position");
 			glEnableVertexAttribArray(posAttrib);
 			glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-		}
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		} glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+		// upload indices
 		glGenBuffers(1, &cube_ibo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
-		{
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo); {
 			glBufferData(
 				GL_ELEMENT_ARRAY_BUFFER,
-				sizeof(indices),
-				indices,
+				utils::sizeOfVector(cube::TRIANGLES),
+				utils::vectorToPointer(cube::TRIANGLES),
 				GL_STATIC_DRAW
 			);
-		}
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
-	glBindVertexArray(0);
+		} glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	} glBindVertexArray(0);
+
+	CHECK_GL_ERRORS;
 }
 
 void A1::initGrid()
@@ -168,16 +152,13 @@ void A1::initGrid()
 	glEnableVertexAttribArray( posAttrib );
 	glVertexAttribPointer( posAttrib, 3, GL_FLOAT, GL_FALSE, 0, nullptr );
 
-	// Reset state to prevent rogue code from messing with *my* 
-	// stuff!
+	// Reset state to prevent rogue code from messing with *my* stuff!
 	glBindVertexArray( 0 );
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 
 	// OpenGL has the buffer now, there's no need for us to keep a copy.
 	delete [] verts;
-
-	drawCube(0, 0, 0);
 
 	CHECK_GL_ERRORS;
 }
@@ -197,7 +178,7 @@ void A1::appLogic()
  */
 void A1::guiLogic()
 {
-	// We already know there's only going to be one window, so for 
+	// We already know there's only going to be one window, so for
 	// simplicity we'll store button states in static local variables.
 	// If there was ever a possibility of having multiple instances of
 	// A1 running simultaneously, this would break; you'd want to make
@@ -257,35 +238,43 @@ void A1::draw()
 {
 	// Create a global transformation for the model (centre it).
 	mat4 W;
-	W = glm::translate( W, vec3( -float(DIM)/2.0f, 0, -float(DIM)/2.0f ) );
+	W = glm::translate(
+		W,
+		vec3(
+			-float(DIM) / 2.0f,
+			0,
+			-float(DIM) / 2.0f
+		)
+	);
 
-	m_shader.enable();
-		glEnable( GL_DEPTH_TEST );
+	m_shader.enable(); {
+		glEnable(GL_DEPTH_TEST);
 
-		glUniformMatrix4fv( P_uni, 1, GL_FALSE, value_ptr( proj ) );
-		glUniformMatrix4fv( V_uni, 1, GL_FALSE, value_ptr( view ) );
-		glUniformMatrix4fv( M_uni, 1, GL_FALSE, value_ptr( W ) );
+		glUniformMatrix4fv(P_uni, 1, GL_FALSE, value_ptr(proj));
+		glUniformMatrix4fv(V_uni, 1, GL_FALSE, value_ptr(view));
+		glUniformMatrix4fv(M_uni, 1, GL_FALSE, value_ptr(W));
 
 		// Just draw the grid for now.
-		glBindVertexArray( m_grid_vao );
-		glUniform3f( col_uni, 1, 1, 1 );
-		glDrawArrays( GL_LINES, 0, (3+DIM)*4 );
+		glBindVertexArray(m_grid_vao); {
+			glUniform3f(col_uni, 1, 1, 1);
+			glDrawArrays(GL_LINES, 0, (3 + DIM) * 4);
+		} glBindVertexArray(0);
 
 		// Draw the cubes
-		glBindVertexArray(cube_vao);
-		glUniform3f(col_uni, 1, 0, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
-		glDrawElements(
-			GL_TRIANGLES,
-			36,
-			GL_UNSIGNED_BYTE,
-			nullptr
-		);
-		// Highlight the active square.
-	m_shader.disable();
+		glBindVertexArray(cube_vao); {
+			glUniform3f(col_uni, 1, 0, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
+			glDrawElements(
+				GL_TRIANGLES,
+				cube::TRIANGLES.size(),
+				GL_UNSIGNED_BYTE,
+				nullptr
+			);
+		} glBindVertexArray(0);
 
-	// Restore defaults
-	glBindVertexArray( 0 );
+		// Highlight the active square.
+
+	} m_shader.disable();
 
 	CHECK_GL_ERRORS;
 }
@@ -294,17 +283,14 @@ void A1::draw()
 /*
  * Called once, after program is signaled to terminate.
  */
-void A1::cleanup()
-{}
+void A1::cleanup() {}
 
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles cursor entering the window area events.
  */
-bool A1::cursorEnterWindowEvent (
-		int entered
-) {
-	bool eventHandled(false);
+bool A1::cursorEnterWindowEvent(int entered) {
+	bool eventHandled = false;
 
 	// Fill in with event handling code...
 
@@ -315,15 +301,14 @@ bool A1::cursorEnterWindowEvent (
 /*
  * Event handler.  Handles mouse cursor movement events.
  */
-bool A1::mouseMoveEvent(double xPos, double yPos) 
-{
-	bool eventHandled(false);
+bool A1::mouseMoveEvent(double xPos, double yPos) {
+	bool eventHandled = false;
 
 	if (!ImGui::IsMouseHoveringAnyWindow()) {
 		// Put some code here to handle rotations.  Probably need to
 		// check whether we're *dragging*, not just moving the mouse.
 		// Probably need some instance variables to track the current
-		// rotation amount, and maybe the previous X position (so 
+		// rotation amount, and maybe the previous X position (so
 		// that you can rotate relative to the *change* in X.
 	}
 
@@ -335,7 +320,7 @@ bool A1::mouseMoveEvent(double xPos, double yPos)
  * Event handler.  Handles mouse button events.
  */
 bool A1::mouseButtonInputEvent(int button, int actions, int mods) {
-	bool eventHandled(false);
+	bool eventHandled = false;
 
 	if (!ImGui::IsMouseHoveringAnyWindow()) {
 		// The user clicked in the window.  If it's the left
@@ -350,7 +335,7 @@ bool A1::mouseButtonInputEvent(int button, int actions, int mods) {
  * Event handler.  Handles mouse scroll wheel events.
  */
 bool A1::mouseScrollEvent(double xOffSet, double yOffSet) {
-	bool eventHandled(false);
+	bool eventHandled = false;
 
 	// Zoom in or out.
 
@@ -362,7 +347,7 @@ bool A1::mouseScrollEvent(double xOffSet, double yOffSet) {
  * Event handler.  Handles window resize events.
  */
 bool A1::windowResizeEvent(int width, int height) {
-	bool eventHandled(false);
+	bool eventHandled = false;
 
 	// Fill in with event handling code...
 
@@ -374,7 +359,7 @@ bool A1::windowResizeEvent(int width, int height) {
  * Event handler.  Handles key input events.
  */
 bool A1::keyInputEvent(int key, int action, int mods) {
-	bool eventHandled(false);
+	bool eventHandled = false;
 
 	// Fill in with event handling code...
 	if( action == GLFW_PRESS ) {
