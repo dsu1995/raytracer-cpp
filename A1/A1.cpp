@@ -23,7 +23,8 @@ static const size_t DIM = 16;
 A1::A1()
 : current_col(0),
 	colour {0, 0, 0},
-	grid(DIM) {}
+	grid(DIM),
+	activePosition {0, 0} {}
 
 //----------------------------------------------------------------------------------------
 // Destructor
@@ -52,6 +53,9 @@ void A1::init() {
 
 	initGrid();
 	initCube();
+	initIndicatorTriangle();
+
+	CHECK_GL_ERRORS;
 
 	// Set up initial view and projection matrices (need to do this here,
 	// since it depends on the GLFW window being set up correctly).
@@ -104,8 +108,6 @@ void A1::initCube() {
 			);
 		} glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	} glBindVertexArray(0);
-
-	CHECK_GL_ERRORS;
 }
 
 void A1::initGrid() {
@@ -159,8 +161,33 @@ void A1::initGrid() {
 
 	// OpenGL has the buffer now, there's no need for us to keep a copy.
 	delete [] verts;
+}
 
-	CHECK_GL_ERRORS;
+void A1::initIndicatorTriangle() {
+	vec3 vertices[] = {
+		{0, 0, 0},
+		{1, 0, 0},
+		{0.5, 0, 1}
+	};
+
+	glGenVertexArrays(1, &triangle_vao);
+	glBindVertexArray(triangle_vao); {
+		// upload vertices
+		glGenBuffers(1, &triangle_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, triangle_vbo); {
+			glBufferData(
+				GL_ARRAY_BUFFER,
+				sizeof(vertices),
+				vertices,
+				GL_STATIC_DRAW
+			);
+
+			// Specify the means of extracting the position values properly.
+			GLint posAttrib = m_shader.getAttribLocation("position");
+			glEnableVertexAttribArray(posAttrib);
+			glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+		} glBindBuffer(GL_ARRAY_BUFFER, 0);
+	} glBindVertexArray(0);
 }
 
 //----------------------------------------------------------------------------------------
@@ -281,21 +308,23 @@ void A1::drawCubes() {
 		// set colour
 		glUniform3f(col_uni, 1, 0, 0);
 
-		int height = grid.getHeight(0, 0);
+		int height = grid.getHeight(activePosition.x, activePosition.y);
 
 		if (height > 0) {
 			// transform
 			mat4 modelMatrix;
 			modelMatrix = glm::scale(modelMatrix, vec3(1, height, 1));
+			modelMatrix = glm::translate(modelMatrix, vec3(activePosition.x, 0, activePosition.y));
 			glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(modelMatrix));
 
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
-			glDrawElements(
-				GL_TRIANGLES,
-				cube::TRIANGLES.size(),
-				GL_UNSIGNED_BYTE,
-				nullptr
-			);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo); {
+				glDrawElements(
+					GL_TRIANGLES,
+					cube::TRIANGLES.size(),
+					GL_UNSIGNED_BYTE,
+					nullptr
+				);
+			} glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 	} glBindVertexArray(0);
 }
@@ -308,22 +337,56 @@ void A1::drawActiveIndicator() {
 			// set colour
 			glUniform3fv(col_uni, 1, value_ptr(INDICATOR_COLOR));
 
-			int height = grid.getHeight(0, 0);
+			int height = grid.getHeight(activePosition.x, activePosition.y);
 
 			// transform
 			mat4 modelMatrix;
-			modelMatrix = glm::translate(modelMatrix, vec3(0, height, 0));
+			modelMatrix = glm::translate(modelMatrix, vec3(activePosition.x, height, activePosition.y));
 			glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(modelMatrix));
 
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
-			glDrawElements(
-				GL_TRIANGLES,
-				2 * 3, // the first 2 triangles in cube::TRIANGLES form the bottom of the cube
-				GL_UNSIGNED_BYTE,
-				nullptr
-			);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo); {
+				glDrawElements(
+					GL_TRIANGLES,
+					2 * 3, // the first 2 triangles in cube::TRIANGLES form the bottom of the cube
+					GL_UNSIGNED_BYTE,
+					nullptr
+				);
+			} glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		} glBindVertexArray(0);
 	} glEnable(GL_DEPTH_TEST);
+
+	glBindVertexArray(triangle_vao); {
+		// set colour
+		glUniform3fv(col_uni, 1, value_ptr(INDICATOR_COLOR));
+
+		// draw 4 indicator arrows in border
+		glBindBuffer(GL_ARRAY_BUFFER, triangle_vbo); {
+			// transform
+			mat4 modelMatrix;
+			modelMatrix = glm::translate(modelMatrix, vec3(activePosition.x, 0, -1));
+			glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(modelMatrix));
+			glDrawArrays(GL_TRIANGLES, 0, 3 * 3);
+
+			modelMatrix = mat4();
+			modelMatrix = glm::translate(modelMatrix, vec3(activePosition.x, 0, DIM + 1));
+			modelMatrix = glm::scale(modelMatrix, vec3(1, 1, -1));
+			glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(modelMatrix));
+			glDrawArrays(GL_TRIANGLES, 0, 3 * 3);
+
+			modelMatrix = mat4();
+			modelMatrix = glm::translate(modelMatrix, vec3(-1, 0, activePosition.y + 1));
+			modelMatrix = glm::rotate(modelMatrix, glm::radians(90.0f), vec3(0, 1.0, 0));
+			glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(modelMatrix));
+			glDrawArrays(GL_TRIANGLES, 0, 3 * 3);
+
+			modelMatrix = mat4();
+			modelMatrix = glm::translate(modelMatrix, vec3(DIM + 1, 0, activePosition.y));
+			modelMatrix = glm::rotate(modelMatrix, glm::radians(-90.0f), vec3(0, 1.0, 0));
+			glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(modelMatrix));
+			glDrawArrays(GL_TRIANGLES, 0, 3 * 3);
+
+		} glBindBuffer(GL_ARRAY_BUFFER, 0);
+	} glBindVertexArray(0);
 }
 
 //----------------------------------------------------------------------------------------
@@ -414,10 +477,10 @@ bool A1::keyInputEvent(int key, int action, int mods) {
 			glfwSetWindowShouldClose(m_window, GL_TRUE);
 			return true;
 		} else if (key == GLFW_KEY_SPACE) {
-			grid.incHeight(0, 0);
+			grid.incHeight(activePosition.x, activePosition.y);
 			return true;
 		} else if (key == GLFW_KEY_BACKSPACE) {
-			grid.decHeight(0, 0);
+			grid.decHeight(activePosition.x, activePosition.y);
 			return true;
 		}
 

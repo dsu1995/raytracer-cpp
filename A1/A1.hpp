@@ -30,6 +30,7 @@ protected:
 private:
 	void initGrid();
 	void initCube();
+	void initIndicatorTriangle();
 
 	void drawGrid();
 	void drawCubes();
@@ -51,6 +52,9 @@ private:
 	GLuint cube_vbo;
 	GLuint cube_ibo; // indices buffer object
 
+	GLuint triangle_vao;
+	GLuint triangle_vbo;
+
 	// Matrices controlling the camera and projection.
 	glm::mat4 proj;
 	glm::mat4 view;
@@ -58,4 +62,5 @@ private:
 	Grid grid;
 	float colour[3];
 	int current_col;
+	glm::ivec2 activePosition;
 };
