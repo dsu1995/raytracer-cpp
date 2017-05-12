@@ -380,7 +380,10 @@ bool A1::keyInputEvent(int key, int action, int mods) {
 	if(action == GLFW_PRESS) {
 		// Respond to some key events.
 
-		if (key == GLFW_KEY_SPACE) {
+		if (key == GLFW_KEY_Q) {
+			glfwSetWindowShouldClose(m_window, GL_TRUE);
+			return true;
+		} else if (key == GLFW_KEY_SPACE) {
 			grid.incHeight(0, 0);
 			return true;
 		} else if (key == GLFW_KEY_BACKSPACE) {
