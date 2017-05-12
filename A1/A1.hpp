@@ -31,16 +31,15 @@ private:
 	void initGrid();
 	void initCube();
 
-	void drawGrid(const glm::mat4& finalTransform);
-	void drawCubes(const glm::mat4& finalTransform);
-
-	Grid grid;
+	void drawGrid();
+	void drawCubes();
 
 	// Fields related to the shader and uniforms.
 	ShaderProgram m_shader;
 	GLint P_uni; // Uniform location for Projection matrix.
 	GLint V_uni; // Uniform location for View matrix.
 	GLint M_uni; // Uniform location for Model matrix.
+	GLint M2_uni;
 	GLint col_uni;   // Uniform location for cube colour.
 
 	// Fields related to grid geometry.
@@ -55,6 +54,7 @@ private:
 	glm::mat4 proj;
 	glm::mat4 view;
 
+	Grid grid;
 	float colour[3];
 	int current_col;
 };

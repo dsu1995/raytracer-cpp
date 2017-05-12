@@ -47,6 +47,7 @@ void A1::init() {
 	P_uni = m_shader.getUniformLocation("P");
 	V_uni = m_shader.getUniformLocation("V");
 	M_uni = m_shader.getUniformLocation("M");
+	M2_uni = m_shader.getUniformLocation("M2");
 	col_uni = m_shader.getUniformLocation("colour");
 
 	initGrid();
@@ -248,22 +249,26 @@ void A1::draw() {
 
 		glUniformMatrix4fv(P_uni, 1, GL_FALSE, value_ptr(proj));
 		glUniformMatrix4fv(V_uni, 1, GL_FALSE, value_ptr(view));
+		glUniformMatrix4fv(M_uni, 1, GL_FALSE, value_ptr(modelMatrix));
 
 		// Just draw the grid for now.
-		drawGrid(modelMatrix);
+		drawGrid();
 
 		// Draw the cubes
-		drawCubes(modelMatrix);
+		drawCubes();
 
 		// Highlight the active square.
+		// glDisable(GL_DEPTH_TEST);
+		// drawActiveIndicator();
 
 	} m_shader.disable();
 
 	CHECK_GL_ERRORS;
 }
 
-void A1::drawGrid(const mat4& finalTransform) {
-	glUniformMatrix4fv(M_uni, 1, GL_FALSE, value_ptr(finalTransform));
+void A1::drawGrid() {
+	mat4 identity;
+	glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(identity));
 
 	glBindVertexArray(m_grid_vao); {
 		glUniform3f(col_uni, 1, 1, 1);
@@ -271,7 +276,7 @@ void A1::drawGrid(const mat4& finalTransform) {
 	} glBindVertexArray(0);
 }
 
-void A1::drawCubes(const mat4& finalTransform) {
+void A1::drawCubes() {
 	glBindVertexArray(cube_vao); {
 		// set colour
 		glUniform3f(col_uni, 1, 0, 0);
@@ -282,8 +287,7 @@ void A1::drawCubes(const mat4& finalTransform) {
 			// transform
 			mat4 modelMatrix;
 			modelMatrix = glm::scale(modelMatrix, vec3(1, height, 1));
-			modelMatrix *= finalTransform;
-			glUniformMatrix4fv(M_uni, 1, GL_FALSE, value_ptr(modelMatrix));
+			glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(modelMatrix));
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
 			glDrawElements(
