@@ -258,17 +258,17 @@ void A1::draw() {
 		drawCubes();
 
 		// Highlight the active square.
-		// glDisable(GL_DEPTH_TEST);
-		// drawActiveIndicator();
+		drawActiveIndicator();
 
 	} m_shader.disable();
 
 	CHECK_GL_ERRORS;
 }
 
+const mat4 IDENTITY_MATRIX;
+
 void A1::drawGrid() {
-	mat4 identity;
-	glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(identity));
+	glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(IDENTITY_MATRIX));
 
 	glBindVertexArray(m_grid_vao); {
 		glUniform3f(col_uni, 1, 1, 1);
@@ -298,6 +298,32 @@ void A1::drawCubes() {
 			);
 		}
 	} glBindVertexArray(0);
+}
+
+const vec3 INDICATOR_COLOR = { 191 / 255.0f, 191 / 255.0f, 63 / 255.0f };
+
+void A1::drawActiveIndicator() {
+	glDisable(GL_DEPTH_TEST); {
+		glBindVertexArray(cube_vao); {
+			// set colour
+			glUniform3fv(col_uni, 1, value_ptr(INDICATOR_COLOR));
+
+			int height = grid.getHeight(0, 0);
+
+			// transform
+			mat4 modelMatrix;
+			modelMatrix = glm::translate(modelMatrix, vec3(0, height, 0));
+			glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(modelMatrix));
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo);
+			glDrawElements(
+				GL_TRIANGLES,
+				2 * 3, // the first 2 triangles in cube::TRIANGLES form the bottom of the cube
+				GL_UNSIGNED_BYTE,
+				nullptr
+			);
+		} glBindVertexArray(0);
+	} glEnable(GL_DEPTH_TEST);
 }
 
 //----------------------------------------------------------------------------------------

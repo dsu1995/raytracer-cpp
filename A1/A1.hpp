@@ -33,6 +33,7 @@ private:
 
 	void drawGrid();
 	void drawCubes();
+	void drawActiveIndicator();
 
 	// Fields related to the shader and uniforms.
 	ShaderProgram m_shader;
