@@ -308,23 +308,26 @@ void A1::drawCubes() {
 		// set colour
 		glUniform3f(col_uni, 1, 0, 0);
 
-		int height = grid.getHeight(activePosition.x, activePosition.y);
+		for (int i = 0; i < DIM; i++) {
+			for (int j = 0; j < DIM; j++) {
+				int height = grid.getHeight(i, j);
+				if (height > 0) {
+					// transform
+					mat4 modelMatrix;
+					modelMatrix = glm::scale(modelMatrix, vec3(1, height, 1));
+					modelMatrix = glm::translate(modelMatrix, vec3(i, 0, j));
+					glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(modelMatrix));
 
-		if (height > 0) {
-			// transform
-			mat4 modelMatrix;
-			modelMatrix = glm::scale(modelMatrix, vec3(1, height, 1));
-			modelMatrix = glm::translate(modelMatrix, vec3(activePosition.x, 0, activePosition.y));
-			glUniformMatrix4fv(M2_uni, 1, GL_FALSE, value_ptr(modelMatrix));
-
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo); {
-				glDrawElements(
-					GL_TRIANGLES,
-					cube::TRIANGLES.size(),
-					GL_UNSIGNED_BYTE,
-					nullptr
-				);
-			} glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ibo); {
+						glDrawElements(
+							GL_TRIANGLES,
+							cube::TRIANGLES.size(),
+							GL_UNSIGNED_BYTE,
+							nullptr
+						);
+					} glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+				}
+			}
 		}
 	} glBindVertexArray(0);
 }
@@ -481,6 +484,18 @@ bool A1::keyInputEvent(int key, int action, int mods) {
 			return true;
 		} else if (key == GLFW_KEY_BACKSPACE) {
 			grid.decHeight(activePosition.x, activePosition.y);
+			return true;
+		} else if (key == GLFW_KEY_UP) {
+			activePosition.y = std::max(0, activePosition.y - 1);
+			return true;
+		} else if (key == GLFW_KEY_DOWN) {
+			activePosition.y = std::min((int)DIM - 1, activePosition.y + 1);
+			return true;
+		} else if (key == GLFW_KEY_LEFT) {
+			activePosition.x = std::max(0, activePosition.x - 1);
+			return true;
+		} else if (key == GLFW_KEY_RIGHT) {
+			activePosition.x = std::min((int)DIM - 1, activePosition.x + 1);
 			return true;
 		}
 
