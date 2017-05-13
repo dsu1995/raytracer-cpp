@@ -16,15 +16,23 @@
 using namespace glm;
 
 static const size_t DIM = 16;
-
+const int NUM_COLOURS = 8;
 
 //----------------------------------------------------------------------------------------
 // Constructor
 A1::A1()
-: current_col(0),
-	colour {0, 0, 0},
-	grid(DIM),
-	activePosition {0, 0} {}
+: grid(DIM),
+	activePosition {0, 0},
+	rd(),
+	mt(rd()),
+	randFloat(0.0, 1.0),
+	curColour(0),
+	colours() {
+
+	for (int i = 0; i < NUM_COLOURS; i++) {
+		colours.push_back(vec3(randFloat(mt), randFloat(mt), randFloat(mt)));
+	}
+}
 
 //----------------------------------------------------------------------------------------
 // Destructor
@@ -228,10 +236,10 @@ void A1::guiLogic() {
 		// Prefixing a widget name with "##" keeps it from being
 		// displayed.
 
-		ImGui::PushID( 0 );
-		ImGui::ColorEdit3( "##Colour", colour );
+		ImGui::PushID(0);
+		ImGui::ColorEdit3("##Colour", (float*)&colours.at(curColour));
 		ImGui::SameLine();
-		if( ImGui::RadioButton( "##Col", &current_col, 0 ) ) {
+		if(ImGui::RadioButton("##Col", &curColour, 0)) {
 			// Select this colour.
 		}
 		ImGui::PopID();
@@ -305,13 +313,15 @@ void A1::drawGrid() {
 
 void A1::drawCubes() {
 	glBindVertexArray(cube_vao); {
-		// set colour
-		glUniform3f(col_uni, 1, 0, 0);
-
 		for (int i = 0; i < DIM; i++) {
 			for (int j = 0; j < DIM; j++) {
 				int height = grid.getHeight(i, j);
 				if (height > 0) {
+					// set colour
+					int cellColourIndex = grid.getColour(i, j);
+					vec3& cellColour = colours.at(cellColourIndex);
+					glUniform3fv(col_uni, 1, value_ptr(cellColour));
+
 					// transform
 					mat4 modelMatrix;
 					modelMatrix = glm::scale(modelMatrix, vec3(1, height, 1));
@@ -473,32 +483,47 @@ bool A1::windowResizeEvent(int width, int height) {
  */
 bool A1::keyInputEvent(int key, int action, int mods) {
 	// Fill in with event handling code...
-	if(action == GLFW_PRESS) {
+	if(action == GLFW_PRESS || action == GLFW_REPEAT) {
 		// Respond to some key events.
 
 		if (key == GLFW_KEY_Q) {
 			glfwSetWindowShouldClose(m_window, GL_TRUE);
 			return true;
 		} else if (key == GLFW_KEY_SPACE) {
+			if (grid.getHeight(activePosition.x, activePosition.y) == 0) {
+				grid.setColour(activePosition.x, activePosition.y, curColour);
+			}
 			grid.incHeight(activePosition.x, activePosition.y);
 			return true;
 		} else if (key == GLFW_KEY_BACKSPACE) {
 			grid.decHeight(activePosition.x, activePosition.y);
 			return true;
-		} else if (key == GLFW_KEY_UP) {
-			activePosition.y = std::max(0, activePosition.y - 1);
-			return true;
-		} else if (key == GLFW_KEY_DOWN) {
-			activePosition.y = std::min((int)DIM - 1, activePosition.y + 1);
-			return true;
-		} else if (key == GLFW_KEY_LEFT) {
-			activePosition.x = std::max(0, activePosition.x - 1);
-			return true;
-		} else if (key == GLFW_KEY_RIGHT) {
-			activePosition.x = std::min((int)DIM - 1, activePosition.x + 1);
+		} else if (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN || key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT) {
+			int oldX = activePosition.x;
+			int oldY = activePosition.y;
+
+			if (key == GLFW_KEY_UP) {
+				activePosition.y = std::max(0, oldY - 1);
+			} else if (key == GLFW_KEY_DOWN) {
+				activePosition.y = std::min((int)DIM - 1, activePosition.y + 1);
+			} else if (key == GLFW_KEY_LEFT) {
+				activePosition.x = std::max(0, activePosition.x - 1);
+			} else if (key == GLFW_KEY_RIGHT) {
+				activePosition.x = std::min((int)DIM - 1, activePosition.x + 1);
+			}
+
+			if (mods & GLFW_MOD_SHIFT) {
+				grid.setColour(
+					activePosition.x, activePosition.y,
+					grid.getColour(oldX, oldY)
+				);
+				grid.setHeight(
+					activePosition.x, activePosition.y,
+					grid.getHeight(oldX, oldY)
+				);
+			}
 			return true;
 		}
-
 	}
 
 	return false;

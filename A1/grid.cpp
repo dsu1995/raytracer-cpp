@@ -43,6 +43,10 @@ void Grid::decHeight(int x, int y) {
 	cell = std::max(cell - 1, 0);
 }
 
+void Grid::setHeight(int x, int y, int h) {
+	m_heights[getIndex(x, y)] = h;
+}
+
 void Grid::setColour(int x, int y, int c) {
 	m_cols[getIndex(x, y)] = c;
 }

@@ -14,6 +14,7 @@ public:
 
 	void incHeight(int x, int y);
 	void decHeight(int x, int y);
+	void setHeight(int x, int y, int h);
 
 	void setColour(int x, int y, int c);
 

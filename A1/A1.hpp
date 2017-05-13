@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include <random>
+
 #include <glm/glm.hpp>
 
 #include "cs488-framework/CS488Window.hpp"
@@ -60,7 +63,12 @@ private:
 	glm::mat4 view;
 
 	Grid grid;
-	float colour[3];
-	int current_col;
 	glm::ivec2 activePosition;
+
+	std::vector<glm::vec3> colours;
+	int curColour;
+
+	std::random_device rd;
+	std::mt19937 mt;
+	std::uniform_real_distribution<float> randFloat;
 };
