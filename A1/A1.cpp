@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <imgui_impl_glfw_gl3.h>
 
 #include "cs488-framework/GlErrorCheck.hpp"
 
@@ -62,6 +63,8 @@ void A1::init() {
 	initGrid();
 	initCube();
 	initIndicatorTriangle();
+
+	glfwSetCharCallback(m_window, ImGui_ImplGlfwGL3_CharCallback);
 
 	CHECK_GL_ERRORS;
 
@@ -235,14 +238,15 @@ void A1::guiLogic() {
 
 		// Prefixing a widget name with "##" keeps it from being
 		// displayed.
-
-		ImGui::PushID(0);
-		ImGui::ColorEdit3("##Colour", (float*)&colours.at(curColour));
-		ImGui::SameLine();
-		if(ImGui::RadioButton("##Col", &curColour, 0)) {
-			// Select this colour.
+		for (int i = 0; i < NUM_COLOURS; i++) {
+			ImGui::PushID(i);
+			ImGui::ColorEdit3("##Colour", (float*)&colours.at(i));
+			ImGui::SameLine();
+			if (ImGui::RadioButton("##Col", &curColour, i)) {
+				grid.setColour(activePosition.x, activePosition.y, curColour);
+			}
+			ImGui::PopID();
 		}
-		ImGui::PopID();
 
 /*
 		// For convenience, you can uncomment this to show ImGui's massive
@@ -482,6 +486,12 @@ bool A1::windowResizeEvent(int width, int height) {
  * Event handler.  Handles key input events.
  */
 bool A1::keyInputEvent(int key, int action, int mods) {
+	if (ImGui::GetIO().WantCaptureKeyboard) {
+		ImGui_ImplGlfwGL3_KeyCallback(nullptr, key, 0, action, mods);
+		return true;
+	}
+
+
 	// Fill in with event handling code...
 	if(action == GLFW_PRESS || action == GLFW_REPEAT) {
 		// Respond to some key events.
@@ -498,17 +508,22 @@ bool A1::keyInputEvent(int key, int action, int mods) {
 		} else if (key == GLFW_KEY_BACKSPACE) {
 			grid.decHeight(activePosition.x, activePosition.y);
 			return true;
-		} else if (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN || key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT) {
+		} else if (
+				key == GLFW_KEY_UP || key == GLFW_KEY_W ||
+				key == GLFW_KEY_DOWN || key == GLFW_KEY_S ||
+				key == GLFW_KEY_LEFT || key == GLFW_KEY_A ||
+				key == GLFW_KEY_RIGHT || key == GLFW_KEY_D
+			) {
 			int oldX = activePosition.x;
 			int oldY = activePosition.y;
 
-			if (key == GLFW_KEY_UP) {
+			if (key == GLFW_KEY_UP || key == GLFW_KEY_W) {
 				activePosition.y = std::max(0, oldY - 1);
-			} else if (key == GLFW_KEY_DOWN) {
+			} else if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) {
 				activePosition.y = std::min((int)DIM - 1, activePosition.y + 1);
-			} else if (key == GLFW_KEY_LEFT) {
+			} else if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) {
 				activePosition.x = std::max(0, activePosition.x - 1);
-			} else if (key == GLFW_KEY_RIGHT) {
+			} else if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
 				activePosition.x = std::min((int)DIM - 1, activePosition.x + 1);
 			}
 
