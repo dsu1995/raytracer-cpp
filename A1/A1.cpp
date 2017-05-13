@@ -28,7 +28,9 @@ A1::A1()
 	mt(rd()),
 	randFloat(0.0, 1.0),
 	curColour(0),
-	colours() {
+	colours(),
+	isDragging(false),
+	prevX(0) {
 
 	for (int i = 0; i < NUM_COLOURS; i++) {
 		colours.push_back(vec3(randFloat(mt), randFloat(mt), randFloat(mt)));
@@ -64,6 +66,7 @@ void A1::init() {
 	initCube();
 	initIndicatorTriangle();
 
+	// bind IMGUI character listener callback
 	glfwSetCharCallback(m_window, ImGui_ImplGlfwGL3_CharCallback);
 
 	CHECK_GL_ERRORS;
@@ -277,9 +280,9 @@ void A1::draw() {
 	modelMatrix = glm::translate(
 		modelMatrix,
 		vec3(
-			-float(DIM) / 2.0f,
+			-float(DIM) / 2,
 			0,
-			-float(DIM) / 2.0f
+			-float(DIM) / 2
 		)
 	);
 
@@ -424,37 +427,52 @@ bool A1::cursorEnterWindowEvent(int entered) {
 	return eventHandled;
 }
 
+const double ROTATION_SENTIVITY = 0.5;
+
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles mouse cursor movement events.
  */
 bool A1::mouseMoveEvent(double xPos, double yPos) {
-	bool eventHandled = false;
-
 	if (!ImGui::IsMouseHoveringAnyWindow()) {
 		// Put some code here to handle rotations.  Probably need to
 		// check whether we're *dragging*, not just moving the mouse.
 		// Probably need some instance variables to track the current
 		// rotation amount, and maybe the previous X position (so
 		// that you can rotate relative to the *change* in X.
+		if (isDragging) {
+			double deltaX = xPos - prevX;
+			view = glm::rotate(
+				view,
+				glm::radians(float(deltaX * ROTATION_SENTIVITY)),
+				vec3(0, 1, 0)
+			);
+		}
+		prevX = xPos;
+		return true;
 	}
-
-	return eventHandled;
+	return false;
 }
 
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles mouse button events.
  */
-bool A1::mouseButtonInputEvent(int button, int actions, int mods) {
-	bool eventHandled = false;
-
+bool A1::mouseButtonInputEvent(int button, int action, int mods) {
 	if (!ImGui::IsMouseHoveringAnyWindow()) {
 		// The user clicked in the window.  If it's the left
 		// mouse button, initiate a rotation.
+		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+			if (action == GLFW_PRESS) {
+				isDragging = true;
+				return true;
+			} else if (action == GLFW_RELEASE) {
+				isDragging = false;
+				return true;
+			}
+		}
 	}
-
-	return eventHandled;
+	return false;
 }
 
 //----------------------------------------------------------------------------------------
@@ -486,7 +504,8 @@ bool A1::windowResizeEvent(int width, int height) {
  * Event handler.  Handles key input events.
  */
 bool A1::keyInputEvent(int key, int action, int mods) {
-	if (ImGui::GetIO().WantCaptureKeyboard) {
+	// send key events to IMGUI when mouse is hovering over a window instead of to the game
+	if (ImGui::IsMouseHoveringAnyWindow()) {
 		ImGui_ImplGlfwGL3_KeyCallback(nullptr, key, 0, action, mods);
 		return true;
 	}
@@ -520,11 +539,11 @@ bool A1::keyInputEvent(int key, int action, int mods) {
 			if (key == GLFW_KEY_UP || key == GLFW_KEY_W) {
 				activePosition.y = std::max(0, oldY - 1);
 			} else if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) {
-				activePosition.y = std::min((int)DIM - 1, activePosition.y + 1);
+				activePosition.y = std::min(int(DIM) - 1, activePosition.y + 1);
 			} else if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) {
 				activePosition.x = std::max(0, activePosition.x - 1);
 			} else if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) {
-				activePosition.x = std::min((int)DIM - 1, activePosition.x + 1);
+				activePosition.x = std::min(int(DIM) - 1, activePosition.x + 1);
 			}
 
 			if (mods & GLFW_MOD_SHIFT) {
