@@ -23,7 +23,8 @@ const int NUM_COLOURS = 8;
 //----------------------------------------------------------------------------------------
 // Constructor
 A1::A1()
-: grid(DIM),
+: view2(),
+	grid(DIM),
 	activePosition {0, 0},
 	rd(),
 	mt(rd()),
@@ -37,6 +38,15 @@ A1::A1()
 	for (int i = 0; i < NUM_COLOURS; i++) {
 		colours.push_back(vec3(randFloat(mt), randFloat(mt), randFloat(mt)));
 	}
+}
+
+void A1::reset() {
+	view2 = mat4();
+	grid.reset();
+	activePosition.x = activePosition.y = 0;
+	isDragging = false;
+	prevX = 0;
+	scaleOffset = 0;
 }
 
 //----------------------------------------------------------------------------------------
@@ -60,6 +70,7 @@ void A1::init() {
 	// Set up the uniforms
 	P_uni = m_shader.getUniformLocation("P");
 	V_uni = m_shader.getUniformLocation("V");
+	V2_uni = m_shader.getUniformLocation("V2");
 	M_uni = m_shader.getUniformLocation("M");
 	M2_uni = m_shader.getUniformLocation("M2");
 	col_uni = m_shader.getUniformLocation("colour");
@@ -234,6 +245,9 @@ void A1::guiLogic() {
 		if( ImGui::Button( "Quit Application" ) ) {
 			glfwSetWindowShouldClose(m_window, GL_TRUE);
 		}
+		if( ImGui::Button( "Reset" ) ) {
+			reset();
+		}
 
 		// Eventually you'll create multiple colour widgets with
 		// radio buttons.  If you use PushID/PopID to give them all
@@ -293,6 +307,7 @@ void A1::draw() {
 
 		glUniformMatrix4fv(P_uni, 1, GL_FALSE, value_ptr(proj));
 		glUniformMatrix4fv(V_uni, 1, GL_FALSE, value_ptr(view));
+		glUniformMatrix4fv(V2_uni, 1, GL_FALSE, value_ptr(view2));
 		glUniformMatrix4fv(M_uni, 1, GL_FALSE, value_ptr(modelMatrix));
 
 		// Just draw the grid for now.
@@ -444,8 +459,8 @@ bool A1::mouseMoveEvent(double xPos, double yPos) {
 		// that you can rotate relative to the *change* in X.
 		if (isDragging) {
 			double deltaX = xPos - prevX;
-			view = glm::rotate(
-				view,
+			view2 = glm::rotate(
+				view2,
 				glm::radians(float(deltaX * ROTATION_SENTIVITY)),
 				vec3(0, 1, 0)
 			);
@@ -497,7 +512,7 @@ bool A1::mouseScrollEvent(double xOffSet, double yOffSet) {
 
 		float scaleFactor = pow(1.1, offset);
 		scaleOffset += yOffSet;
-		view = glm::scale(view, vec3(scaleFactor, scaleFactor, scaleFactor));
+		view2 = glm::scale(view2, vec3(scaleFactor, scaleFactor, scaleFactor));
 	}
 	return false;
 }
@@ -533,6 +548,8 @@ bool A1::keyInputEvent(int key, int action, int mods) {
 		if (key == GLFW_KEY_Q) {
 			glfwSetWindowShouldClose(m_window, GL_TRUE);
 			return true;
+		} else if (key == GLFW_KEY_R) {
+			reset();
 		} else if (key == GLFW_KEY_SPACE) {
 			if (grid.getHeight(activePosition.x, activePosition.y) == 0) {
 				grid.setColour(activePosition.x, activePosition.y, curColour);

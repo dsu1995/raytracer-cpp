@@ -39,10 +39,13 @@ private:
 	void drawCubes();
 	void drawActiveIndicator();
 
+	void reset();
+
 	// Fields related to the shader and uniforms.
 	ShaderProgram m_shader;
 	GLint P_uni; // Uniform location for Projection matrix.
 	GLint V_uni; // Uniform location for View matrix.
+	GLint V2_uni;
 	GLint M_uni; // Uniform location for Model matrix.
 	GLint M2_uni;
 	GLint col_uni;   // Uniform location for cube colour.
@@ -61,6 +64,8 @@ private:
 	// Matrices controlling the camera and projection.
 	glm::mat4 proj;
 	glm::mat4 view;
+
+	glm::mat4 view2;
 
 	Grid grid;
 	glm::ivec2 activePosition;
