@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 
 #include <imgui/imgui.h>
 #include <glm/glm.hpp>
@@ -30,7 +31,8 @@ A1::A1()
 	curColour(0),
 	colours(),
 	isDragging(false),
-	prevX(0) {
+	prevX(0),
+	scaleOffset(0) {
 
 	for (int i = 0; i < NUM_COLOURS; i++) {
 		colours.push_back(vec3(randFloat(mt), randFloat(mt), randFloat(mt)));
@@ -475,16 +477,29 @@ bool A1::mouseButtonInputEvent(int button, int action, int mods) {
 	return false;
 }
 
+const int MAX_SCALE_OFFSET = 30;
+const int MIN_SCALE_OFFSET = -20;
+
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles mouse scroll wheel events.
  */
 bool A1::mouseScrollEvent(double xOffSet, double yOffSet) {
-	bool eventHandled = false;
+	int offset = yOffSet > 0 ? 1 : -1;
 
 	// Zoom in or out.
+	if (!ImGui::IsMouseHoveringAnyWindow()) {
+		// at limit, return
+		if (offset < 0 && scaleOffset <= MIN_SCALE_OFFSET ||
+			offset > 0 && scaleOffset >= MAX_SCALE_OFFSET) {
+			return true;
+		}
 
-	return eventHandled;
+		float scaleFactor = pow(1.1, offset);
+		scaleOffset += yOffSet;
+		view = glm::scale(view, vec3(scaleFactor, scaleFactor, scaleFactor));
+	}
+	return false;
 }
 
 //----------------------------------------------------------------------------------------

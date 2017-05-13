@@ -74,4 +74,6 @@ private:
 
 	bool isDragging;
 	double prevX;
+
+	double scaleOffset;
 };
