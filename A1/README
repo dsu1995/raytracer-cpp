@@ -7,3 +7,5 @@ Manual
 - the currently active tile has additional indicator arrows on the 4 borders to more clearly differentiate it from other tiles.
 - in addition to supporting the arrow keys to move the active tile, the WASD keys are also supported
 - Keyboard input in the colour selector is supported. If the mouse is currently hovering over the Debug Window, all keyboard input is directed toward the Debug Window, and no keyboard events will be triggered in the actual application (i.e. moving the active tile using arrow keys, increasing height using the space bar). The application keyboard shortcuts are only enabled if the mouse if not hovering over the Debug Window.
+- The default colours are randomly generated on each run of the program
+- Key repeat is enabled for easy bulk operations
