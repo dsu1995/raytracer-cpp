@@ -1,15 +1,18 @@
-#include "A2.hpp"
-#include "cs488-framework/GlErrorCheck.hpp"
-
 #include <iostream>
-using namespace std;
 
+#define GLM_SWIZZLE // enables vec3.xy()
 #include <imgui/imgui.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/io.hpp>
-using namespace glm;
+
+#include "cs488-framework/GlErrorCheck.hpp"
+
+#include "A2.hpp"
+
+#include "matutils.hpp"
+
 
 //----------------------------------------------------------------------------------------
 // Constructor
@@ -21,21 +24,50 @@ VertexData::VertexData()
 	colours.resize(kMaxVertices);
 }
 
+const glm::vec3 cubeVertices[8] = {
+	{ -1, -1, -1 },
+	{ -1,  1, -1 },
+	{ -1,  1,  1 },
+	{ -1, -1,  1 },
+	{  1, -1,  1 },
+	{  1, -1, -1 },
+	{  1,  1, -1 },
+	{  1,  1,  1 },
+};
+
+const unsigned int cubeEdgeIndices[12][2] = {
+	{ 0, 1 },
+	{ 0, 3 },
+	{ 0, 5 },
+	{ 1, 2 },
+	{ 1, 6 },
+	{ 2, 3 },
+	{ 2, 7 },
+	{ 3, 4 },
+	{ 4, 5 },
+	{ 4, 7 },
+	{ 5, 6 },
+	{ 6, 7 }
+};
 
 //----------------------------------------------------------------------------------------
 // Constructor
 A2::A2()
-	: m_currentLineColour(vec3(0.0f))
-{
-
-}
+: m_currentLineColour(glm::vec3(0.0f)),
+	viewMatrix{matutils::lookAt(
+		glm::vec3(
+			0.0f,
+			0.5f * M_SQRT1_2,
+			0.5f * M_SQRT1_2
+		),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f)
+	)}
+{}
 
 //----------------------------------------------------------------------------------------
 // Destructor
-A2::~A2()
-{
-
-}
+A2::~A2() {}
 
 //----------------------------------------------------------------------------------------
 /*
@@ -95,7 +127,7 @@ void A2::generateVertexBuffers()
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_positions);
 
 		// Set to GL_DYNAMIC_DRAW because the data store will be modified frequently.
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vec2) * kMaxVertices, nullptr,
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * kMaxVertices, nullptr,
 				GL_DYNAMIC_DRAW);
 
 
@@ -112,7 +144,7 @@ void A2::generateVertexBuffers()
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_colours);
 
 		// Set to GL_DYNAMIC_DRAW because the data store will be modified frequently.
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vec3) * kMaxVertices, nullptr,
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * kMaxVertices, nullptr,
 				GL_DYNAMIC_DRAW);
 
 
@@ -178,6 +210,12 @@ void A2::drawLine(
 	m_vertexData.numVertices += 2;
 }
 
+const glm::vec3 COLOUR_WHITE(1, 1, 1);
+
+glm::mat4 A2::getTransformMatrix() const {
+	return viewMatrix * matutils::rotationMatrixY(M_PI / 4);
+}
+
 //----------------------------------------------------------------------------------------
 /*
  * Called once per frame, before guiLogic().
@@ -190,20 +228,40 @@ void A2::appLogic()
 	initLineData();
 
 	// Draw outer square:
-	setLineColour(vec3(1.0f, 0.7f, 0.8f));
-	drawLine(vec2(-0.5f, -0.5f), vec2(0.5f, -0.5f));
-	drawLine(vec2(0.5f, -0.5f), vec2(0.5f, 0.5f));
-	drawLine(vec2(0.5f, 0.5f), vec2(-0.5f, 0.5f));
-	drawLine(vec2(-0.5f, 0.5f), vec2(-0.5f, -0.5f));
+	// setLineColour(vec3(1.0f, 0.7f, 0.8f));
+	// drawLine(vec2(-0.5f, -0.5f), vec2(0.5f, -0.5f));
+	// drawLine(vec2(0.5f, -0.5f), vec2(0.5f, 0.5f));
+	// drawLine(vec2(0.5f, 0.5f), vec2(-0.5f, 0.5f));
+	// drawLine(vec2(-0.5f, 0.5f), vec2(-0.5f, -0.5f));
 
 
-	// Draw inner square:
-	setLineColour(vec3(0.2f, 1.0f, 1.0f));
-	drawLine(vec2(-0.25f, -0.25f), vec2(0.25f, -0.25f));
-	drawLine(vec2(0.25f, -0.25f), vec2(0.25f, 0.25f));
-	drawLine(vec2(0.25f, 0.25f), vec2(-0.25f, 0.25f));
-	drawLine(vec2(-0.25f, 0.25f), vec2(-0.25f, -0.25f));
+	// // Draw inner square:
+	// setLineColour(vec3(0.2f, 1.0f, 1.0f));
+	// drawLine(vec2(-0.25f, -0.25f), vec2(0.25f, -0.25f));
+	// drawLine(vec2(0.25f, -0.25f), vec2(0.25f, 0.25f));
+	// drawLine(vec2(0.25f, 0.25f), vec2(-0.25f, 0.25f));
+	// drawLine(vec2(-0.25f, 0.25f), vec2(-0.25f, -0.25f));
+
+	drawCube();
 }
+
+void A2::drawCube() {
+	setLineColour(COLOUR_WHITE);
+
+	glm::mat4 modelMatrix = matutils::scaleMatrix(glm::vec3(0.3));
+	glm::mat4 transform = modelMatrix * getTransformMatrix();
+
+	for (int i = 0; i < 12; i++) {
+		const glm::vec3& vertex1 = cubeVertices[cubeEdgeIndices[i][0]];
+		const glm::vec3& vertex2 = cubeVertices[cubeEdgeIndices[i][1]];
+
+		glm::vec4 transformed1 = transform * glm::vec4(vertex1, 1);
+		glm::vec4 transformed2 = transform * glm::vec4(vertex2, 1);
+
+		drawLine(transformed1.xz(), transformed2.xz());
+	}
+}
+
 
 //----------------------------------------------------------------------------------------
 /*
@@ -244,7 +302,7 @@ void A2::uploadVertexDataToVbos() {
 	//-- Copy vertex position data into VBO, m_vbo_positions:
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_positions);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vec2) * m_vertexData.numVertices,
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec2) * m_vertexData.numVertices,
 				m_vertexData.positions.data());
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -254,7 +312,7 @@ void A2::uploadVertexDataToVbos() {
 	//-- Copy vertex colour data into VBO, m_vbo_colours:
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_colours);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vec3) * m_vertexData.numVertices,
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec3) * m_vertexData.numVertices,
 				m_vertexData.colours.data());
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 

@@ -56,8 +56,8 @@ protected:
 	void setLineColour(const glm::vec3 & colour);
 
 	void drawLine (
-			const glm::vec2 & v0,
-			const glm::vec2 & v1
+		const glm::vec2 & v0,
+		const glm::vec2 & v1
 	);
 
 	ShaderProgram m_shader;
@@ -70,4 +70,10 @@ protected:
 
 	glm::vec3 m_currentLineColour;
 
+private:
+	glm::mat4 getTransformMatrix() const;
+	void drawCube();
+
+	glm::mat4 viewMatrix;
+	glm::mat4 perspectiveMatrix;
 };

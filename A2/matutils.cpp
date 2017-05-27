@@ -69,4 +69,23 @@ namespace matutils {
 
 		return R * translationMatrix(-from);
 	}
+
+	glm::mat4 perspective(
+		float fov,
+		float aspectRatio,
+		float near,
+		float far
+	) {
+		float cotTheta_2 = 1 / tan(fov / 2);
+
+		glm::mat4 result;
+		result[0][0] = cotTheta_2 / aspectRatio;
+		result[1][1] = cotTheta_2;
+		result[2][2] = (far + near) / (far - near);
+		result[3][2] = -2 * far * near / (far - near);
+		result[2][3] = 1;
+		result[3][3] = 0;
+
+		return result;
+	}
 }
