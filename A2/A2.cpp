@@ -7,6 +7,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/io.hpp>
 
+#include "glm/ext.hpp"
+
 #include "cs488-framework/GlErrorCheck.hpp"
 
 #include "A2.hpp"
@@ -54,16 +56,34 @@ const unsigned int cubeEdgeIndices[12][2] = {
 // Constructor
 A2::A2()
 : m_currentLineColour(glm::vec3(0.0f)),
-	viewMatrix{matutils::lookAt(
-		glm::vec3(
-			0.0f,
-			0.5f * M_SQRT1_2,
-			0.5f * M_SQRT1_2
-		),
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f)
-	)}
-{}
+	initialViewMatrix{
+		matutils::lookAt(
+			glm::vec3(
+				0.0f,
+				0.5f * M_SQRT1_2,
+				0.5f * M_SQRT1_2
+			),
+			glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f)
+		)
+	}
+{
+	reset();
+}
+
+void A2::reset() {
+	viewMatrix = initialViewMatrix;
+
+	curInputMode = InputMode::ROTATE_MODEL;
+
+	isLeftMouseDragging = false;
+	isMiddleMouseDragging = false;
+	isRightMouseDragging = false;
+
+	leftMousePrevPos = 0;
+	middleMousePrevPos = 0;
+	rightMousePrevPos = 0;
+}
 
 //----------------------------------------------------------------------------------------
 // Destructor
@@ -87,6 +107,16 @@ void A2::init()
 	generateVertexBuffers();
 
 	mapVboDataToVertexAttributeLocation();
+
+	perspectiveMatrix = matutils::perspective(
+		M_PI / 6,
+		float(m_framebufferWidth) / float(m_framebufferHeight),
+		1,
+		1000
+	);
+
+	std::cout << m_framebufferWidth << ' ' << m_framebufferHeight << std::endl;
+	std::cout << glm::to_string(perspectiveMatrix) << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -213,7 +243,8 @@ void A2::drawLine(
 const glm::vec3 COLOUR_WHITE(1, 1, 1);
 
 glm::mat4 A2::getTransformMatrix() const {
-	return viewMatrix * matutils::rotationMatrixY(M_PI / 4);
+	return perspectiveMatrix * viewMatrix * matutils::scaleMatrix(glm::vec3(0.25));
+	 // * matutils::rotationMatrixY(1);
 }
 
 //----------------------------------------------------------------------------------------
@@ -258,7 +289,10 @@ void A2::drawCube() {
 		glm::vec4 transformed1 = transform * glm::vec4(vertex1, 1);
 		glm::vec4 transformed2 = transform * glm::vec4(vertex2, 1);
 
-		drawLine(transformed1.xz(), transformed2.xz());
+		drawLine(
+			(1 / transformed1.z) * transformed1.xy(),
+			(1 / transformed2.z) * transformed2.xy()
+		);
 	}
 }
 
@@ -269,21 +303,40 @@ void A2::drawCube() {
  */
 void A2::guiLogic()
 {
-	static bool firstRun(true);
+	static bool firstRun = true;
 	if (firstRun) {
 		ImGui::SetNextWindowPos(ImVec2(50, 50));
 		firstRun = false;
 	}
 
-	static bool showDebugWindow(true);
+	static bool showDebugWindow = true;
 	ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
-	float opacity(0.5f);
+	float opacity = 0.5f;
 
-	ImGui::Begin("Properties", &showDebugWindow, ImVec2(100,100), opacity,
-			windowFlags);
-
+	ImGui::Begin("Properties", &showDebugWindow, ImVec2(100,100), opacity, windowFlags);
 
 		// Add more gui elements here here ...
+		ImGui::PushID(0);
+			ImGui::RadioButton("Rotate View", &curInputMode, InputMode::ROTATE_VIEW);
+		ImGui::PopID();
+		ImGui::PushID(1);
+			ImGui::RadioButton("Translate View", &curInputMode, InputMode::TRANSLATE_VIEW);
+		ImGui::PopID();
+		ImGui::PushID(2);
+			ImGui::RadioButton("Perspective", &curInputMode, InputMode::PERSPECTIVE);
+		ImGui::PopID();
+		ImGui::PushID(3);
+			ImGui::RadioButton("Rotate Model", &curInputMode, InputMode::ROTATE_MODEL);
+		ImGui::PopID();
+		ImGui::PushID(4);
+			ImGui::RadioButton("Translate Model", &curInputMode, InputMode::TRANSLATE_MODEL);
+		ImGui::PopID();
+		ImGui::PushID(5);
+			ImGui::RadioButton("Scale Model", &curInputMode, InputMode::SCALE_MODEL);
+		ImGui::PopID();
+		ImGui::PushID(6);
+			ImGui::RadioButton("Viewport", &curInputMode, InputMode::VIEWPORT);
+		ImGui::PopID();
 
 
 		// Create Button, and check if it was clicked:
@@ -344,19 +397,14 @@ void A2::draw()
 /*
  * Called once, after program is signaled to terminate.
  */
-void A2::cleanup()
-{
-
-}
+void A2::cleanup() {}
 
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles cursor entering the window area events.
  */
-bool A2::cursorEnterWindowEvent (
-		int entered
-) {
-	bool eventHandled(false);
+bool A2::cursorEnterWindowEvent(int entered) {
+	bool eventHandled = false;
 
 	// Fill in with event handling code...
 
@@ -367,27 +415,26 @@ bool A2::cursorEnterWindowEvent (
 /*
  * Event handler.  Handles mouse cursor movement events.
  */
-bool A2::mouseMoveEvent (
-		double xPos,
-		double yPos
-) {
-	bool eventHandled(false);
+bool A2::mouseMoveEvent(double xPos, double yPos) {
+	if (isLeftMouseDragging) {
+		double deltaX = xPos - prevX;
+		view2 = glm::rotate(
+			view2,
+			glm::radians(float(deltaX * ROTATION_SENTIVITY)),
+			vec3(0, 1, 0)
+		);
+	}
+	prevX = xPos;
 
-	// Fill in with event handling code...
-
-	return eventHandled;
+	return true;
 }
 
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles mouse button events.
  */
-bool A2::mouseButtonInputEvent (
-		int button,
-		int actions,
-		int mods
-) {
-	bool eventHandled(false);
+bool A2::mouseButtonInputEvent(int button, int actions, int mods) {
+	bool eventHandled = false;
 
 	// Fill in with event handling code...
 
@@ -398,11 +445,8 @@ bool A2::mouseButtonInputEvent (
 /*
  * Event handler.  Handles mouse scroll wheel events.
  */
-bool A2::mouseScrollEvent (
-		double xOffSet,
-		double yOffSet
-) {
-	bool eventHandled(false);
+bool A2::mouseScrollEvent(double xOffSet, double yOffSet) {
+	bool eventHandled = false;
 
 	// Fill in with event handling code...
 
@@ -413,11 +457,8 @@ bool A2::mouseScrollEvent (
 /*
  * Event handler.  Handles window resize events.
  */
-bool A2::windowResizeEvent (
-		int width,
-		int height
-) {
-	bool eventHandled(false);
+bool A2::windowResizeEvent(int width, int height) {
+	bool eventHandled = false;
 
 	// Fill in with event handling code...
 
@@ -428,12 +469,8 @@ bool A2::windowResizeEvent (
 /*
  * Event handler.  Handles key input events.
  */
-bool A2::keyInputEvent (
-		int key,
-		int action,
-		int mods
-) {
-	bool eventHandled(false);
+bool A2::keyInputEvent(int key, int action, int mods) {
+	bool eventHandled = false;
 
 	// Fill in with event handling code...
 

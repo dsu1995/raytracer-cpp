@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include <iostream>
+
 namespace matutils {
 	glm::mat4 translationMatrix(const glm::vec3& delta) {
 		glm::mat4 m;
@@ -77,6 +79,9 @@ namespace matutils {
 		float far
 	) {
 		float cotTheta_2 = 1 / tan(fov / 2);
+
+		std::cout << "cot(theta/2)" << cotTheta_2 << std::endl;
+		std::cout << "aspectRatio" << aspectRatio << std::endl;
 
 		glm::mat4 result;
 		result[0][0] = cotTheta_2 / aspectRatio;

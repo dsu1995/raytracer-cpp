@@ -74,6 +74,30 @@ private:
 	glm::mat4 getTransformMatrix() const;
 	void drawCube();
 
+	void reset();
+
+	const glm::mat4 initialViewMatrix;
+
 	glm::mat4 viewMatrix;
 	glm::mat4 perspectiveMatrix;
+
+	enum class InputMode {
+		ROTATE_VIEW,
+		TRANSLATE_VIEW,
+		PERSPECTIVE,
+		ROTATE_MODEL,
+		TRANSLATE_MODEL,
+		SCALE_MODEL,
+		VIEWPORT
+	};
+
+	InputMode curInputMode;
+
+	bool isLeftMouseDragging;
+	bool isMiddleMouseDragging;
+	bool isRightMouseDragging;
+
+	double leftMousePrevPos;
+	double middleMousePrevPos;
+	double rightMousePrevPos;
 };
