@@ -8,6 +8,12 @@
 
 #include <vector>
 
+#include "View.hpp"
+#include "InputHandler.hpp"
+#include "RotateViewHandler.hpp"
+#include "TranslateViewHandler.hpp"
+
+
 // Set a global maximum number of vertices in order to pre-allocate VBO data
 // in one shot, rather than reallocating each frame.
 const GLsizei kMaxVertices = 1000;
@@ -76,28 +82,36 @@ private:
 
 	void reset();
 
-	const glm::mat4 initialViewMatrix;
+	View view;
 
-	glm::mat4 viewMatrix;
 	glm::mat4 perspectiveMatrix;
 
-	enum class InputMode {
-		ROTATE_VIEW,
-		TRANSLATE_VIEW,
-		PERSPECTIVE,
-		ROTATE_MODEL,
-		TRANSLATE_MODEL,
-		SCALE_MODEL,
-		VIEWPORT
-	};
+	// enum class InputMode {
+	// 	ROTATE_VIEW,
+	// 	TRANSLATE_VIEW,
+	// 	PERSPECTIVE,
+	// 	ROTATE_MODEL,
+	// 	TRANSLATE_MODEL,
+	// 	SCALE_MODEL,
+	// 	VIEWPORT
+	// };
 
-	InputMode curInputMode;
+	// InputMode curInputMode;
+
+	RotateViewHandler rotateViewHandler;
+	TranslateViewHandler translateViewHandler;
+
+	std::vector<InputHandler*> inputHandlers;
+	int curInputHandler;
+	// InputHandler* curInputHandler;
 
 	bool isLeftMouseDragging;
 	bool isMiddleMouseDragging;
 	bool isRightMouseDragging;
 
-	double leftMousePrevPos;
-	double middleMousePrevPos;
-	double rightMousePrevPos;
+	double mousePrevPos;
+
+	// double leftMousePrevPos;
+	// double middleMousePrevPos;
+	// double rightMousePrevPos;
 };

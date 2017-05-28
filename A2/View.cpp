@@ -18,6 +18,8 @@ View::View()
 	reset();
 }
 
+View::~View() {}
+
 void View::reset() {
 	cur = initial;
 }
@@ -38,6 +40,6 @@ void View::translate(const glm::vec3& delta) {
 	cur = matutils::translationMatrix(delta) * cur;
 }
 
-const glm::mat4& matrix() const {
+const glm::mat4& View::getMatrix() const {
 	return cur;
 }

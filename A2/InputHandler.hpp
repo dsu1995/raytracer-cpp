@@ -1,11 +1,13 @@
 #pragma once
 
+#include <string>
+
 class InputHandler {
 public:
-	InputHandler();
-	virtual ~InputHandler();
+	InputHandler() {}
+	virtual ~InputHandler() {}
 
-	virtual string getName() const = 0;
+	virtual std::string getName() const = 0;
 
 	virtual void onLeftMouseDrag(double prevPos, double curPos) = 0;
 	virtual void onMiddleMouseDrag(double prevPos, double curPos) = 0;

@@ -14,12 +14,11 @@ public:
 
 	void translate(const glm::vec3& delta);
 
-	const glm::mat4& get() const;
+	const glm::mat4& getMatrix() const;
 
-private:
 	void reset();
 
+private:
 	const glm::mat4 initial;
-
 	glm::mat4 cur;
 };
