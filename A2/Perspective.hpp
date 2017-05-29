@@ -11,6 +11,10 @@ public:
 	void changeNear(float delta);
 	void changeFar(float delta);
 
+	float getFovDegrees() const;
+	float getNear() const;
+	float getFar() const;
+
 	const glm::mat4& getMatrix() const;
 
 	void reset();

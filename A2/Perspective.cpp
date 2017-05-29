@@ -48,13 +48,26 @@ void Perspective::changeFov(float deltaDegrees) {
 }
 
 void Perspective::changeNear(float delta) {
-	near += delta;
+	near *= delta;
 
 	updateMatrix();
 }
 
 void Perspective::changeFar(float delta) {
-	far += delta;
+	far *= delta;
 
 	updateMatrix();
 }
+
+float Perspective::getFovDegrees() const {
+	return fovDegrees;
+}
+
+float Perspective::getNear() const {
+	return near;
+}
+
+float Perspective::getFar() const {
+	return far;
+}
+

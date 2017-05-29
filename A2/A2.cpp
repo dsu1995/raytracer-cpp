@@ -276,7 +276,7 @@ const std::vector<glm::vec3> GNOMON_VERTICES = {
 	{0, 0, 0},
 	{1, 0, 0},
 	{0, 1, 0},
-	{0, 1, 1}
+	{0, 0, 1}
 };
 
 struct ColouredEdge {
@@ -376,7 +376,7 @@ void A2::drawCube() {
 	{
 		setLineColour(COLOUR_WHITE);
 
-		glm::mat4 cubeTransform = transform * matutils::scaleMatrix(glm::vec3(0.25)) * cubeModelMatrix.matrix;
+		glm::mat4 cubeTransform = transform * cubeModelMatrix.matrix;
 
 		std::vector<glm::vec2> vertices;
 
@@ -426,6 +426,8 @@ void A2::guiLogic()
 		}
 
 		ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
+		ImGui::Text("FOV: %.1f degrees", perspective.getFovDegrees());
+		ImGui::Text("(Near, Far): (%.1f, %.1f)", perspective.getNear(), perspective.getFar());
 
 	ImGui::End();
 }
@@ -524,6 +526,10 @@ bool A2::mouseMoveEvent(double xPos, double yPos) {
  * Event handler.  Handles mouse button events.
  */
 bool A2::mouseButtonInputEvent(int button, int action, int mods) {
+	if (ImGui::IsMouseHoveringAnyWindow()) {
+		return false;
+	}
+
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
 		if (action == GLFW_PRESS) {
 			isLeftMouseDragging = true;
