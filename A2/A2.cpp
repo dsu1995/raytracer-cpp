@@ -292,7 +292,7 @@ const std::vector<ColouredEdge> GNOMON_EDGES = {
 };
 
 void A2::drawWorldGnomon() {
-	glm::mat4 transform = perspective.getMatrix() * view.matrix;
+	glm::mat4 transform = perspective.getMatrix() * view.matrix * matutils::scaleMatrix(glm::vec3(0.1));
 
 	std::vector<glm::vec2> vertices;
 
@@ -352,7 +352,7 @@ const std::vector<ColouredEdge> CUBE_GNOMON_EDGES = {
 };
 
 void A2::drawCube() {
-	glm::mat4 transform = perspective.getMatrix() * view.matrix;
+	glm::mat4 transform = perspective.getMatrix() * view.matrix * matutils::scaleMatrix(glm::vec3(0.1));
 
 	{
 		glm::mat4 gnomonTransform = transform * cubeGnomonModelMatrix.matrix;
