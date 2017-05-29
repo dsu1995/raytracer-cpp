@@ -19,6 +19,5 @@ public:
 	void reset();
 
 private:
-	const glm::mat4 initial;
-	glm::mat4 cur;
+	glm::mat4 matrix;
 };

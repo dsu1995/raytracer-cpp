@@ -2,18 +2,19 @@
 
 #include "matutils.hpp"
 
+
+const glm::mat4 initialMatrix = matutils::lookAt(
+	glm::vec3(
+		0.0f,
+		0.5f * M_SQRT1_2,
+		0.5f * M_SQRT1_2
+	),
+	glm::vec3(0.0f, 0.0f, 0.0f),
+	glm::vec3(0.0f, 1.0f, 0.0f)
+);
+
+
 View::View()
-: initial{
-		matutils::lookAt(
-			glm::vec3(
-				0.0f,
-				0.5f * M_SQRT1_2,
-				0.5f * M_SQRT1_2
-			),
-			glm::vec3(0.0f, 0.0f, 0.0f),
-			glm::vec3(0.0f, 1.0f, 0.0f)
-		)
-	}
 {
 	reset();
 }
@@ -21,25 +22,25 @@ View::View()
 View::~View() {}
 
 void View::reset() {
-	cur = initial;
+	matrix = initialMatrix;
 }
 
 void View::rotateX(float radians) {
-	cur = matutils::rotationMatrixX(radians) * cur;
+	matrix = matutils::rotationMatrixX(radians) * matrix;
 }
 
 void View::rotateY(float radians) {
-	cur = matutils::rotationMatrixY(radians) * cur;
+	matrix = matutils::rotationMatrixY(radians) * matrix;
 }
 
 void View::rotateZ(float radians) {
-	cur = matutils::rotationMatrixZ(radians) * cur;
+	matrix = matutils::rotationMatrixZ(radians) * matrix;
 }
 
 void View::translate(const glm::vec3& delta) {
-	cur = matutils::translationMatrix(delta) * cur;
+	matrix = matutils::translationMatrix(delta) * matrix;
 }
 
 const glm::mat4& View::getMatrix() const {
-	return cur;
+	return matrix;
 }
