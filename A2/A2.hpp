@@ -15,6 +15,9 @@
 #include "RotateViewHandler.hpp"
 #include "TranslateViewHandler.hpp"
 #include "PerspectiveHandler.hpp"
+#include "RotateModelHandler.hpp"
+#include "TranslateModelHandler.hpp"
+#include "ScaleModelHandler.hpp"
 
 
 // Set a global maximum number of vertices in order to pre-allocate VBO data
@@ -81,43 +84,32 @@ protected:
 
 private:
 	glm::mat4 getTransformMatrix() const;
+	void drawWorldGnomon();
 	void drawCube();
 
 	void reset();
 
-	// View view;
 	ResettableMat4 view;
 
-	// glm::mat4 perspectiveMatrix;
+	ResettableMat4 cubeModelMatrix;
+	ResettableMat4 cubeGnomonModelMatrix;
+
 	Perspective perspective;
-
-	// enum class InputMode {
-	// 	ROTATE_VIEW,
-	// 	TRANSLATE_VIEW,
-	// 	PERSPECTIVE,
-	// 	ROTATE_MODEL,
-	// 	TRANSLATE_MODEL,
-	// 	SCALE_MODEL,
-	// 	VIEWPORT
-	// };
-
-	// InputMode curInputMode;
 
 	RotateViewHandler rotateViewHandler;
 	TranslateViewHandler translateViewHandler;
 	PerspectiveHandler perspectiveHandler;
 
+	RotateModelHandler rotateModelHandler;
+	TranslateModelHandler translateModelHandler;
+	ScaleModelHandler scaleModelHandler;
+
 	std::vector<InputHandler*> inputHandlers;
 	int curInputHandler;
-	// InputHandler* curInputHandler;
 
 	bool isLeftMouseDragging;
 	bool isMiddleMouseDragging;
 	bool isRightMouseDragging;
 
 	double mousePrevPos;
-
-	// double leftMousePrevPos;
-	// double middleMousePrevPos;
-	// double rightMousePrevPos;
 };

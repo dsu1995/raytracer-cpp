@@ -23,4 +23,6 @@ namespace matutils {
 		float near,
 		float far
 	);
+
+	glm::vec2 homogenize(glm::vec4 v);
 }

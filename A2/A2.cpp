@@ -1,4 +1,5 @@
 #include <iostream>
+#include <utility>
 
 #define GLM_SWIZZLE // enables vec3.xy()
 #include <imgui/imgui.h>
@@ -26,32 +27,6 @@ VertexData::VertexData()
 	colours.resize(kMaxVertices);
 }
 
-const glm::vec3 cubeVertices[8] = {
-	{ -1, -1, -1 },
-	{ -1,  1, -1 },
-	{ -1,  1,  1 },
-	{ -1, -1,  1 },
-	{  1, -1,  1 },
-	{  1, -1, -1 },
-	{  1,  1, -1 },
-	{  1,  1,  1 },
-};
-
-const unsigned int cubeEdgeIndices[12][2] = {
-	{ 0, 1 },
-	{ 0, 3 },
-	{ 0, 5 },
-	{ 1, 2 },
-	{ 1, 6 },
-	{ 2, 3 },
-	{ 2, 7 },
-	{ 3, 4 },
-	{ 4, 5 },
-	{ 4, 7 },
-	{ 5, 6 },
-	{ 6, 7 }
-};
-
 //----------------------------------------------------------------------------------------
 // Constructor
 A2::A2()
@@ -68,13 +43,21 @@ A2::A2()
 		)
 	),
 	perspective(1),
+	cubeModelMatrix(glm::mat4()),
+	cubeGnomonModelMatrix(glm::mat4()),
 	rotateViewHandler(view),
 	translateViewHandler(view),
 	perspectiveHandler(perspective),
+	rotateModelHandler(cubeModelMatrix, cubeGnomonModelMatrix),
+	translateModelHandler(cubeModelMatrix, cubeGnomonModelMatrix),
+	scaleModelHandler(cubeModelMatrix),
 	inputHandlers {
 		&rotateViewHandler,
 		&translateViewHandler
-		&perspectiveHandler
+		&perspectiveHandler,
+		&rotateModelHandler,
+		&translateModelHandler,
+		&scaleModelHandler
 	}
 {
 	reset();
@@ -82,21 +65,17 @@ A2::A2()
 
 void A2::reset() {
 	view.reset();
+	perspective.reset();
+	cubeModelMatrix.reset();
+	cubeGnomonModelMatrix.reset();
 
-	// curInputMode = InputMode::ROTATE_MODEL;
-
-	// curInputHandler = &rotateViewHandler; // TODO should be rotateModelHandler
-
-	curInputHandler = 0; // TODO should be rotateModelHandler
+	curInputHandler = 3;
 
 	isLeftMouseDragging = false;
 	isMiddleMouseDragging = false;
 	isRightMouseDragging = false;
 
 	mousePrevPos = 0;
-	// leftMousePrevPos = 0;
-	// middleMousePrevPos = 0;
-	// rightMousePrevPos = 0;
 }
 
 //----------------------------------------------------------------------------------------
@@ -122,13 +101,14 @@ void A2::init()
 
 	mapVboDataToVertexAttributeLocation();
 
+	perspective = Perspective(float(m_framebufferWidth) / float(m_framebufferHeight));
 
-	perspectiveMatrix = matutils::perspective(
-		M_PI / 6,
-		float(m_framebufferWidth) / float(m_framebufferHeight),
-		1,
-		1000
-	);
+	// perspectiveMatrix = matutils::perspective(
+	// 	M_PI / 6,
+	// 	float(m_framebufferWidth) / float(m_framebufferHeight),
+	// 	1,
+	// 	1000
+	// );
 
 	// std::cout << m_framebufferWidth << ' ' << m_framebufferHeight << std::endl;
 	// std::cout << glm::to_string(perspectiveMatrix) << std::endl;
@@ -255,12 +235,6 @@ void A2::drawLine(
 	m_vertexData.numVertices += 2;
 }
 
-const glm::vec3 COLOUR_WHITE(1, 1, 1);
-
-glm::mat4 A2::getTransformMatrix() const {
-	return perspectiveMatrix * view.matrix * matutils::scaleMatrix(glm::vec3(0.25));
-	 // * matutils::rotationMatrixY(1);
-}
 
 //----------------------------------------------------------------------------------------
 /*
@@ -288,26 +262,134 @@ void A2::appLogic()
 	// drawLine(vec2(0.25f, 0.25f), vec2(-0.25f, 0.25f));
 	// drawLine(vec2(-0.25f, 0.25f), vec2(-0.25f, -0.25f));
 
+	drawWorldGnomon();
+
 	drawCube();
 }
 
-void A2::drawCube() {
-	setLineColour(COLOUR_WHITE);
+const glm::vec3 COLOUR_WHITE(1, 1, 1);
+const glm::vec3 COLOUR_RED(1, 0, 0);
+const glm::vec3 COLOUR_GREEN(0, 1, 0);
+const glm::vec3 COLOUR_BLUE(0, 0, 1);
 
-	glm::mat4 modelMatrix = matutils::scaleMatrix(glm::vec3(0.3));
-	glm::mat4 transform = modelMatrix * getTransformMatrix();
+const std::vector<glm::vec3> GNOMON_VERTICES = {
+	{0, 0, 0},
+	{1, 0, 0},
+	{0, 1, 0},
+	{0, 1, 1}
+};
 
-	for (int i = 0; i < 12; i++) {
-		const glm::vec3& vertex1 = cubeVertices[cubeEdgeIndices[i][0]];
-		const glm::vec3& vertex2 = cubeVertices[cubeEdgeIndices[i][1]];
+struct ColouredEdge {
+	unsigned int vertex1Index;
+	unsigned int vertex2Index;
+	glm::vec3 colour;
+};
 
-		glm::vec4 transformed1 = transform * glm::vec4(vertex1, 1);
-		glm::vec4 transformed2 = transform * glm::vec4(vertex2, 1);
+const std::vector<ColouredEdge> GNOMON_EDGES = {
+	{0, 1, COLOUR_RED},
+	{0, 2, COLOUR_GREEN},
+	{0, 3, COLOUR_BLUE}
+};
 
+void A2::drawWorldGnomon() {
+	glm::mat4 transform = perspective.matrix * view.matrix;
+
+	std::vector<glm::vec2> vertices;
+
+	for (const glm::vec3& vertex: GNOMON_VERTICES) {
+		glm::vec2 v = matutils::homogenize(transform * glm::vec4(vertex, 1));
+		vertices.push_back(v);
+	}
+
+	for (const ColouredEdge& edge: GNOMON_EDGES) {
+		setLineColour(edge.colour);
 		drawLine(
-			(1 / transformed1.z) * transformed1.xy(),
-			(1 / transformed2.z) * transformed2.xy()
+			vertices.at(edge.vertex1Index),
+			vertices.at(edge.vertex2Index)
 		);
+	}
+}
+
+const glm::vec3 COLOUR_YELLOW(1, 1, 0);
+const glm::vec3 COLOUR_CYAN(0, 1, 1);
+const glm::vec3 COLOUR_MAGENTA(1, 0, 1);
+
+const std::vector<glm::vec3> CUBE_VERTICES = {
+	{ -1, -1, -1 },
+	{ -1,  1, -1 },
+	{ -1,  1,  1 },
+	{ -1, -1,  1 },
+	{  1, -1,  1 },
+	{  1, -1, -1 },
+	{  1,  1, -1 },
+	{  1,  1,  1 },
+};
+
+struct Edge {
+	unsigned int vertex1Index;
+	unsigned int vertex2Index;
+};
+
+const std::vector<Edge> CUBE_EDGES = {
+	{ 0, 1 },
+	{ 0, 3 },
+	{ 0, 5 },
+	{ 1, 2 },
+	{ 1, 6 },
+	{ 2, 3 },
+	{ 2, 7 },
+	{ 3, 4 },
+	{ 4, 5 },
+	{ 4, 7 },
+	{ 5, 6 },
+	{ 6, 7 }
+};
+
+const std::vector<ColouredEdge> CUBE_GNOMON_EDGES = {
+	{0, 1, COLOUR_MAGENTA},
+	{0, 2, COLOUR_CYAN},
+	{0, 3, COLOUR_YELLOW}
+};
+
+void A2::drawCube() {
+	glm::mat4 transform = perspective.matrix * view.matrix;
+
+	{
+		glm::mat4 gnomonTransform = transform * cubeGnomonModelMatrix.matrix;
+
+		std::vector<glm::vec2> vertices;
+
+		for (const glm::vec3& vertex: GNOMON_VERTICES) {
+			glm::vec2 v = matutils::homogenize(gnomonTransform * glm::vec4(vertex, 1));
+			vertices.push_back(v);
+		}
+
+		for (const ColouredEdge& edge: CUBE_GNOMON_EDGES) {
+			setLineColour(edge.colour);
+			drawLine(
+				vertices.at(edge.vertex1Index),
+				vertices.at(edge.vertex2Index)
+			);
+		}
+	}
+
+	{
+		setLineColour(COLOUR_WHITE);
+
+		glm::mat4 cubeTransform = transform * matutils::scaleMatrix(glm::vec3(0.25)) * cubeModelMatrix.matrix;
+
+		std::vector<glm::vec2> vertices;
+
+		for (const glm::vec3& vertex: CUBE_VERTICES) {
+			glm::vec2 v = matutils::homogenize(cubeTransform * glm::vec4(vertex, 1));
+		}
+
+		for (const Edge& edge: CUBE_EDGES) {
+			drawLine(
+				vertices.at(edge.vertex1Index),
+				vertices.at(edge.vertex2Index)
+			);
+		}
 	}
 }
 
@@ -526,19 +608,34 @@ bool A2::windowResizeEvent(int width, int height) {
  */
 bool A2::keyInputEvent(int key, int action, int mods) {
 	if (action == GLFW_PRESS) {
-		// Rotate View
+		// rotateViewHandler
 		if (key == GLFW_KEY_O) {
 			curInputHandler = 0;
 			return true;
 		}
-		// Translate View
+		// translateViewHandler
 		else if (key == GLFW_KEY_N) {
 			curInputHandler = 1;
 			return true;
 		}
-		// Perspective
+		// perspectiveHandler
 		else if (key == GLFW_KEY_P) {
 			curInputHandler = 2;
+			return true;
+		}
+		// rotateModelHandler
+		else if (key == GLFW_KEY_R) {
+			curInputHandler = 3;
+			return true;
+		}
+		// translateModelHandler
+		else if (key == GLFW_KEY_T) {
+			curInputHandler = 4;
+			return true;
+		}
+		// scaleModelHandler
+		else if (key == GLFW_KEY_S) {
+			curInputHandler = 5;
 			return true;
 		}
 	}

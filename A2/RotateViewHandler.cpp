@@ -5,7 +5,7 @@
 #include "matutils.hpp"
 
 
-RotateViewHandler::RotateViewHandler(View& view)
+RotateViewHandler::RotateViewHandler(ResettableMat4& view)
 : view(view)
 {}
 

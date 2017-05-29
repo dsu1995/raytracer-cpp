@@ -80,8 +80,8 @@ namespace matutils {
 	) {
 		float cotTheta_2 = 1 / tan(fov / 2);
 
-		std::cout << "cot(theta/2)" << cotTheta_2 << std::endl;
-		std::cout << "aspectRatio" << aspectRatio << std::endl;
+		// std::cout << "cot(theta/2)" << cotTheta_2 << std::endl;
+		// std::cout << "aspectRatio" << aspectRatio << std::endl;
 
 		glm::mat4 result;
 		result[0][0] = cotTheta_2 / aspectRatio;
@@ -92,5 +92,9 @@ namespace matutils {
 		result[3][3] = 0;
 
 		return result;
+	}
+
+	glm::vec2 homogenize(glm::vec4 v) {
+		return (1 / v.z) * v.xy();
 	}
 }
