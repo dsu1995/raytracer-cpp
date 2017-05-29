@@ -96,4 +96,8 @@ namespace matutils {
 	glm::vec2 homogenize(glm::vec4 v) {
 		return (1 / v.z) * v.xy();
 	}
+
+	glm::vec3 getTranslation(glm::mat4 mat) {
+		return (mat * glm::vec4(0, 0, 0, 1)).xyz();
+	}
 }

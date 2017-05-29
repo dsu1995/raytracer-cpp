@@ -20,7 +20,14 @@ const double SENTIVITY = 0.001;
 void ScaleModelHandler::onLeftMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	glm::mat4 scaleMatrix = matutils::scaleMatrix(glm::vec3(1 + delta * SENTIVITY, 1, 1));
+	glm::vec3 translation = matutils::getTranslation(cubeModelMatrix.matrix);
+	glm::mat4 translateToOrigin = matutils::translationMatrix(-translation);
+	glm::mat4 translateToPosition = matutils::translationMatrix(translation);
+
+	glm::mat4 scaleMatrix =
+		translateToPosition *
+		matutils::scaleMatrix(glm::vec3(1 + delta * SENTIVITY, 1, 1)) *
+		translateToOrigin;
 
 	cubeModelMatrix.matrix = scaleMatrix * cubeModelMatrix.matrix;
 }
@@ -29,7 +36,14 @@ void ScaleModelHandler::onLeftMouseDrag(double prevPos, double curPos) {
 void ScaleModelHandler::onMiddleMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	glm::mat4 scaleMatrix = matutils::scaleMatrix(glm::vec3(1, 1 + delta * SENTIVITY, 1));
+	glm::vec3 translation = matutils::getTranslation(cubeModelMatrix.matrix);
+	glm::mat4 translateToOrigin = matutils::translationMatrix(-translation);
+	glm::mat4 translateToPosition = matutils::translationMatrix(translation);
+
+	glm::mat4 scaleMatrix =
+		translateToPosition *
+		matutils::scaleMatrix(glm::vec3(1, 1 + delta * SENTIVITY, 1)) *
+		translateToOrigin;
 
 	cubeModelMatrix.matrix = scaleMatrix * cubeModelMatrix.matrix;
 }
@@ -38,7 +52,14 @@ void ScaleModelHandler::onMiddleMouseDrag(double prevPos, double curPos) {
 void ScaleModelHandler::onRightMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	glm::mat4 scaleMatrix = matutils::scaleMatrix(glm::vec3(1, 1, 1 + delta * SENTIVITY));
+	glm::vec3 translation = matutils::getTranslation(cubeModelMatrix.matrix);
+	glm::mat4 translateToOrigin = matutils::translationMatrix(-translation);
+	glm::mat4 translateToPosition = matutils::translationMatrix(translation);
+
+	glm::mat4 scaleMatrix =
+		translateToPosition *
+		matutils::scaleMatrix(glm::vec3(1, 1, 1 + delta * SENTIVITY)) *
+		translateToOrigin;
 
 	cubeModelMatrix.matrix = scaleMatrix * cubeModelMatrix.matrix;
 }
