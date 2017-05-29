@@ -56,12 +56,25 @@ const unsigned int cubeEdgeIndices[12][2] = {
 // Constructor
 A2::A2()
 : m_currentLineColour(glm::vec3(0.0f)),
-	view(),
+	view(
+		matutils::lookAt(
+			glm::vec3(
+				0.0f,
+				0.5f * M_SQRT1_2,
+				0.5f * M_SQRT1_2
+			),
+			glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f)
+		)
+	),
+	perspective(1),
 	rotateViewHandler(view),
 	translateViewHandler(view),
+	perspectiveHandler(perspective),
 	inputHandlers {
 		&rotateViewHandler,
 		&translateViewHandler
+		&perspectiveHandler
 	}
 {
 	reset();
@@ -108,6 +121,7 @@ void A2::init()
 	generateVertexBuffers();
 
 	mapVboDataToVertexAttributeLocation();
+
 
 	perspectiveMatrix = matutils::perspective(
 		M_PI / 6,
@@ -244,7 +258,7 @@ void A2::drawLine(
 const glm::vec3 COLOUR_WHITE(1, 1, 1);
 
 glm::mat4 A2::getTransformMatrix() const {
-	return perspectiveMatrix * view.getMatrix() * matutils::scaleMatrix(glm::vec3(0.25));
+	return perspectiveMatrix * view.matrix * matutils::scaleMatrix(glm::vec3(0.25));
 	 // * matutils::rotationMatrixY(1);
 }
 
@@ -512,12 +526,19 @@ bool A2::windowResizeEvent(int width, int height) {
  */
 bool A2::keyInputEvent(int key, int action, int mods) {
 	if (action == GLFW_PRESS) {
+		// Rotate View
 		if (key == GLFW_KEY_O) {
 			curInputHandler = 0;
 			return true;
 		}
+		// Translate View
 		else if (key == GLFW_KEY_N) {
 			curInputHandler = 1;
+			return true;
+		}
+		// Perspective
+		else if (key == GLFW_KEY_P) {
+			curInputHandler = 2;
 			return true;
 		}
 	}

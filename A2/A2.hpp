@@ -8,10 +8,13 @@
 
 #include <vector>
 
-#include "View.hpp"
+#include "ResettableMat4.hpp"
+#include "Perspective.hpp"
+
 #include "InputHandler.hpp"
 #include "RotateViewHandler.hpp"
 #include "TranslateViewHandler.hpp"
+#include "PerspectiveHandler.hpp"
 
 
 // Set a global maximum number of vertices in order to pre-allocate VBO data
@@ -82,9 +85,11 @@ private:
 
 	void reset();
 
-	View view;
+	// View view;
+	ResettableMat4 view;
 
-	glm::mat4 perspectiveMatrix;
+	// glm::mat4 perspectiveMatrix;
+	Perspective perspective;
 
 	// enum class InputMode {
 	// 	ROTATE_VIEW,
@@ -100,6 +105,7 @@ private:
 
 	RotateViewHandler rotateViewHandler;
 	TranslateViewHandler translateViewHandler;
+	PerspectiveHandler perspectiveHandler;
 
 	std::vector<InputHandler*> inputHandlers;
 	int curInputHandler;

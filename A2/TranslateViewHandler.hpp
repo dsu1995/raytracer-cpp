@@ -3,12 +3,12 @@
 #include <string>
 
 #include "InputHandler.hpp"
-#include "View.hpp"
+#include "ResettableMat4.hpp"
 
 
 class TranslateViewHandler : public InputHandler {
 public:
-	TranslateViewHandler(View& view);
+	TranslateViewHandler(ResettableMat4& view);
 	virtual ~TranslateViewHandler();
 
 	virtual std::string getName() const;
@@ -18,5 +18,5 @@ public:
 	virtual void onRightMouseDrag(double prevPos, double curPos);
 
 private:
-	View& view;
+	ResettableMat4& view;
 };

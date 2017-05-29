@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 
 
-TranslateViewHandler::TranslateViewHandler(View& view)
+TranslateViewHandler::TranslateViewHandler(ResettableMat4& view)
 : view(view)
 {}
 
@@ -20,19 +20,19 @@ const double SENTIVITY = 0.5;
 void TranslateViewHandler::onLeftMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	view.translate(glm::vec3(delta * SENTIVITY, 0, 0));
+	view.matrix = matutils::translationMatrix(glm::vec3(delta * SENTIVITY, 0, 0)) * view.matrix;
 }
 
 // translate along y axis
 void TranslateViewHandler::onMiddleMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	view.translate(glm::vec3(0, delta * SENTIVITY, 0));
+	view.matrix = matutils::translationMatrix(glm::vec3(0, delta * SENTIVITY, 0)) * view.matrix;
 }
 
 // translate along z axis
 void TranslateViewHandler::onRightMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	view.translate(glm::vec3(0, 0, delta * SENTIVITY));
+	view.matrix = matutils::translationMatrix(glm::vec3(0, 0, delta * SENTIVITY)) * view.matrix;
 }

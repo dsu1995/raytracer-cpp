@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include "matutils.hpp"
+
 
 RotateViewHandler::RotateViewHandler(View& view)
 : view(view)
@@ -20,19 +22,19 @@ const double SENTIVITY = 0.5;
 void RotateViewHandler::onLeftMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	view.rotateX(delta * SENTIVITY);
+	view.matrix = matutils::rotationMatrixX(delta * SENTIVITY) * view.matrix;
 }
 
 // rotate around y axis
 void RotateViewHandler::onMiddleMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	view.rotateY(delta * SENTIVITY);
+	view.matrix = matutils::rotationMatrixY(delta * SENTIVITY) * view.matrix;
 }
 
 // rotate around z axis
 void RotateViewHandler::onRightMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	view.rotateZ(delta * SENTIVITY);
+	view.matrix = matutils::rotationMatrixZ(delta * SENTIVITY) * view.matrix;
 }
