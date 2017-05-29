@@ -53,7 +53,7 @@ A2::A2()
 	scaleModelHandler(cubeModelMatrix),
 	inputHandlers {
 		&rotateViewHandler,
-		&translateViewHandler
+		&translateViewHandler,
 		&perspectiveHandler,
 		&rotateModelHandler,
 		&translateModelHandler,
@@ -292,7 +292,7 @@ const std::vector<ColouredEdge> GNOMON_EDGES = {
 };
 
 void A2::drawWorldGnomon() {
-	glm::mat4 transform = perspective.matrix * view.matrix;
+	glm::mat4 transform = perspective.getMatrix() * view.matrix;
 
 	std::vector<glm::vec2> vertices;
 
@@ -352,7 +352,7 @@ const std::vector<ColouredEdge> CUBE_GNOMON_EDGES = {
 };
 
 void A2::drawCube() {
-	glm::mat4 transform = perspective.matrix * view.matrix;
+	glm::mat4 transform = perspective.getMatrix() * view.matrix;
 
 	{
 		glm::mat4 gnomonTransform = transform * cubeGnomonModelMatrix.matrix;
@@ -382,6 +382,7 @@ void A2::drawCube() {
 
 		for (const glm::vec3& vertex: CUBE_VERTICES) {
 			glm::vec2 v = matutils::homogenize(cubeTransform * glm::vec4(vertex, 1));
+			vertices.push_back(v);
 		}
 
 		for (const Edge& edge: CUBE_EDGES) {
@@ -418,30 +419,6 @@ void A2::guiLogic()
 				ImGui::RadioButton(inputHandlers.at(i)->getName().c_str(), &curInputHandler, i);
 			ImGui::PopID();
 		}
-
-
-		// ImGui::PushID(0);
-		// 	ImGui::RadioButton("Rotate View", &curInputHandler, &rotateViewHandler);
-		// ImGui::PopID();
-		// ImGui::PushID(1);
-		// 	ImGui::RadioButton("Translate View", &curInputHandler, &translateViewHandler);
-		// ImGui::PopID();
-		// ImGui::PushID(2);
-		// 	ImGui::RadioButton("Perspective", &curInputHandler, InputMode::PERSPECTIVE);
-		// ImGui::PopID();
-		// ImGui::PushID(3);
-		// 	ImGui::RadioButton("Rotate Model", &curInputHandler, InputMode::ROTATE_MODEL);
-		// ImGui::PopID();
-		// ImGui::PushID(4);
-		// 	ImGui::RadioButton("Translate Model", &curInputHandler, InputMode::TRANSLATE_MODEL);
-		// ImGui::PopID();
-		// ImGui::PushID(5);
-		// 	ImGui::RadioButton("Scale Model", &curInputHandler, InputMode::SCALE_MODEL);
-		// ImGui::PopID();
-		// ImGui::PushID(6);
-		// 	ImGui::RadioButton("Viewport", &curInputHandler, InputMode::VIEWPORT);
-		// ImGui::PopID();
-
 
 		// Create Button, and check if it was clicked:
 		if( ImGui::Button( "Quit Application" ) ) {
@@ -567,10 +544,10 @@ bool A2::mouseButtonInputEvent(int button, int action, int mods) {
 	}
 	else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
 		if (action == GLFW_PRESS) {
-			isMiddleMouseDragging = true;
+			isRightMouseDragging = true;
 			return true;
 		} else if (action == GLFW_RELEASE) {
-			isMiddleMouseDragging = false;
+			isRightMouseDragging = false;
 			return true;
 		}
 	}
@@ -608,8 +585,18 @@ bool A2::windowResizeEvent(int width, int height) {
  */
 bool A2::keyInputEvent(int key, int action, int mods) {
 	if (action == GLFW_PRESS) {
+		// quit
+		if (key == GLFW_KEY_Q) {
+			glfwSetWindowShouldClose(m_window, GL_TRUE);
+			return true;
+		}
+		// reset
+		else if (key == GLFW_KEY_A) {
+			reset();
+			return true;
+		}
 		// rotateViewHandler
-		if (key == GLFW_KEY_O) {
+		else if (key == GLFW_KEY_O) {
 			curInputHandler = 0;
 			return true;
 		}

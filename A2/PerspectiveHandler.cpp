@@ -7,8 +7,6 @@ PerspectiveHandler::PerspectiveHandler(Perspective& perspective)
 : perspective(perspective)
 {}
 
-PerspectiveHandler::~PerspectiveHandler() {}
-
 std::string PerspectiveHandler::getName() const {
 	return "Perspective";
 }
@@ -18,7 +16,7 @@ std::string PerspectiveHandler::getName() const {
 void PerspectiveHandler::onLeftMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	perspective.changeFOV(delta);
+	perspective.changeFov(delta);
 }
 
 const double SENTIVITY = 0.5;
@@ -27,12 +25,12 @@ const double SENTIVITY = 0.5;
 void PerspectiveHandler::onMiddleMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	view.changeNear(delta * SENTIVITY);
+	perspective.changeNear(delta * SENTIVITY);
 }
 
 // move far plane
 void PerspectiveHandler::onRightMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	view.changeFar(delta * SENTIVITY);
+	perspective.changeFar(delta * SENTIVITY);
 }

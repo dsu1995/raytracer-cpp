@@ -10,14 +10,12 @@ TranslateModelHandler::TranslateModelHandler(ResettableMat4& cubeModelMatrix, Re
 	cubeGnomonModelMatrix(cubeGnomonModelMatrix)
 {}
 
-TranslateModelHandler::~TranslateModelHandler() {}
-
 std::string TranslateModelHandler::getName() const {
 	return "Translate Model";
 }
 
 
-const double SENTIVITY = 0.5;
+const double SENTIVITY = 0.01;
 
 // translate along x axis
 void TranslateModelHandler::onLeftMouseDrag(double prevPos, double curPos) {

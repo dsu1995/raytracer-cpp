@@ -6,17 +6,15 @@
 
 
 ScaleModelHandler::ScaleModelHandler(ResettableMat4& cubeModelMatrix)
-: cubeModelMatrix(cubeModelMatrix),
+: cubeModelMatrix(cubeModelMatrix)
 {}
-
-ScaleModelHandler::~ScaleModelHandler() {}
 
 std::string ScaleModelHandler::getName() const {
 	return "Scale Model";
 }
 
 
-const double SENTIVITY = 0.05;
+const double SENTIVITY = 0.0005;
 
 // translate along x axis
 void ScaleModelHandler::onLeftMouseDrag(double prevPos, double curPos) {

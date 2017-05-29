@@ -9,8 +9,6 @@ RotateViewHandler::RotateViewHandler(ResettableMat4& view)
 : view(view)
 {}
 
-RotateViewHandler::~RotateViewHandler() {}
-
 std::string RotateViewHandler::getName() const {
 	return "Rotate View";
 }

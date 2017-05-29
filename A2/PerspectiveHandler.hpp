@@ -9,7 +9,6 @@
 class PerspectiveHandler : public InputHandler {
 public:
 	PerspectiveHandler(Perspective& perspective);
-	virtual ~PerspectiveHandler();
 
 	virtual std::string getName() const;
 

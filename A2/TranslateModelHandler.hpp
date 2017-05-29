@@ -9,7 +9,6 @@
 class TranslateModelHandler : public InputHandler {
 public:
 	TranslateModelHandler(ResettableMat4& cubeModelMatrix, ResettableMat4& cubeGnomonModelMatrix);
-	virtual ~TranslateModelHandler();
 
 	virtual std::string getName() const;
 

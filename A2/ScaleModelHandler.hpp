@@ -9,7 +9,6 @@
 class ScaleModelHandler : public InputHandler {
 public:
 	ScaleModelHandler(ResettableMat4& cubeModelMatrix);
-	virtual ~ScaleModelHandler();
 
 	virtual std::string getName() const;
 

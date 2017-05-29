@@ -2,19 +2,19 @@
 
 #include <glm/glm.hpp>
 
+#include "matutils.hpp"
+
 
 TranslateViewHandler::TranslateViewHandler(ResettableMat4& view)
 : view(view)
 {}
-
-TranslateViewHandler::~TranslateViewHandler() {}
 
 std::string TranslateViewHandler::getName() const {
 	return "Translate View";
 }
 
 
-const double SENTIVITY = 0.5;
+const double SENTIVITY = 0.01;
 
 // translate along x axis
 void TranslateViewHandler::onLeftMouseDrag(double prevPos, double curPos) {

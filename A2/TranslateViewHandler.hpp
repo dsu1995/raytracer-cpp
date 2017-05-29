@@ -9,7 +9,6 @@
 class TranslateViewHandler : public InputHandler {
 public:
 	TranslateViewHandler(ResettableMat4& view);
-	virtual ~TranslateViewHandler();
 
 	virtual std::string getName() const;
 

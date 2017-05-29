@@ -10,14 +10,12 @@ RotateModelHandler::RotateModelHandler(ResettableMat4& cubeModelMatrix, Resettab
 	cubeGnomonModelMatrix(cubeGnomonModelMatrix)
 {}
 
-RotateModelHandler::~RotateModelHandler() {}
-
 std::string RotateModelHandler::getName() const {
 	return "Rotate Model";
 }
 
 
-const double SENTIVITY = 0.5;
+const double SENTIVITY = 0.01;
 
 // rotate around x axis
 void RotateModelHandler::onLeftMouseDrag(double prevPos, double curPos) {

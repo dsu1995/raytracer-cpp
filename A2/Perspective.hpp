@@ -6,7 +6,6 @@
 class Perspective {
 public:
 	Perspective(float aspectRatio);
-	~Perspective();
 
 	void changeFov(float deltaDegrees);
 	void changeNear(float delta);

@@ -9,7 +9,6 @@
 class RotateViewHandler : public InputHandler {
 public:
 	RotateViewHandler(ResettableMat4& view);
-	virtual ~RotateViewHandler();
 
 	virtual std::string getName() const;
 

@@ -9,7 +9,6 @@
 class RotateModelHandler : public InputHandler {
 public:
 	RotateModelHandler(ResettableMat4& cubeModelMatrix, ResettableMat4& cubeGnomonModelMatrix);
-	virtual ~RotateModelHandler();
 
 	virtual std::string getName() const;
 
