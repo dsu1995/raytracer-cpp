@@ -46,23 +46,13 @@ void RotateModelHandler::onMiddleMouseDrag(double prevPos, double curPos) {
 	glm::vec4 worldYUnitVector(0, 1, 0, 0);
 	glm::vec4 modelYUnitVector = cubeModelMatrix.matrix * worldYUnitVector;
 
-	float x = modelYUnitVector.x;
-	float y = modelYUnitVector.y;
-	float z = modelYUnitVector.z;
-
-	float phi = atan2(z, x);
-	float psi = 3 * M_PI / 2 + atan2(y, sqrt(x * x + z * z));
+	double delta = (curPos - prevPos) * SENSITIVITY;
 
 	glm::vec3 translation = matutils::getTranslation(cubeModelMatrix.matrix);
 
-	double delta = (curPos - prevPos) * SENSITIVITY;
 	glm::mat4 rotationMatrix =
 		matutils::translationMatrix(translation) *
-		matutils::rotationMatrixY(phi) *
-		matutils::rotationMatrixZ(psi) *
-		matutils::rotationMatrixY(delta) *
-		matutils::rotationMatrixZ(-psi) *
-		matutils::rotationMatrixY(-phi) *
+		matutils::rotationAroundAxisMatrix(delta, modelYUnitVector.xyz()) *
 		matutils::translationMatrix(-translation);
 
 	cubeModelMatrix.matrix = rotationMatrix * cubeModelMatrix.matrix;
@@ -71,9 +61,17 @@ void RotateModelHandler::onMiddleMouseDrag(double prevPos, double curPos) {
 
 // rotate around z axis
 void RotateModelHandler::onRightMouseDrag(double prevPos, double curPos) {
-	double delta = curPos - prevPos;
+	glm::vec4 worldZUnitVector(0, 0, 1, 0);
+	glm::vec4 modelZUnitVector = cubeModelMatrix.matrix * worldZUnitVector;
 
-	glm::mat4 rotationMatrix = matutils::rotationMatrixZ(delta * SENSITIVITY);
+	double delta = (curPos - prevPos) * SENSITIVITY;
+
+	glm::vec3 translation = matutils::getTranslation(cubeModelMatrix.matrix);
+
+	glm::mat4 rotationMatrix =
+		matutils::translationMatrix(translation) *
+		matutils::rotationAroundAxisMatrix(delta, modelZUnitVector.xyz()) *
+		matutils::translationMatrix(-translation);
 
 	cubeModelMatrix.matrix = rotationMatrix * cubeModelMatrix.matrix;
 	cubeGnomonModelMatrix.matrix = rotationMatrix * cubeGnomonModelMatrix.matrix;

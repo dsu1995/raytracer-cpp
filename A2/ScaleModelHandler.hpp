@@ -18,4 +18,6 @@ public:
 
 private:
 	ResettableMat4& cubeModelMatrix;
+
+	void scale(double prevPos, double curPos, int index);
 };
