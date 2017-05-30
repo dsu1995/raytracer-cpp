@@ -8,7 +8,7 @@
 
 class ScaleModelHandler : public InputHandler {
 public:
-	ScaleModelHandler(ResettableMat4& cubeModelMatrix);
+	ScaleModelHandler(ResettableMat4& matrix);
 
 	virtual std::string getName() const;
 
@@ -17,7 +17,7 @@ public:
 	virtual void onRightMouseDrag(double prevPos, double curPos);
 
 private:
-	ResettableMat4& cubeModelMatrix;
+	ResettableMat4& matrix;
 
 	void scale(double prevPos, double curPos, int index);
 };

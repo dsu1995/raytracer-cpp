@@ -91,8 +91,12 @@ private:
 
 	ResettableMat4 view;
 
-	ResettableMat4 cubeModelMatrix;
-	ResettableMat4 cubeGnomonModelMatrix;
+	ResettableMat4 cubeScaleMatrix;
+	ResettableMat4 cubeRotationMatrix;
+	ResettableMat4 cubeTranslationMatrix;
+
+	// ResettableMat4 cubeModelMatrix;
+	// ResettableMat4 cubeGnomonModelMatrix;
 
 	Perspective perspective;
 

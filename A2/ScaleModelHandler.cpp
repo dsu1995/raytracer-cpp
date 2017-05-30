@@ -5,8 +5,8 @@
 #include "matutils.hpp"
 
 
-ScaleModelHandler::ScaleModelHandler(ResettableMat4& cubeModelMatrix)
-: cubeModelMatrix(cubeModelMatrix)
+ScaleModelHandler::ScaleModelHandler(ResettableMat4& matrix)
+: matrix(matrix)
 {}
 
 std::string ScaleModelHandler::getName() const {
@@ -35,12 +35,6 @@ void ScaleModelHandler::scale(double prevPos, double curPos, int index) {
 	double scaleFactor = 1 + (curPos - prevPos) * SENTIVITY;
 	glm::vec3 scaleVector(1, 1, 1);
 	scaleVector[index] = scaleFactor;
-	glm::vec3 translation = matutils::getTranslation(cubeModelMatrix.matrix);
 
-	glm::mat4 scaleMatrix =
-		matutils::translationMatrix(translation) *
-		matutils::scaleMatrix(scaleVector) *
-		matutils::translationMatrix(-translation);
-
-	cubeModelMatrix.matrix = scaleMatrix * cubeModelMatrix.matrix;
+	matrix.matrix = matutils::scaleMatrix(scaleVector) * matrix.matrix;
 }

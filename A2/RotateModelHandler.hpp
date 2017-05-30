@@ -8,7 +8,7 @@
 
 class RotateModelHandler : public InputHandler {
 public:
-	RotateModelHandler(ResettableMat4& cubeModelMatrix, ResettableMat4& cubeGnomonModelMatrix);
+	RotateModelHandler(ResettableMat4& matrix);
 
 	virtual std::string getName() const;
 
@@ -17,6 +17,7 @@ public:
 	virtual void onRightMouseDrag(double prevPos, double curPos);
 
 private:
-	ResettableMat4& cubeModelMatrix;
-	ResettableMat4& cubeGnomonModelMatrix;
+	ResettableMat4& matrix;
+
+	void rotate(double prevPos, double curPos, int index);
 };

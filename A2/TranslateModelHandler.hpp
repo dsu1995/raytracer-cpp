@@ -8,7 +8,10 @@
 
 class TranslateModelHandler : public InputHandler {
 public:
-	TranslateModelHandler(ResettableMat4& cubeModelMatrix, ResettableMat4& cubeGnomonModelMatrix);
+	TranslateModelHandler(
+		ResettableMat4& translationMatrix,
+		const ResettableMat4& rotationMatrix
+	);
 
 	virtual std::string getName() const;
 
@@ -17,6 +20,8 @@ public:
 	virtual void onRightMouseDrag(double prevPos, double curPos);
 
 private:
-	ResettableMat4& cubeModelMatrix;
-	ResettableMat4& cubeGnomonModelMatrix;
+	ResettableMat4& translationMatrix;
+	const ResettableMat4& rotationMatrix;
+
+	void translate(double prevPos, double curPos, int index);
 };

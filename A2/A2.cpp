@@ -43,14 +43,15 @@ A2::A2()
 		)
 	),
 	perspective(1),
-	cubeModelMatrix(glm::mat4()),
-	cubeGnomonModelMatrix(glm::mat4()),
+	cubeScaleMatrix(glm::mat4()),
+	cubeRotationMatrix(glm::mat4()),
+	cubeTranslationMatrix(glm::mat4()),
 	rotateViewHandler(view),
 	translateViewHandler(view),
 	perspectiveHandler(perspective),
-	rotateModelHandler(cubeModelMatrix, cubeGnomonModelMatrix),
-	translateModelHandler(cubeModelMatrix, cubeGnomonModelMatrix),
-	scaleModelHandler(cubeModelMatrix),
+	rotateModelHandler(cubeRotationMatrix),
+	translateModelHandler(cubeTranslationMatrix, cubeRotationMatrix),
+	scaleModelHandler(cubeScaleMatrix),
 	inputHandlers {
 		&rotateViewHandler,
 		&translateViewHandler,
@@ -66,8 +67,9 @@ A2::A2()
 void A2::reset() {
 	view.reset();
 	perspective.reset();
-	cubeModelMatrix.reset();
-	cubeGnomonModelMatrix.reset();
+	cubeScaleMatrix.reset();
+	cubeRotationMatrix.reset();
+	cubeTranslationMatrix.reset();
 
 	curInputHandler = 3;
 
@@ -352,15 +354,17 @@ const std::vector<ColouredEdge> CUBE_GNOMON_EDGES = {
 };
 
 void A2::drawCube() {
-	glm::mat4 transform = perspective.getMatrix() * view.matrix * matutils::scaleMatrix(glm::vec3(0.1));
+	glm::mat4 transform = perspective.getMatrix() *
+		view.matrix *
+		matutils::scaleMatrix(glm::vec3(0.1)) *
+		cubeTranslationMatrix.matrix *
+		cubeRotationMatrix.matrix;
 
 	{
-		glm::mat4 gnomonTransform = transform * cubeGnomonModelMatrix.matrix;
-
 		std::vector<glm::vec2> vertices;
 
 		for (const glm::vec3& vertex: GNOMON_VERTICES) {
-			glm::vec2 v = matutils::homogenize(gnomonTransform * glm::vec4(vertex, 1));
+			glm::vec2 v = matutils::homogenize(transform * glm::vec4(vertex, 1));
 			vertices.push_back(v);
 		}
 
@@ -376,7 +380,7 @@ void A2::drawCube() {
 	{
 		setLineColour(COLOUR_WHITE);
 
-		glm::mat4 cubeTransform = transform * cubeModelMatrix.matrix;
+		glm::mat4 cubeTransform = transform * cubeScaleMatrix.matrix;
 
 		std::vector<glm::vec2> vertices;
 
