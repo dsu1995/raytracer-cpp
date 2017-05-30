@@ -57,6 +57,30 @@ namespace matutils {
 		return m;
 	}
 
+	// source: https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
+	glm::mat4 rotationAroundAxisMatrix(float radians, const glm::vec3& axis) {
+		glm::vec3 normalizedAxis = glm::normalize(axis);
+
+		float x = normalizedAxis.x;
+		float y = normalizedAxis.y;
+		float z = normalizedAxis.z;
+
+		float c = cos(radians);
+		float s = sin(radians);
+
+		glm::mat4 R;
+		R[0][0] = c + x*x*(1-c);
+		R[1][0] = x*y*(1-c) - z*s;
+		R[2][0] = x*z*(1-c) + y*s;
+		R[0][1] = y*x*(1-c) + z*s;
+		R[1][1] = c + y*y*(1-c);
+		R[2][1] = y*z*(1-c) - x*s;
+		R[0][2] = z*x*(1-c) - y*s;
+		R[1][2] = z*y*(1-c) + x*s;
+		R[2][2] = c + z*z*(1-c);
+		return R;
+	}
+
 	glm::mat4 lookAt(
 		const glm::vec3& from,
 		const glm::vec3& at,

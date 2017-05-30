@@ -27,4 +27,6 @@ namespace matutils {
 	glm::vec2 homogenize(glm::vec4 v);
 
 	glm::vec3 getTranslation(glm::mat4 mat);
+
+	glm::mat4 rotationAroundAxisMatrix(float radians, const glm::vec3& axis);
 }

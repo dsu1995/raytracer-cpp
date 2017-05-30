@@ -1,3 +1,5 @@
+#define GLM_SWIZZLE // enables vec3.xy()
+
 #include "RotateModelHandler.hpp"
 
 #include <glm/glm.hpp>
@@ -5,6 +7,8 @@
 #include "matutils.hpp"
 
 #include <cmath>
+
+#include <iostream>
 
 
 RotateModelHandler::RotateModelHandler(ResettableMat4& cubeModelMatrix, ResettableMat4& cubeGnomonModelMatrix)
@@ -24,23 +28,13 @@ void RotateModelHandler::onLeftMouseDrag(double prevPos, double curPos) {
 	glm::vec4 worldXUnitVector(1, 0, 0, 0);
 	glm::vec4 modelXUnitVector = cubeModelMatrix.matrix * worldXUnitVector;
 
-	float x = modelXUnitVector.x;
-	float y = modelXUnitVector.y;
-	float z = modelXUnitVector.z;
-
-	float phi = atan2(z, x);
-	float psi = atan2(y, sqrt(x * x + z * z));
+	double delta = (curPos - prevPos) * SENSITIVITY;
 
 	glm::vec3 translation = matutils::getTranslation(cubeModelMatrix.matrix);
 
-	double delta = (curPos - prevPos) * SENSITIVITY;
 	glm::mat4 rotationMatrix =
 		matutils::translationMatrix(translation) *
-		matutils::rotationMatrixY(phi) *
-		matutils::rotationMatrixZ(psi) *
-		matutils::rotationMatrixX(delta) *
-		matutils::rotationMatrixZ(-psi) *
-		matutils::rotationMatrixY(-phi) *
+		matutils::rotationAroundAxisMatrix(delta, modelXUnitVector.xyz()) *
 		matutils::translationMatrix(-translation);
 
 	cubeModelMatrix.matrix = rotationMatrix * cubeModelMatrix.matrix;
