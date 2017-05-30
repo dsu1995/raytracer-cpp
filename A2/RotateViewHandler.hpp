@@ -3,12 +3,12 @@
 #include <string>
 
 #include "InputHandler.hpp"
-#include "ResettableMat4.hpp"
+#include "Camera.hpp"
 
 
 class RotateViewHandler : public InputHandler {
 public:
-	RotateViewHandler(ResettableMat4& view);
+	RotateViewHandler(Camera& camera);
 
 	virtual std::string getName() const;
 
@@ -17,5 +17,5 @@ public:
 	virtual void onRightMouseDrag(double prevPos, double curPos);
 
 private:
-	ResettableMat4& view;
+	Camera& camera;
 };

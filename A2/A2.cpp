@@ -31,23 +31,23 @@ VertexData::VertexData()
 // Constructor
 A2::A2()
 : m_currentLineColour(glm::vec3(0.0f)),
-	view(
-		matutils::lookAt(
-			glm::vec3(
-				0.0f,
-				0.5f * M_SQRT1_2,
-				0.5f * M_SQRT1_2
-			),
-			glm::vec3(0.0f, 0.0f, 0.0f),
-			glm::vec3(0.0f, 1.0f, 0.0f)
-		)
+	camera(
+		glm::vec3(
+			0.0f,
+			0,
+			1
+			// 0.5f * M_SQRT1_2,
+			// 0.5f * M_SQRT1_2
+		),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f)
 	),
 	perspective(1),
 	cubeScaleMatrix(glm::mat4()),
 	cubeRotationMatrix(glm::mat4()),
 	cubeTranslationMatrix(glm::mat4()),
-	rotateViewHandler(view),
-	translateViewHandler(view),
+	rotateViewHandler(camera),
+	translateViewHandler(camera),
 	perspectiveHandler(perspective),
 	rotateModelHandler(cubeRotationMatrix),
 	translateModelHandler(cubeTranslationMatrix, cubeRotationMatrix),
@@ -65,7 +65,7 @@ A2::A2()
 }
 
 void A2::reset() {
-	view.reset();
+	camera.reset();
 	perspective.reset();
 	cubeScaleMatrix.reset();
 	cubeRotationMatrix.reset();
@@ -294,7 +294,7 @@ const std::vector<ColouredEdge> GNOMON_EDGES = {
 };
 
 void A2::drawWorldGnomon() {
-	glm::mat4 transform = perspective.getMatrix() * view.matrix * matutils::scaleMatrix(glm::vec3(0.1));
+	glm::mat4 transform = perspective.getMatrix() * camera.getMatrix() * matutils::scaleMatrix(glm::vec3(0.1));
 
 	std::vector<glm::vec2> vertices;
 
@@ -355,7 +355,7 @@ const std::vector<ColouredEdge> CUBE_GNOMON_EDGES = {
 
 void A2::drawCube() {
 	glm::mat4 transform = perspective.getMatrix() *
-		view.matrix *
+		camera.getMatrix() *
 		matutils::scaleMatrix(glm::vec3(0.1)) *
 		cubeTranslationMatrix.matrix *
 		cubeRotationMatrix.matrix;
@@ -432,6 +432,9 @@ void A2::guiLogic()
 		ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
 		ImGui::Text("FOV: %.1f degrees", perspective.getFovDegrees());
 		ImGui::Text("(Near, Far): (%.1f, %.1f)", perspective.getNear(), perspective.getFar());
+		ImGui::Text("LookFrom: %s", glm::to_string(camera.getLookFrom()).c_str());
+		ImGui::Text("LookAt: %s", glm::to_string(camera.getLookAt()).c_str());
+		ImGui::Text("Up: %s", glm::to_string(camera.getUp()).c_str());
 
 	ImGui::End();
 }

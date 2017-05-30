@@ -5,8 +5,8 @@
 #include "matutils.hpp"
 
 
-TranslateViewHandler::TranslateViewHandler(ResettableMat4& view)
-: view(view)
+TranslateViewHandler::TranslateViewHandler(Camera& camera)
+: camera(camera)
 {}
 
 std::string TranslateViewHandler::getName() const {
@@ -14,25 +14,25 @@ std::string TranslateViewHandler::getName() const {
 }
 
 
-const double SENTIVITY = 0.01;
+const double SENSITIVITY = 0.001;
 
 // translate along x axis
 void TranslateViewHandler::onLeftMouseDrag(double prevPos, double curPos) {
-	double delta = curPos - prevPos;
+	double delta = (curPos - prevPos) * SENSITIVITY;
 
-	view.matrix = matutils::translationMatrix(glm::vec3(delta * SENTIVITY, 0, 0)) * view.matrix;
+	camera.translate(glm::vec3(delta, 0, 0));
 }
 
 // translate along y axis
 void TranslateViewHandler::onMiddleMouseDrag(double prevPos, double curPos) {
-	double delta = curPos - prevPos;
+	double delta = (curPos - prevPos) * SENSITIVITY;
 
-	view.matrix = matutils::translationMatrix(glm::vec3(0, delta * SENTIVITY, 0)) * view.matrix;
+	camera.translate(glm::vec3(0, delta, 0));
 }
 
 // translate along z axis
 void TranslateViewHandler::onRightMouseDrag(double prevPos, double curPos) {
-	double delta = curPos - prevPos;
+	double delta = (curPos - prevPos) * SENSITIVITY;
 
-	view.matrix = matutils::translationMatrix(glm::vec3(0, 0, delta * SENTIVITY)) * view.matrix;
+	camera.translate(glm::vec3(0, 0, delta));
 }

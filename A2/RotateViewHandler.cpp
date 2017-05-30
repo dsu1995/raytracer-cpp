@@ -5,8 +5,8 @@
 #include "matutils.hpp"
 
 
-RotateViewHandler::RotateViewHandler(ResettableMat4& view)
-: view(view)
+RotateViewHandler::RotateViewHandler(Camera& camera)
+: camera(camera)
 {}
 
 std::string RotateViewHandler::getName() const {
@@ -14,25 +14,25 @@ std::string RotateViewHandler::getName() const {
 }
 
 
-const double SENTIVITY = 0.05;
+const double SENSITIVITY = 0.005;
 
 // rotate around x axis
 void RotateViewHandler::onLeftMouseDrag(double prevPos, double curPos) {
-	double delta = curPos - prevPos;
+	double delta = (curPos - prevPos) * SENSITIVITY;
 
-	view.matrix = matutils::rotationMatrixX(delta * SENTIVITY) * view.matrix;
+	camera.lookUpDown(delta);
 }
 
 // rotate around y axis
 void RotateViewHandler::onMiddleMouseDrag(double prevPos, double curPos) {
-	double delta = curPos - prevPos;
+	double delta = (curPos - prevPos) * SENSITIVITY;
 
-	view.matrix = matutils::rotationMatrixY(delta * SENTIVITY) * view.matrix;
+	camera.lookSideToSide(delta);
 }
 
 // rotate around z axis
 void RotateViewHandler::onRightMouseDrag(double prevPos, double curPos) {
-	double delta = curPos - prevPos;
+	double delta = (curPos - prevPos) * SENSITIVITY;
 
-	view.matrix = matutils::rotationMatrixZ(delta * SENTIVITY) * view.matrix;
+	camera.tiltView(delta);
 }

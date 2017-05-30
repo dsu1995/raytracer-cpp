@@ -10,6 +10,7 @@
 
 #include "ResettableMat4.hpp"
 #include "Perspective.hpp"
+#include "Camera.hpp"
 
 #include "InputHandler.hpp"
 #include "RotateViewHandler.hpp"
@@ -89,7 +90,7 @@ private:
 
 	void reset();
 
-	ResettableMat4 view;
+	Camera camera;
 
 	ResettableMat4 cubeScaleMatrix;
 	ResettableMat4 cubeRotationMatrix;
