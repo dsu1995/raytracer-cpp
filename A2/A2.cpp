@@ -53,13 +53,15 @@ A2::A2()
 	rotateModelHandler(cubeRotationMatrix),
 	translateModelHandler(cubeTranslationMatrix, cubeRotationMatrix),
 	scaleModelHandler(cubeScaleMatrix),
+	viewportHandler(viewport),
 	inputHandlers {
 		&rotateViewHandler,
 		&translateViewHandler,
 		&perspectiveHandler,
 		&rotateModelHandler,
 		&translateModelHandler,
-		&scaleModelHandler
+		&scaleModelHandler,
+		&viewportHandler
 	}
 {
 	reset();
@@ -72,13 +74,16 @@ void A2::reset() {
 	cubeRotationMatrix.reset();
 	cubeTranslationMatrix.reset();
 
+	viewport = Viewport{0.9, -0.9, -0.9, 0.9};
+
 	curInputHandler = 3;
 
 	isLeftMouseDragging = false;
 	isMiddleMouseDragging = false;
 	isRightMouseDragging = false;
 
-	mousePrevPos = 0;
+	mousePrevXPos = 0;
+	mousePrevYPos = 0;
 }
 
 //----------------------------------------------------------------------------------------
@@ -238,6 +243,11 @@ void A2::drawLine(
 	m_vertexData.numVertices += 2;
 }
 
+glm::vec3 mat4TimesVec3(const glm::mat4& mat, const glm::vec3& vec) {
+	return (mat * glm::vec4(vec, 1)).xyz();
+}
+
+const glm::vec3 COLOUR_BLACK(0, 0, 0);
 
 //----------------------------------------------------------------------------------------
 /*
@@ -269,9 +279,73 @@ void A2::appLogic()
 
 	// drawLine(glm::vec2(-0.5, -0.5), glm::vec2(1, 0.75));
 
-	drawWorldGnomon();
+	// drawWorldGnomon();
 
-	drawCube();
+	// drawCube();
+
+
+	// draw viewport
+
+	setLineColour(COLOUR_BLACK);
+	drawLine(
+		glm::vec2(viewport.left, viewport.top),
+		glm::vec2(viewport.right, viewport.top)
+	);
+	drawLine(
+		glm::vec2(viewport.left, viewport.bottom),
+		glm::vec2(viewport.right, viewport.bottom)
+	);
+	drawLine(
+		glm::vec2(viewport.left, viewport.top),
+		glm::vec2(viewport.left, viewport.bottom)
+	);
+	drawLine(
+		glm::vec2(viewport.right, viewport.top),
+		glm::vec2(viewport.right, viewport.bottom)
+	);
+
+
+	// draw models
+
+	std::vector<ColouredEdgeVertices> worldEdges = getCubeWorldEdges();
+	std::vector<ColouredEdgeVertices> gnomonEdges = getWorldGnomonEdges();
+	worldEdges.insert(worldEdges.end(), gnomonEdges.begin(), gnomonEdges.end());
+
+	for (ColouredEdgeVertices& edge: worldEdges) {
+		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl;
+
+		edge.v1 = mat4TimesVec3(camera.getMatrix(), edge.v1);
+		edge.v2 = mat4TimesVec3(camera.getMatrix(), edge.v2);
+
+		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl << std::endl;
+	}
+
+	// throw 0;
+
+	std::vector<ColouredEdgeVertices> nearClippedEdges = clipNear(worldEdges);
+
+	for (ColouredEdgeVertices& edge: nearClippedEdges) {
+		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl;
+
+		edge.v1 = mat4TimesVec3(perspective.getMatrix(), edge.v1);
+		edge.v2 = mat4TimesVec3(perspective.getMatrix(), edge.v2);
+
+		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl << std::endl;
+	}
+
+	// throw 0;
+
+	std::vector<ColouredEdgeVertices> farClippedEdges = nearClippedEdges; //clipRest(nearClippedEdges);
+
+	// std::cout << worldEdges.size() << ' ' << nearClippedEdges.size() << ' ' << farClippedEdges.size() << std::endl;
+
+	for (const ColouredEdgeVertices& edge: farClippedEdges) {
+		setLineColour(edge.colour);
+		drawLine(
+			matutils::homogenize(glm::vec4(edge.v1, 1)),
+			matutils::homogenize(glm::vec4(edge.v2, 1))
+		);
+	}
 }
 
 const glm::vec3 COLOUR_WHITE(1, 1, 1);
@@ -292,27 +366,41 @@ const std::vector<ColouredEdge> GNOMON_EDGES = {
 	{0, 3, COLOUR_BLUE}
 };
 
-void A2::drawWorldGnomon() {
-	std::vector<glm::vec3> vertices;
+std::vector<ColouredEdgeVertices> A2::getWorldGnomonEdges() {
+	std::vector<ColouredEdgeVertices> edges;
 
-	for (const glm::vec3& vertex: GNOMON_VERTICES) {
-		vertices.push_back((camera.getMatrix() * glm::vec4(vertex, 1)).xyz());
-	}
-
-	std::vector<ColouredEdgeVertices> nearClippedEdges = clipNear(vertices, GNOMON_EDGES);
-
-	// std::cout << nearClippedEdges.size() << std::endl;
-
-	for (const ColouredEdgeVertices& edge: nearClippedEdges) {
-		glm::vec4 v1 = perspective.getMatrix() * glm::vec4(edge.v1, 1);
-		glm::vec4 v2 = perspective.getMatrix() * glm::vec4(edge.v2, 1);
-
-		setLineColour(edge.colour);
-		drawLine(
-			matutils::homogenize(v1),
-			matutils::homogenize(v2)
+	for (const ColouredEdge& edge: GNOMON_EDGES) {
+		edges.push_back(
+			ColouredEdgeVertices{
+				GNOMON_VERTICES.at(edge.vertex1Index),
+				GNOMON_VERTICES.at(edge.vertex2Index),
+				edge.colour
+			}
 		);
 	}
+
+	return edges;
+
+	// std::vector<glm::vec3> vertices;
+
+	// for (const glm::vec3& vertex: GNOMON_VERTICES) {
+	// 	vertices.push_back((camera.getMatrix() * glm::vec4(vertex, 1)).xyz());
+	// }
+
+	// std::vector<ColouredEdgeVertices> nearClippedEdges = clipNear(vertices, GNOMON_EDGES);
+
+	// // std::cout << nearClippedEdges.size() << std::endl;
+
+	// for (const ColouredEdgeVertices& edge: nearClippedEdges) {
+	// 	glm::vec4 v1 = perspective.getMatrix() * glm::vec4(edge.v1, 1);
+	// 	glm::vec4 v2 = perspective.getMatrix() * glm::vec4(edge.v2, 1);
+
+	// 	setLineColour(edge.colour);
+	// 	drawLine(
+	// 		matutils::homogenize(v1),
+	// 		matutils::homogenize(v2)
+	// 	);
+	// }
 }
 
 // void A2::drawWorldGnomon() {
@@ -376,89 +464,122 @@ const std::vector<ColouredEdge> CUBE_GNOMON_EDGES = {
 	{0, 3, COLOUR_YELLOW}
 };
 
-void A2::drawCube() {
-	// perspective.getMatrix() *
+
+std::vector<ColouredEdgeVertices> A2::getCubeWorldEdges() {
 	glm::mat4 transform =
-		camera.getMatrix() *
 		cubeTranslationMatrix.matrix *
 		cubeRotationMatrix.matrix;
 
-	{
-		std::vector<glm::vec3> vertices;
-		for (const glm::vec3& vertex: GNOMON_VERTICES) {
-			vertices.push_back((transform * glm::vec4(vertex, 1)).xyz());
-		}
+	std::vector<ColouredEdgeVertices> edges;
 
-		std::vector<ColouredEdgeVertices> nearClippedEdges = clipNear(vertices, GNOMON_EDGES);
-
-		// std::cout << nearClippedEdges.size() << std::endl;
-
-		for (const ColouredEdgeVertices& edge: nearClippedEdges) {
-			glm::vec4 v1 = perspective.getMatrix() * glm::vec4(edge.v1, 1);
-			glm::vec4 v2 = perspective.getMatrix() * glm::vec4(edge.v2, 1);
-
-			setLineColour(edge.colour);
-			drawLine(
-				matutils::homogenize(v1),
-				matutils::homogenize(v2)
-			);
-		}
-
-		// std::vector<glm::vec2> vertices;
-
-		// for (const glm::vec3& vertex: GNOMON_VERTICES) {
-		// 	glm::vec2 v = matutils::homogenize(transform * glm::vec4(vertex, 1));
-		// 	vertices.push_back(v);
-		// }
-
-		// for (const ColouredEdge& edge: CUBE_GNOMON_EDGES) {
-		// 	setLineColour(edge.colour);
-		// 	drawLine(
-		// 		vertices.at(edge.vertex1Index),
-		// 		vertices.at(edge.vertex2Index)
-		// 	);
-		// }
+	for (const ColouredEdge& edge: CUBE_GNOMON_EDGES) {
+		edges.push_back(
+			ColouredEdgeVertices{
+				mat4TimesVec3(transform, GNOMON_VERTICES.at(edge.vertex1Index)),
+				mat4TimesVec3(transform, GNOMON_VERTICES.at(edge.vertex2Index)),
+				edge.colour
+			}
+		);
 	}
 
-	{
-		setLineColour(COLOUR_WHITE);
+	glm::mat4 cubeTransform = transform * cubeScaleMatrix.matrix;
 
-		glm::mat4 cubeTransform = transform * cubeScaleMatrix.matrix;
-
-		std::vector<glm::vec3> vertices;
-		for (const glm::vec3& vertex: CUBE_VERTICES) {
-			vertices.push_back((cubeTransform * glm::vec4(vertex, 1)).xyz());
-		}
-
-		std::vector<ColouredEdgeVertices> nearClippedEdges = clipNear(vertices, CUBE_EDGES);
-
-		// std::cout << nearClippedEdges.size() << std::endl;
-
-		for (const ColouredEdgeVertices& edge: nearClippedEdges) {
-			glm::vec4 v1 = perspective.getMatrix() * glm::vec4(edge.v1, 1);
-			glm::vec4 v2 = perspective.getMatrix() * glm::vec4(edge.v2, 1);
-
-			drawLine(
-				matutils::homogenize(v1),
-				matutils::homogenize(v2)
-			);
-		}
-
-		// std::vector<glm::vec2> vertices;
-
-		// for (const glm::vec3& vertex: CUBE_VERTICES) {
-		// 	glm::vec2 v = matutils::homogenize(cubeTransform * glm::vec4(vertex, 1));
-		// 	vertices.push_back(v);
-		// }
-
-		// for (const ColouredEdge& edge: CUBE_EDGES) {
-		// 	drawLine(
-		// 		vertices.at(edge.vertex1Index),
-		// 		vertices.at(edge.vertex2Index)
-		// 	);
-		// }
+	for (const ColouredEdge& edge: CUBE_EDGES) {
+		edges.push_back(
+			ColouredEdgeVertices{
+				mat4TimesVec3(cubeTransform, CUBE_VERTICES.at(edge.vertex1Index)),
+				mat4TimesVec3(cubeTransform, CUBE_VERTICES.at(edge.vertex2Index)),
+				COLOUR_WHITE
+			}
+		);
 	}
+
+	return edges;
 }
+
+// void A2::drawCube() {
+// 	// perspective.getMatrix() *
+// 	glm::mat4 transform =
+// 		camera.getMatrix() *
+// 		cubeTranslationMatrix.matrix *
+// 		cubeRotationMatrix.matrix;
+
+// 	{
+// 		std::vector<glm::vec3> vertices;
+// 		for (const glm::vec3& vertex: GNOMON_VERTICES) {
+// 			vertices.push_back((transform * glm::vec4(vertex, 1)).xyz());
+// 		}
+
+// 		std::vector<ColouredEdgeVertices> nearClippedEdges = clipNear(vertices, GNOMON_EDGES);
+
+// 		// std::cout << nearClippedEdges.size() << std::endl;
+
+// 		for (const ColouredEdgeVertices& edge: nearClippedEdges) {
+// 			glm::vec4 v1 = perspective.getMatrix() * glm::vec4(edge.v1, 1);
+// 			glm::vec4 v2 = perspective.getMatrix() * glm::vec4(edge.v2, 1);
+
+// 			setLineColour(edge.colour);
+// 			drawLine(
+// 				matutils::homogenize(v1),
+// 				matutils::homogenize(v2)
+// 			);
+// 		}
+
+// 		// std::vector<glm::vec2> vertices;
+
+// 		// for (const glm::vec3& vertex: GNOMON_VERTICES) {
+// 		// 	glm::vec2 v = matutils::homogenize(transform * glm::vec4(vertex, 1));
+// 		// 	vertices.push_back(v);
+// 		// }
+
+// 		// for (const ColouredEdge& edge: CUBE_GNOMON_EDGES) {
+// 		// 	setLineColour(edge.colour);
+// 		// 	drawLine(
+// 		// 		vertices.at(edge.vertex1Index),
+// 		// 		vertices.at(edge.vertex2Index)
+// 		// 	);
+// 		// }
+// 	}
+
+// 	{
+// 		setLineColour(COLOUR_WHITE);
+
+// 		glm::mat4 cubeTransform = transform * cubeScaleMatrix.matrix;
+
+// 		std::vector<glm::vec3> vertices;
+// 		for (const glm::vec3& vertex: CUBE_VERTICES) {
+// 			vertices.push_back((cubeTransform * glm::vec4(vertex, 1)).xyz());
+// 		}
+
+// 		std::vector<ColouredEdgeVertices> nearClippedEdges = clipNear(vertices, CUBE_EDGES);
+
+// 		// std::cout << nearClippedEdges.size() << std::endl;
+
+// 		for (const ColouredEdgeVertices& edge: nearClippedEdges) {
+// 			glm::vec4 v1 = perspective.getMatrix() * glm::vec4(edge.v1, 1);
+// 			glm::vec4 v2 = perspective.getMatrix() * glm::vec4(edge.v2, 1);
+
+// 			drawLine(
+// 				matutils::homogenize(v1),
+// 				matutils::homogenize(v2)
+// 			);
+// 		}
+
+// 		// std::vector<glm::vec2> vertices;
+
+// 		// for (const glm::vec3& vertex: CUBE_VERTICES) {
+// 		// 	glm::vec2 v = matutils::homogenize(cubeTransform * glm::vec4(vertex, 1));
+// 		// 	vertices.push_back(v);
+// 		// }
+
+// 		// for (const ColouredEdge& edge: CUBE_EDGES) {
+// 		// 	drawLine(
+// 		// 		vertices.at(edge.vertex1Index),
+// 		// 		vertices.at(edge.vertex2Index)
+// 		// 	);
+// 		// }
+// 	}
+// }
 
 std::vector<ColouredEdgeVertices> A2::clipNear(
 	const std::vector<ColouredEdgeVertices>& edges
@@ -658,24 +779,31 @@ bool A2::cursorEnterWindowEvent(int entered) {
  * Event handler.  Handles mouse cursor movement events.
  */
 bool A2::mouseMoveEvent(double xPos, double yPos) {
+	// std::cout << xPos << ' ' << yPos << std::endl;
+
 	bool eventHandled = false;
 	if (isLeftMouseDragging) {
-		inputHandlers.at(curInputHandler)->onLeftMouseDrag(mousePrevPos, xPos);
+		inputHandlers.at(curInputHandler)->onLeftMouseDrag(mousePrevXPos, xPos);
+		inputHandlers.at(curInputHandler)->onLeftMouseDragXY(
+			(xPos / m_framebufferWidth) * 2 - 1,
+			-((yPos / m_framebufferHeight) * 2 - 1)
+		);
 
 		eventHandled = true;
 	}
 	if (isMiddleMouseDragging) {
-		inputHandlers.at(curInputHandler)->onMiddleMouseDrag(mousePrevPos, xPos);
+		inputHandlers.at(curInputHandler)->onMiddleMouseDrag(mousePrevXPos, xPos);
 
 		eventHandled = true;
 	}
 	if (isRightMouseDragging) {
-		inputHandlers.at(curInputHandler)->onRightMouseDrag(mousePrevPos, xPos);
+		inputHandlers.at(curInputHandler)->onRightMouseDrag(mousePrevXPos, xPos);
 
 		eventHandled = true;
 	}
 
-	mousePrevPos = xPos;
+	mousePrevXPos = xPos;
+	mousePrevYPos = yPos;
 
 	return eventHandled;
 }
@@ -692,9 +820,17 @@ bool A2::mouseButtonInputEvent(int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT) {
 		if (action == GLFW_PRESS) {
 			isLeftMouseDragging = true;
+			inputHandlers.at(curInputHandler)->onLeftMousePress(
+				(mousePrevXPos / m_framebufferWidth) * 2 - 1,
+				-((mousePrevYPos / m_framebufferHeight) * 2 - 1)
+			);
 			return true;
 		} else if (action == GLFW_RELEASE) {
 			isLeftMouseDragging = false;
+			inputHandlers.at(curInputHandler)->onLeftMouseRelease(
+				(mousePrevXPos / m_framebufferWidth) * 2 - 1,
+				-((mousePrevYPos / m_framebufferHeight) * 2 - 1)
+			);
 			return true;
 		}
 	}
@@ -788,6 +924,11 @@ bool A2::keyInputEvent(int key, int action, int mods) {
 		// scaleModelHandler
 		else if (key == GLFW_KEY_S) {
 			curInputHandler = 5;
+			return true;
+		}
+		// viewportHandler
+		else if (key == GLFW_KEY_V) {
+			curInputHandler = 6;
 			return true;
 		}
 	}

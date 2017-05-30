@@ -11,6 +11,7 @@
 #include "ResettableMat4.hpp"
 #include "Perspective.hpp"
 #include "Camera.hpp"
+#include "Viewport.hpp"
 
 #include "InputHandler.hpp"
 #include "RotateViewHandler.hpp"
@@ -19,6 +20,7 @@
 #include "RotateModelHandler.hpp"
 #include "TranslateModelHandler.hpp"
 #include "ScaleModelHandler.hpp"
+#include "ViewportHandler.hpp"
 
 
 // Set a global maximum number of vertices in order to pre-allocate VBO data
@@ -97,15 +99,13 @@ protected:
 
 private:
 	glm::mat4 getTransformMatrix() const;
-	void drawWorldGnomon();
-	void drawCube();
+	// void drawWorldGnomon();
+	// void drawCube();
+
+	std::vector<ColouredEdgeVertices> getWorldGnomonEdges();
+	std::vector<ColouredEdgeVertices> getCubeWorldEdges();
 
 	void reset();
-
-	struct LineSegment {
-		glm::vec3 v1;
-		glm::vec3 v2;
-	};
 
 	std::vector<ColouredEdgeVertices> clipNear(
 		const std::vector<ColouredEdgeVertices>& edges
@@ -115,7 +115,7 @@ private:
 		const std::vector<ColouredEdgeVertices>& edges
 	);
 
-	std::vector<ColouredEdgeVertices> A2::clip(
+	std::vector<ColouredEdgeVertices> clip(
 		const std::vector<ColouredEdgeVertices>& edges,
 		const std::vector<glm::vec3>& nearPlaneNormals,
 		const std::vector<glm::vec3>& nearPlanePoints
@@ -140,6 +140,8 @@ private:
 	TranslateModelHandler translateModelHandler;
 	ScaleModelHandler scaleModelHandler;
 
+	ViewportHandler viewportHandler;
+
 	std::vector<InputHandler*> inputHandlers;
 	int curInputHandler;
 
@@ -147,5 +149,8 @@ private:
 	bool isMiddleMouseDragging;
 	bool isRightMouseDragging;
 
-	double mousePrevPos;
+	double mousePrevXPos;
+	double mousePrevYPos;
+
+	Viewport viewport;
 };
