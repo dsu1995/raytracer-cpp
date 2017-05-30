@@ -28,7 +28,7 @@ void Camera::reset() {
 }
 
 void Camera::update() {
-	matrix = matutils::lookAt(lookFrom, lookAt, up);
+	matrix = matutils::lookAt(lookFrom, lookAt, up) * matutils::scaleMatrix(glm::vec3(-1, 1, 1));;
 }
 
 void Camera::lookUpDown(float radians) {

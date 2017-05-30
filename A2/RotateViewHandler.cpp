@@ -14,7 +14,7 @@ std::string RotateViewHandler::getName() const {
 }
 
 
-const double SENSITIVITY = 0.005;
+const double SENSITIVITY = 0.0005;
 
 // rotate around x axis
 void RotateViewHandler::onLeftMouseDrag(double prevPos, double curPos) {

@@ -14,7 +14,7 @@ std::string TranslateViewHandler::getName() const {
 }
 
 
-const double SENSITIVITY = 0.001;
+const double SENSITIVITY = 0.005;
 
 // translate along x axis
 void TranslateViewHandler::onLeftMouseDrag(double prevPos, double curPos) {

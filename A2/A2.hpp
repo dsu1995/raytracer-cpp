@@ -38,6 +38,18 @@ public:
 	GLsizei numVertices;
 };
 
+struct ColouredEdge {
+	unsigned int vertex1Index;
+	unsigned int vertex2Index;
+	glm::vec3 colour;
+};
+
+struct ColouredEdgeVertices {
+	glm::vec3 v1;
+	glm::vec3 v2;
+	glm::vec3 colour;
+};
+
 
 class A2 : public CS488Window {
 public:
@@ -89,6 +101,25 @@ private:
 	void drawCube();
 
 	void reset();
+
+	struct LineSegment {
+		glm::vec3 v1;
+		glm::vec3 v2;
+	};
+
+	std::vector<ColouredEdgeVertices> clipNear(
+		const std::vector<ColouredEdgeVertices>& edges
+	);
+
+	std::vector<ColouredEdgeVertices> clipRest(
+		const std::vector<ColouredEdgeVertices>& edges
+	);
+
+	std::vector<ColouredEdgeVertices> A2::clip(
+		const std::vector<ColouredEdgeVertices>& edges,
+		const std::vector<glm::vec3>& nearPlaneNormals,
+		const std::vector<glm::vec3>& nearPlanePoints
+	);
 
 	Camera camera;
 
