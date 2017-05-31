@@ -48,7 +48,7 @@ void Perspective::changeFov(float deltaDegrees) {
 }
 
 void Perspective::changeNear(float delta) {
-	near = std::max(0.0f, std::min(near + delta, far));
+	near = std::max(0.00001f, std::min(near + delta, far));
 
 	updateMatrix();
 }
