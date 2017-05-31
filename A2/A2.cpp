@@ -331,10 +331,13 @@ void A2::appLogic()
 	for (ColouredEdgeVertices& edge: nearClippedEdges) {
 		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl;
 
-		glm::vec3 v1 = mat4TimesVec3(perspective.getMatrix(), edge.v1);
-		glm::vec3 v2 = mat4TimesVec3(perspective.getMatrix(), edge.v2);
+		glm::vec4 v1 = perspective.getMatrix() * glm::vec4(edge.v1, 1);
+		glm::vec4 v2 = perspective.getMatrix() * glm::vec4(edge.v2, 1);
 
-		perspectiveEdges.push_back(ColouredEdgeVertices{v1, v2, edge.colour});
+		v1 = (1 / v1.w) * v1;
+		v2 = (1 / v2.w) * v2;
+
+		perspectiveEdges.push_back(ColouredEdgeVertices{v1.xyz(), v2.xyz(), edge.colour});
 
 		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl << std::endl;
 	}
@@ -346,8 +349,11 @@ void A2::appLogic()
 	for (ColouredEdgeVertices& edge: restClippedEdges) {
 		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl;
 
-		glm::vec2 u1 = matutils::homogenize(glm::vec4(edge.v1, 1));
-		glm::vec2 u2 = matutils::homogenize(glm::vec4(edge.v2, 1));
+		// glm::vec2 u1 = matutils::homogenize(glm::vec4(edge.v1, 1));
+		// glm::vec2 u2 = matutils::homogenize(glm::vec4(edge.v2, 1));
+
+		glm::vec2 u1 = edge.v1.xy();
+		glm::vec2 u2 = edge.v2.xy();
 
 		edges2D.push_back(Coloured2DEdgeVertices{u1, u2, edge.colour});
 
@@ -356,7 +362,7 @@ void A2::appLogic()
 
 	// throw 0;
 
-	std::vector<Coloured2DEdgeVertices> sideClippedEdges = clip2D(edges2D);
+	std::vector<Coloured2DEdgeVertices> sideClippedEdges = edges2D; // clip2D(edges2D);
 
 	// std::vector<ColouredEdgeVertices> farClippedEdges = nearClippedEdges; //clipRest(nearClippedEdges);
 
@@ -634,7 +640,7 @@ std::vector<ColouredEdgeVertices> A2::clipRest(
 	const std::vector<ColouredEdgeVertices>& edges
 ) {
 	const std::vector<glm::vec3> nearPlaneNormals = {
-		{0, 0, -1},	// far
+		// {0, 0, -1},	// far
 		{1, 0, 0},	// left
 		{-1, 0, 0},	// right
 		{0, 1, 0},	// bottom
@@ -642,7 +648,7 @@ std::vector<ColouredEdgeVertices> A2::clipRest(
 	};
 
 	const std::vector<glm::vec3> nearPlanePoints = {
-		{0, 0, 1},  // far
+		// {0, 0, 1},  // far
 		{-1, 0, 0}, // left
 		{1, 0, 0},  // right
 		{0, -1, 0}, // bottom
@@ -722,6 +728,7 @@ std::vector<ColouredEdgeVertices> A2::clip(
 
 		assert(nearPlanePoints.size() == nearPlaneNormals.size());
 
+		bool accept = true;
 		for (int i = 0; i < nearPlanePoints.size(); i++) {
 			const glm::vec3& nearPlaneNormal = nearPlaneNormals.at(i);
 			const glm::vec3& nearPlanePoint = nearPlanePoints.at(i);
@@ -730,7 +737,8 @@ std::vector<ColouredEdgeVertices> A2::clip(
 			float wecB = glm::dot(v2 - nearPlanePoint, nearPlaneNormal);
 
 			if (wecA < 0 && wecB < 0) {
-				goto reject;
+				accept = false;
+				break;
 			}
 			else if (wecA >= 0 && wecB >= 0) {
 				continue;
@@ -753,9 +761,9 @@ std::vector<ColouredEdgeVertices> A2::clip(
 			// std::cout << "nearPlanePoint: " << glm::to_string(nearPlanePoint) << std::endl;
 			// std::cout << "nearPlaneNormal: " << glm::to_string(nearPlaneNormal) << std::endl;
 		}
-		output.push_back(ColouredEdgeVertices{v1, v2, edge.colour});
-
-		reject: ;
+		if (accept) {
+			output.push_back(ColouredEdgeVertices{v1, v2, edge.colour});
+		}
 	}
 
 	return output;
