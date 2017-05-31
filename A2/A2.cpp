@@ -528,6 +528,11 @@ void A2::guiLogic()
 			glfwSetWindowShouldClose(m_window, GL_TRUE);
 		}
 
+		// Create Button, and check if it was clicked:
+		if( ImGui::Button( "Reset" ) ) {
+			reset();
+		}
+
 		ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
 		ImGui::Text("FOV: %.1f degrees", perspective.getFovDegrees());
 		ImGui::Text("(Near, Far): (%.1f, %.1f)", perspective.getNear(), perspective.getFar());
