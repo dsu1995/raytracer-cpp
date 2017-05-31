@@ -536,9 +536,6 @@ void A2::guiLogic()
 		ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
 		ImGui::Text("FOV: %.1f degrees", perspective.getFovDegrees());
 		ImGui::Text("(Near, Far): (%.1f, %.1f)", perspective.getNear(), perspective.getFar());
-		ImGui::Text("LookFrom: %s", glm::to_string(camera.getLookFrom()).c_str());
-		ImGui::Text("LookAt: %s", glm::to_string(camera.getLookAt()).c_str());
-		ImGui::Text("Up: %s", glm::to_string(camera.getUp()).c_str());
 
 	ImGui::End();
 }
