@@ -37,8 +37,6 @@ A2::A2()
 			0.0f,
 			0,
 			10
-			// 0.5f * M_SQRT1_2,
-			// 0.5f * M_SQRT1_2
 		),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
@@ -110,16 +108,6 @@ void A2::init()
 	mapVboDataToVertexAttributeLocation();
 
 	perspective = Perspective(float(m_framebufferWidth) / float(m_framebufferHeight));
-
-	// perspectiveMatrix = matutils::perspective(
-	// 	M_PI / 6,
-	// 	float(m_framebufferWidth) / float(m_framebufferHeight),
-	// 	1,
-	// 	1000
-	// );
-
-	// std::cout << m_framebufferWidth << ' ' << m_framebufferHeight << std::endl;
-	// std::cout << glm::to_string(perspectiveMatrix) << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -243,12 +231,6 @@ void A2::drawLine(
 	m_vertexData.numVertices += 2;
 }
 
-glm::vec3 mat4TimesVec3(const glm::mat4& mat, const glm::vec3& vec) {
-	glm::vec4 v = mat * glm::vec4(vec, 1);
-
-	return (1 / v.w) * v.xyz();
-}
-
 const glm::vec3 COLOUR_BLACK(0, 0, 0);
 
 //----------------------------------------------------------------------------------------
@@ -262,32 +244,7 @@ void A2::appLogic()
 	// Call at the beginning of frame, before drawing lines:
 	initLineData();
 
-	// Draw outer square:
-	// setLineColour(vec3(1.0f, 0.7f, 0.8f));
-	// drawLine(vec2(-0.5f, -0.5f), vec2(0.5f, -0.5f));
-	// drawLine(vec2(0.5f, -0.5f), vec2(0.5f, 0.5f));
-	// drawLine(vec2(0.5f, 0.5f), vec2(-0.5f, 0.5f));
-	// drawLine(vec2(-0.5f, 0.5f), vec2(-0.5f, -0.5f));
-
-
-	// // Draw inner square:
-	// setLineColour(vec3(0.2f, 1.0f, 1.0f));
-	// drawLine(vec2(-0.25f, -0.25f), vec2(0.25f, -0.25f));
-	// drawLine(vec2(0.25f, -0.25f), vec2(0.25f, 0.25f));
-	// drawLine(vec2(0.25f, 0.25f), vec2(-0.25f, 0.25f));
-	// drawLine(vec2(-0.25f, 0.25f), vec2(-0.25f, -0.25f));
-
-	// setLineColour(glm::vec3(1, 1.0f, 1.0f));
-
-	// drawLine(glm::vec2(-0.5, -0.5), glm::vec2(1, 0.75));
-
-	// drawWorldGnomon();
-
-	// drawCube();
-
-
 	// draw viewport
-
 	setLineColour(COLOUR_BLACK);
 	drawLine(
 		glm::vec2(viewport.left, viewport.top),
@@ -308,67 +265,33 @@ void A2::appLogic()
 
 
 	// draw models
-
 	std::vector<ColouredEdgeVertices> worldEdges = getCubeWorldEdges();
 	std::vector<ColouredEdgeVertices> gnomonEdges = getWorldGnomonEdges();
 	worldEdges.insert(worldEdges.end(), gnomonEdges.begin(), gnomonEdges.end());
 
-	for (ColouredEdgeVertices& edge: worldEdges) {
-		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl;
+	std::vector<ColouredEdgeVertices> cameraEdges;
+	for (const ColouredEdgeVertices& edge: worldEdges) {
+		const glm::vec4 v1 = camera.getMatrix() * edge.v1;
+		const glm::vec4 v2 = camera.getMatrix() * edge.v2;
 
-		edge.v1 = mat4TimesVec3(camera.getMatrix(), edge.v1);
-		edge.v2 = mat4TimesVec3(camera.getMatrix(), edge.v2);
-
-		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl << std::endl;
+		cameraEdges.push_back(ColouredEdgeVertices{v1, v2, edge.colour});
 	}
 
-	// throw 0;
-
-	std::vector<ColouredEdgeVertices> nearClippedEdges = clipNearFar(worldEdges);
+	std::vector<ColouredEdgeVertices> nearFarClippedEdges = clipNearFar(cameraEdges);
 
 	std::vector<ColouredEdgeVertices> perspectiveEdges;
+	for (const ColouredEdgeVertices& edge: nearFarClippedEdges) {
+		glm::vec4 v1 = perspective.getMatrix() * edge.v1;
+		glm::vec4 v2 = perspective.getMatrix() * edge.v2;
+		v1 /= v1.w;
+		v2 /= v2.w;
 
-	for (ColouredEdgeVertices& edge: nearClippedEdges) {
-		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl;
-
-		glm::vec4 v1 = perspective.getMatrix() * glm::vec4(edge.v1, 1);
-		glm::vec4 v2 = perspective.getMatrix() * glm::vec4(edge.v2, 1);
-
-		v1 = (1 / v1.w) * v1;
-		v2 = (1 / v2.w) * v2;
-
-		perspectiveEdges.push_back(ColouredEdgeVertices{v1.xyz(), v2.xyz(), edge.colour});
-
-		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl << std::endl;
+		perspectiveEdges.push_back(ColouredEdgeVertices{v1, v2, edge.colour});
 	}
 
 	std::vector<ColouredEdgeVertices> restClippedEdges = clipRest(perspectiveEdges);
 
-	std::vector<Coloured2DEdgeVertices> edges2D;
-
-	for (ColouredEdgeVertices& edge: restClippedEdges) {
-		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl;
-
-		// glm::vec2 u1 = matutils::homogenize(glm::vec4(edge.v1, 1));
-		// glm::vec2 u2 = matutils::homogenize(glm::vec4(edge.v2, 1));
-
-		glm::vec2 u1 = edge.v1.xy();
-		glm::vec2 u2 = edge.v2.xy();
-
-		edges2D.push_back(Coloured2DEdgeVertices{u1, u2, edge.colour});
-
-		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl << std::endl;
-	}
-
-	// throw 0;
-
-	std::vector<Coloured2DEdgeVertices> sideClippedEdges = edges2D; // clip2D(edges2D);
-
-	// std::vector<ColouredEdgeVertices> farClippedEdges = nearClippedEdges; //clipRest(nearClippedEdges);
-
-	// std::cout << worldEdges.size() << ' ' << nearClippedEdges.size() << ' ' << farClippedEdges.size() << std::endl;
-
-	for (const Coloured2DEdgeVertices& edge: sideClippedEdges) {
+	for (const ColouredEdgeVertices& edge: restClippedEdges) {
 		setLineColour(edge.colour);
 
 		glm::vec2 v1(
@@ -390,11 +313,11 @@ const glm::vec3 COLOUR_RED(1, 0, 0);
 const glm::vec3 COLOUR_GREEN(0, 1, 0);
 const glm::vec3 COLOUR_BLUE(0, 0, 1);
 
-const std::vector<glm::vec3> GNOMON_VERTICES = {
-	{0, 0, 0},
-	{1, 0, 0},
-	{0, 1, 0},
-	{0, 0, 1}
+const std::vector<glm::vec4> GNOMON_VERTICES = {
+	{0, 0, 0, 1},
+	{1, 0, 0, 1},
+	{0, 1, 0, 1},
+	{0, 0, 1, 1}
 };
 
 const std::vector<ColouredEdge> GNOMON_EDGES = {
@@ -417,68 +340,22 @@ std::vector<ColouredEdgeVertices> A2::getWorldGnomonEdges() {
 	}
 
 	return edges;
-
-	// std::vector<glm::vec3> vertices;
-
-	// for (const glm::vec3& vertex: GNOMON_VERTICES) {
-	// 	vertices.push_back((camera.getMatrix() * glm::vec4(vertex, 1)).xyz());
-	// }
-
-	// std::vector<ColouredEdgeVertices> nearClippedEdges = clipNear(vertices, GNOMON_EDGES);
-
-	// // std::cout << nearClippedEdges.size() << std::endl;
-
-	// for (const ColouredEdgeVertices& edge: nearClippedEdges) {
-	// 	glm::vec4 v1 = perspective.getMatrix() * glm::vec4(edge.v1, 1);
-	// 	glm::vec4 v2 = perspective.getMatrix() * glm::vec4(edge.v2, 1);
-
-	// 	setLineColour(edge.colour);
-	// 	drawLine(
-	// 		matutils::homogenize(v1),
-	// 		matutils::homogenize(v2)
-	// 	);
-	// }
 }
-
-// void A2::drawWorldGnomon() {
-// 	glm::mat4 transform = perspective.getMatrix() *
-// 		camera.getMatrix();
-
-// 	std::vector<glm::vec2> vertices;
-
-// 	for (const glm::vec3& vertex: GNOMON_VERTICES) {
-// 		glm::vec2 v = matutils::homogenize(transform * glm::vec4(vertex, 1));
-// 		vertices.push_back(v);
-// 	}
-
-// 	for (const ColouredEdge& edge: GNOMON_EDGES) {
-// 		setLineColour(edge.colour);
-// 		drawLine(
-// 			vertices.at(edge.vertex1Index),
-// 			vertices.at(edge.vertex2Index)
-// 		);
-// 	}
-// }
 
 const glm::vec3 COLOUR_YELLOW(1, 1, 0);
 const glm::vec3 COLOUR_CYAN(0, 1, 1);
 const glm::vec3 COLOUR_MAGENTA(1, 0, 1);
 
-const std::vector<glm::vec3> CUBE_VERTICES = {
-	{ -1, -1, -1 },
-	{ -1,  1, -1 },
-	{ -1,  1,  1 },
-	{ -1, -1,  1 },
-	{  1, -1,  1 },
-	{  1, -1, -1 },
-	{  1,  1, -1 },
-	{  1,  1,  1 },
+const std::vector<glm::vec4> CUBE_VERTICES = {
+	{ -1, -1, -1, 1 },
+	{ -1,  1, -1, 1 },
+	{ -1,  1,  1, 1 },
+	{ -1, -1,  1, 1 },
+	{  1, -1,  1, 1 },
+	{  1, -1, -1, 1 },
+	{  1,  1, -1, 1 },
+	{  1,  1,  1, 1 },
 };
-
-// struct Edge {
-// 	unsigned int vertex1Index;
-// 	unsigned int vertex2Index;
-// };
 
 const std::vector<ColouredEdge> CUBE_EDGES = {
 	{ 0, 1 },
@@ -512,8 +389,8 @@ std::vector<ColouredEdgeVertices> A2::getCubeWorldEdges() {
 	for (const ColouredEdge& edge: CUBE_GNOMON_EDGES) {
 		edges.push_back(
 			ColouredEdgeVertices{
-				mat4TimesVec3(transform, GNOMON_VERTICES.at(edge.vertex1Index)),
-				mat4TimesVec3(transform, GNOMON_VERTICES.at(edge.vertex2Index)),
+				transform * GNOMON_VERTICES.at(edge.vertex1Index),
+				transform * GNOMON_VERTICES.at(edge.vertex2Index),
 				edge.colour
 			}
 		);
@@ -524,8 +401,8 @@ std::vector<ColouredEdgeVertices> A2::getCubeWorldEdges() {
 	for (const ColouredEdge& edge: CUBE_EDGES) {
 		edges.push_back(
 			ColouredEdgeVertices{
-				mat4TimesVec3(cubeTransform, CUBE_VERTICES.at(edge.vertex1Index)),
-				mat4TimesVec3(cubeTransform, CUBE_VERTICES.at(edge.vertex2Index)),
+				cubeTransform * CUBE_VERTICES.at(edge.vertex1Index),
+				cubeTransform * CUBE_VERTICES.at(edge.vertex2Index),
 				COLOUR_WHITE
 			}
 		);
@@ -534,207 +411,65 @@ std::vector<ColouredEdgeVertices> A2::getCubeWorldEdges() {
 	return edges;
 }
 
-// void A2::drawCube() {
-// 	// perspective.getMatrix() *
-// 	glm::mat4 transform =
-// 		camera.getMatrix() *
-// 		cubeTranslationMatrix.matrix *
-// 		cubeRotationMatrix.matrix;
-
-// 	{
-// 		std::vector<glm::vec3> vertices;
-// 		for (const glm::vec3& vertex: GNOMON_VERTICES) {
-// 			vertices.push_back((transform * glm::vec4(vertex, 1)).xyz());
-// 		}
-
-// 		std::vector<ColouredEdgeVertices> nearClippedEdges = clipNear(vertices, GNOMON_EDGES);
-
-// 		// std::cout << nearClippedEdges.size() << std::endl;
-
-// 		for (const ColouredEdgeVertices& edge: nearClippedEdges) {
-// 			glm::vec4 v1 = perspective.getMatrix() * glm::vec4(edge.v1, 1);
-// 			glm::vec4 v2 = perspective.getMatrix() * glm::vec4(edge.v2, 1);
-
-// 			setLineColour(edge.colour);
-// 			drawLine(
-// 				matutils::homogenize(v1),
-// 				matutils::homogenize(v2)
-// 			);
-// 		}
-
-// 		// std::vector<glm::vec2> vertices;
-
-// 		// for (const glm::vec3& vertex: GNOMON_VERTICES) {
-// 		// 	glm::vec2 v = matutils::homogenize(transform * glm::vec4(vertex, 1));
-// 		// 	vertices.push_back(v);
-// 		// }
-
-// 		// for (const ColouredEdge& edge: CUBE_GNOMON_EDGES) {
-// 		// 	setLineColour(edge.colour);
-// 		// 	drawLine(
-// 		// 		vertices.at(edge.vertex1Index),
-// 		// 		vertices.at(edge.vertex2Index)
-// 		// 	);
-// 		// }
-// 	}
-
-// 	{
-// 		setLineColour(COLOUR_WHITE);
-
-// 		glm::mat4 cubeTransform = transform * cubeScaleMatrix.matrix;
-
-// 		std::vector<glm::vec3> vertices;
-// 		for (const glm::vec3& vertex: CUBE_VERTICES) {
-// 			vertices.push_back((cubeTransform * glm::vec4(vertex, 1)).xyz());
-// 		}
-
-// 		std::vector<ColouredEdgeVertices> nearClippedEdges = clipNear(vertices, CUBE_EDGES);
-
-// 		// std::cout << nearClippedEdges.size() << std::endl;
-
-// 		for (const ColouredEdgeVertices& edge: nearClippedEdges) {
-// 			glm::vec4 v1 = perspective.getMatrix() * glm::vec4(edge.v1, 1);
-// 			glm::vec4 v2 = perspective.getMatrix() * glm::vec4(edge.v2, 1);
-
-// 			drawLine(
-// 				matutils::homogenize(v1),
-// 				matutils::homogenize(v2)
-// 			);
-// 		}
-
-// 		// std::vector<glm::vec2> vertices;
-
-// 		// for (const glm::vec3& vertex: CUBE_VERTICES) {
-// 		// 	glm::vec2 v = matutils::homogenize(cubeTransform * glm::vec4(vertex, 1));
-// 		// 	vertices.push_back(v);
-// 		// }
-
-// 		// for (const ColouredEdge& edge: CUBE_EDGES) {
-// 		// 	drawLine(
-// 		// 		vertices.at(edge.vertex1Index),
-// 		// 		vertices.at(edge.vertex2Index)
-// 		// 	);
-// 		// }
-// 	}
-// }
-
 std::vector<ColouredEdgeVertices> A2::clipNearFar(
 	const std::vector<ColouredEdgeVertices>& edges
 ) {
-	std::vector<glm::vec3> nearPlaneNormals = {
-		{0, 0, 1}, // near
-		{0, 0, -1} // far
+	std::vector<glm::vec3> normals = {
+		{0, 0,  1}, // near
+		// {0, 0, -1, 0}  // far
 	};
 
-	std::vector<glm::vec3> nearPlanePoints = {
-		perspective.getNear() * nearPlaneNormals.at(0),
-		perspective.getFar() * nearPlaneNormals.at(0)
+	std::vector<glm::vec3> points = {
+		{0, 0, perspective.getNear()},
+		// perspective.getFar() *  glm::vec4(0, 0, 1, 1)
 	};
-		// glm::normalize(camera.getLookAt() - camera.getLookFrom());
-		// camera.getLookFrom() + perspective.getNear() * nearPlaneNormal;
 
-	return clip(edges, nearPlaneNormals, nearPlanePoints);
+	return clip(edges, normals, points);
 }
 
 std::vector<ColouredEdgeVertices> A2::clipRest(
 	const std::vector<ColouredEdgeVertices>& edges
 ) {
-	const std::vector<glm::vec3> nearPlaneNormals = {
-		// {0, 0, -1},	// far
-		{1, 0, 0},	// left
-		{-1, 0, 0},	// right
-		{0, 1, 0},	// bottom
-		{0, -1, 0},	// top
+	const std::vector<glm::vec3> normals = {
+		// { 0,  0,  1, 0},  // near
+		{ 0,  0, -1},  // far
+		{ 1,  0,  0},	// left
+		{-1,  0,  0},	// right
+		{ 0,  1,  0},	// bottom
+		{ 0, -1,  0},	// top
 	};
 
-	const std::vector<glm::vec3> nearPlanePoints = {
-		// {0, 0, 1},  // far
-		{-1, 0, 0}, // left
-		{1, 0, 0},  // right
-		{0, -1, 0}, // bottom
-		{0, 1, 0}   // top
+	const std::vector<glm::vec3> points = {
+		// { 0,  0, -1, 1},  // near
+		{ 0,  0,  1},  // far
+		{-1,  0,  0},  // left
+		{ 1,  0,  0},  // right
+		{ 0, -1,  0},  // bottom
+		{ 0,  1,  0}   // top
 	};
 
-	return clip(edges, nearPlaneNormals, nearPlanePoints);
-}
-
-std::vector<Coloured2DEdgeVertices> A2::clip2D(
-	const std::vector<Coloured2DEdgeVertices>& edges
-) {
-	std::vector<glm::vec2> nearPlanePoints = {
-		{0, 1}, // top
-		{0, -1}, // bottom
-		{1, 0}, // right
-		{-1, 0} // left
-	};
-
-	std::vector<glm::vec2> nearPlaneNormals = {
-		{0, -1},
-		{0, 1},
-		{-1, 0},
-		{1, 0}
-	};
-
-	std::vector<Coloured2DEdgeVertices> output;
-
-	for (const Coloured2DEdgeVertices& edge: edges) {
-		glm::vec2 v1 = edge.v1;
-		glm::vec2 v2 = edge.v2;
-
-		assert(nearPlanePoints.size() == nearPlaneNormals.size());
-
-		for (int i = 0; i < nearPlanePoints.size(); i++) {
-			const glm::vec2& nearPlaneNormal = nearPlaneNormals.at(i);
-			const glm::vec2& nearPlanePoint = nearPlanePoints.at(i);
-
-			float wecA = glm::dot(v1 - nearPlanePoint, nearPlaneNormal);
-			float wecB = glm::dot(v2 - nearPlanePoint, nearPlaneNormal);
-
-			if (wecA < 0 && wecB < 0) {
-				goto reject;
-			}
-			else if (wecA >= 0 && wecB >= 0) {
-				continue;
-			}
-			else {
-				float t = wecA / (wecA - wecB);
-
-				if (wecA < 0) {
-					v1 = v1 + t * (v2 - v1);
-				}
-				else {
-					v2 = v1 + t * (v2 - v1);
-				}
-			}
-		}
-		output.push_back(Coloured2DEdgeVertices{v1, v2, edge.colour});
-
-		reject: ;
-	}
-
-	return output;
+	return clip(edges, normals, points);
 }
 
 std::vector<ColouredEdgeVertices> A2::clip(
 	const std::vector<ColouredEdgeVertices>& edges,
-	const std::vector<glm::vec3>& nearPlaneNormals,
-	const std::vector<glm::vec3>& nearPlanePoints
+	const std::vector<glm::vec3>& normals,
+	const std::vector<glm::vec3>& points
 ) {
+	assert(points.size() == normals.size());
+
 	std::vector<ColouredEdgeVertices> output;
-
 	for (const ColouredEdgeVertices& edge: edges) {
-		glm::vec3 v1 = edge.v1;
-		glm::vec3 v2 = edge.v2;
-
-		assert(nearPlanePoints.size() == nearPlaneNormals.size());
+		glm::vec3 v1 = edge.v1.xyz() / edge.v1.w;
+		glm::vec3 v2 = edge.v2.xyz() / edge.v1.w;
 
 		bool accept = true;
-		for (int i = 0; i < nearPlanePoints.size(); i++) {
-			const glm::vec3& nearPlaneNormal = nearPlaneNormals.at(i);
-			const glm::vec3& nearPlanePoint = nearPlanePoints.at(i);
+		for (int i = 0; i < points.size(); i++) {
+			const glm::vec3& normal = normals.at(i);
+			const glm::vec3& point = points.at(i);
 
-			float wecA = glm::dot(v1 - nearPlanePoint, nearPlaneNormal);
-			float wecB = glm::dot(v2 - nearPlanePoint, nearPlaneNormal);
+			float wecA = glm::dot(v1 - point, normal);
+			float wecB = glm::dot(v2 - point, normal);
 
 			if (wecA < 0 && wecB < 0) {
 				accept = false;
@@ -753,16 +488,9 @@ std::vector<ColouredEdgeVertices> A2::clip(
 					v2 = v1 + t * (v2 - v1);
 				}
 			}
-
-			// std::cout << wecA << ' ' << wecB << std::endl;
-
-			// std::cout << "v1: " << glm::to_string(v1) << std::endl;
-			// std::cout << "v2: " << glm::to_string(v2) << std::endl;
-			// std::cout << "nearPlanePoint: " << glm::to_string(nearPlanePoint) << std::endl;
-			// std::cout << "nearPlaneNormal: " << glm::to_string(nearPlaneNormal) << std::endl;
 		}
 		if (accept) {
-			output.push_back(ColouredEdgeVertices{v1, v2, edge.colour});
+			output.push_back(ColouredEdgeVertices{glm::vec4(v1, 1), glm::vec4(v2, 1), edge.colour});
 		}
 	}
 

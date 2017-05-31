@@ -47,17 +47,10 @@ struct ColouredEdge {
 };
 
 struct ColouredEdgeVertices {
-	glm::vec3 v1;
-	glm::vec3 v2;
+	glm::vec4 v1;
+	glm::vec4 v2;
 	glm::vec3 colour;
 };
-
-struct Coloured2DEdgeVertices {
-	glm::vec2 v1;
-	glm::vec2 v2;
-	glm::vec3 colour;
-};
-
 
 class A2 : public CS488Window {
 public:
@@ -121,14 +114,10 @@ private:
 		const std::vector<ColouredEdgeVertices>& edges
 	);
 
-	std::vector<Coloured2DEdgeVertices> clip2D(
-		const std::vector<Coloured2DEdgeVertices>& edges
-	);
-
 	std::vector<ColouredEdgeVertices> clip(
 		const std::vector<ColouredEdgeVertices>& edges,
-		const std::vector<glm::vec3>& nearPlaneNormals,
-		const std::vector<glm::vec3>& nearPlanePoints
+		const std::vector<glm::vec3>& normals,
+		const std::vector<glm::vec3>& points
 	);
 
 	Camera camera;
