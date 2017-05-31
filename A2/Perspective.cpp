@@ -7,7 +7,7 @@
 
 const float initialFovDegrees = 30;
 const float initialNear = 1;
-const float initialFar = 1000;
+const float initialFar = 20;
 
 const float MIN_FOV = 5;
 const float MAX_FOV = 160;
@@ -48,13 +48,13 @@ void Perspective::changeFov(float deltaDegrees) {
 }
 
 void Perspective::changeNear(float delta) {
-	near *= delta;
+	near += delta;
 
 	updateMatrix();
 }
 
 void Perspective::changeFar(float delta) {
-	far *= delta;
+	far += delta;
 
 	updateMatrix();
 }

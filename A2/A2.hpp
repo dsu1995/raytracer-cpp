@@ -52,6 +52,12 @@ struct ColouredEdgeVertices {
 	glm::vec3 colour;
 };
 
+struct Coloured2DEdgeVertices {
+	glm::vec2 v1;
+	glm::vec2 v2;
+	glm::vec3 colour;
+};
+
 
 class A2 : public CS488Window {
 public:
@@ -107,12 +113,16 @@ private:
 
 	void reset();
 
-	std::vector<ColouredEdgeVertices> clipNear(
+	std::vector<ColouredEdgeVertices> clipNearFar(
 		const std::vector<ColouredEdgeVertices>& edges
 	);
 
 	std::vector<ColouredEdgeVertices> clipRest(
 		const std::vector<ColouredEdgeVertices>& edges
+	);
+
+	std::vector<Coloured2DEdgeVertices> clip2D(
+		const std::vector<Coloured2DEdgeVertices>& edges
 	);
 
 	std::vector<ColouredEdgeVertices> clip(

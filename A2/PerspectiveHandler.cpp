@@ -26,12 +26,12 @@ const double NEAR_FAR_SENTIVITY = 0.01;
 void PerspectiveHandler::onMiddleMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	perspective.changeNear(1 + delta * NEAR_FAR_SENTIVITY);
+	perspective.changeNear(delta * NEAR_FAR_SENTIVITY);
 }
 
 // move far plane
 void PerspectiveHandler::onRightMouseDrag(double prevPos, double curPos) {
 	double delta = curPos - prevPos;
 
-	perspective.changeFar(1 + delta * NEAR_FAR_SENTIVITY);
+	perspective.changeFar(delta * NEAR_FAR_SENTIVITY);
 }

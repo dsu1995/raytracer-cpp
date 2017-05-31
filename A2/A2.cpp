@@ -244,7 +244,9 @@ void A2::drawLine(
 }
 
 glm::vec3 mat4TimesVec3(const glm::mat4& mat, const glm::vec3& vec) {
-	return (mat * glm::vec4(vec, 1)).xyz();
+	glm::vec4 v = mat * glm::vec4(vec, 1);
+
+	return (1 / v.w) * v.xyz();
 }
 
 const glm::vec3 COLOUR_BLACK(0, 0, 0);
@@ -322,29 +324,58 @@ void A2::appLogic()
 
 	// throw 0;
 
-	std::vector<ColouredEdgeVertices> nearClippedEdges = clipNear(worldEdges);
+	std::vector<ColouredEdgeVertices> nearClippedEdges = clipNearFar(worldEdges);
+
+	std::vector<ColouredEdgeVertices> perspectiveEdges;
 
 	for (ColouredEdgeVertices& edge: nearClippedEdges) {
 		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl;
 
-		edge.v1 = mat4TimesVec3(perspective.getMatrix(), edge.v1);
-		edge.v2 = mat4TimesVec3(perspective.getMatrix(), edge.v2);
+		glm::vec3 v1 = mat4TimesVec3(perspective.getMatrix(), edge.v1);
+		glm::vec3 v2 = mat4TimesVec3(perspective.getMatrix(), edge.v2);
+
+		perspectiveEdges.push_back(ColouredEdgeVertices{v1, v2, edge.colour});
+
+		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl << std::endl;
+	}
+
+	std::vector<ColouredEdgeVertices> restClippedEdges = clipRest(perspectiveEdges);
+
+	std::vector<Coloured2DEdgeVertices> edges2D;
+
+	for (ColouredEdgeVertices& edge: restClippedEdges) {
+		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl;
+
+		glm::vec2 u1 = matutils::homogenize(glm::vec4(edge.v1, 1));
+		glm::vec2 u2 = matutils::homogenize(glm::vec4(edge.v2, 1));
+
+		edges2D.push_back(Coloured2DEdgeVertices{u1, u2, edge.colour});
 
 		// std::cout << glm::to_string(edge.v1) << ' ' << glm::to_string(edge.v2) << std::endl << std::endl;
 	}
 
 	// throw 0;
 
-	std::vector<ColouredEdgeVertices> farClippedEdges = nearClippedEdges; //clipRest(nearClippedEdges);
+	std::vector<Coloured2DEdgeVertices> sideClippedEdges = clip2D(edges2D);
+
+	// std::vector<ColouredEdgeVertices> farClippedEdges = nearClippedEdges; //clipRest(nearClippedEdges);
 
 	// std::cout << worldEdges.size() << ' ' << nearClippedEdges.size() << ' ' << farClippedEdges.size() << std::endl;
 
-	for (const ColouredEdgeVertices& edge: farClippedEdges) {
+	for (const Coloured2DEdgeVertices& edge: sideClippedEdges) {
 		setLineColour(edge.colour);
-		drawLine(
-			matutils::homogenize(glm::vec4(edge.v1, 1)),
-			matutils::homogenize(glm::vec4(edge.v2, 1))
+
+		glm::vec2 v1(
+			viewport.left + (viewport.right - viewport.left) * (edge.v1.x - (-1)) / 2,
+			viewport.bottom + (viewport.top - viewport.bottom) * (edge.v1.y - (-1)) / 2
 		);
+
+		glm::vec2 v2(
+			viewport.left + (viewport.right - viewport.left) * (edge.v2.x - (-1)) / 2,
+			viewport.bottom + (viewport.top - viewport.bottom) * (edge.v2.y - (-1)) / 2
+		);
+
+		drawLine(v1, v2);
 	}
 }
 
@@ -581,15 +612,17 @@ std::vector<ColouredEdgeVertices> A2::getCubeWorldEdges() {
 // 	}
 // }
 
-std::vector<ColouredEdgeVertices> A2::clipNear(
+std::vector<ColouredEdgeVertices> A2::clipNearFar(
 	const std::vector<ColouredEdgeVertices>& edges
 ) {
 	std::vector<glm::vec3> nearPlaneNormals = {
-		{0, 0, 1}
+		{0, 0, 1}, // near
+		{0, 0, -1} // far
 	};
 
 	std::vector<glm::vec3> nearPlanePoints = {
-		perspective.getNear() * nearPlaneNormals.at(0)
+		perspective.getNear() * nearPlaneNormals.at(0),
+		perspective.getFar() * nearPlaneNormals.at(0)
 	};
 		// glm::normalize(camera.getLookAt() - camera.getLookFrom());
 		// camera.getLookFrom() + perspective.getNear() * nearPlaneNormal;
@@ -617,6 +650,63 @@ std::vector<ColouredEdgeVertices> A2::clipRest(
 	};
 
 	return clip(edges, nearPlaneNormals, nearPlanePoints);
+}
+
+std::vector<Coloured2DEdgeVertices> A2::clip2D(
+	const std::vector<Coloured2DEdgeVertices>& edges
+) {
+	std::vector<glm::vec2> nearPlanePoints = {
+		{0, 1}, // top
+		{0, -1}, // bottom
+		{1, 0}, // right
+		{-1, 0} // left
+	};
+
+	std::vector<glm::vec2> nearPlaneNormals = {
+		{0, -1},
+		{0, 1},
+		{-1, 0},
+		{1, 0}
+	};
+
+	std::vector<Coloured2DEdgeVertices> output;
+
+	for (const Coloured2DEdgeVertices& edge: edges) {
+		glm::vec2 v1 = edge.v1;
+		glm::vec2 v2 = edge.v2;
+
+		assert(nearPlanePoints.size() == nearPlaneNormals.size());
+
+		for (int i = 0; i < nearPlanePoints.size(); i++) {
+			const glm::vec2& nearPlaneNormal = nearPlaneNormals.at(i);
+			const glm::vec2& nearPlanePoint = nearPlanePoints.at(i);
+
+			float wecA = glm::dot(v1 - nearPlanePoint, nearPlaneNormal);
+			float wecB = glm::dot(v2 - nearPlanePoint, nearPlaneNormal);
+
+			if (wecA < 0 && wecB < 0) {
+				goto reject;
+			}
+			else if (wecA >= 0 && wecB >= 0) {
+				continue;
+			}
+			else {
+				float t = wecA / (wecA - wecB);
+
+				if (wecA < 0) {
+					v1 = v1 + t * (v2 - v1);
+				}
+				else {
+					v2 = v1 + t * (v2 - v1);
+				}
+			}
+		}
+		output.push_back(Coloured2DEdgeVertices{v1, v2, edge.colour});
+
+		reject: ;
+	}
+
+	return output;
 }
 
 std::vector<ColouredEdgeVertices> A2::clip(
