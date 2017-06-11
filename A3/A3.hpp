@@ -6,6 +6,7 @@
 #include "cs488-framework/MeshConsolidator.hpp"
 
 #include "SceneNode.hpp"
+#include "JointNode.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -87,4 +88,8 @@ private:
 	bool cullFrontface;
 	bool enableZBuffer;
 	bool drawCircle;
+
+	JointNode* neck;
+	JointNode* headLR;
+	JointNode* headUD;
 };

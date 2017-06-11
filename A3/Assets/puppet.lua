@@ -12,24 +12,50 @@ blue = gr.material({0.0, 0.0, 1.0}, {0.1, 0.1, 0.1}, 10)
 green = gr.material({0.0, 1.0, 0.0}, {0.1, 0.1, 0.1}, 10)
 white = gr.material({1.0, 1.0, 1.0}, {0.1, 0.1, 0.1}, 10)
 
+-- torso
 torso = gr.mesh('cube', 'torso')
 rootnode:add_child(torso)
 torso:set_material(white)
 torso:scale(0.5,1.0,0.5);
 
+-- neck up/down rotation helper
+neck_ud_rotate_helper = gr.joint('neck_ud_rotate_helper', {0, 0, 0}, {0, 0 ,0})
+torso:add_child(neck_ud_rotate_helper)
+neck_ud_rotate_helper:scale(1.0/0.5, 1.0, 1.0/0.5)
+neck_ud_rotate_helper:translate(0, 0.5, 0)
+
+-- neck up/down rotation joint
+neck_ud_rotate_joint = gr.joint('neck_ud_rotate_joint', {-45, 0, 45}, {0, 0, 0})
+neck_ud_rotate_helper:add_child(neck_ud_rotate_joint)
+
+-- neck
+neck = gr.mesh('sphere', 'neck')
+neck_ud_rotate_joint:add_child(neck)
+neck:scale(0.15, 0.3, 0.15)
+neck:translate(0.0, 0.1, 0.0)
+neck:set_material(blue)
+
+-- head rotation helper
+head_rotate_helper = gr.joint('head_rotate_helper', {0, 0, 0}, {0, 0, 0})
+neck:add_child(head_rotate_helper)
+head_rotate_helper:scale(1.0/0.15, 1.0/0.3, 1.0/0.15)
+head_rotate_helper:translate(0, 0.15, 0)
+
+-- head left/right rotation joint
+head_lr_rotate_joint = gr.joint('head_lr_rotate_joint', {0, 0, 0}, {-90, 0, 90})
+head_rotate_helper:add_child(head_lr_rotate_joint)
+
+-- head up/down rotation joint
+head_ud_rotate_joint = gr.joint('head_ud_rotate_joint', {-45, 0, 45}, {0, 0, 0})
+head_lr_rotate_joint:add_child(head_ud_rotate_joint)
+
+-- head
 head = gr.mesh('cube', 'head')
-torso:add_child(head)
-head:scale(1.0/0.5, 1.0, 1.0/0.5)
+head_ud_rotate_joint:add_child(head)
 head:scale(0.4, 0.4, 0.4)
-head:translate(0.0, 0.9, 0.0)
+head:translate(0.0, 0.15, 0.0)
 head:set_material(red)
 
-neck = gr.mesh('sphere', 'neck')
-torso:add_child(neck)
-neck:scale(1.0/0.5, 1.0, 1.0/0.5)
-neck:scale(0.15, 0.3, 0.15)
-neck:translate(0.0, 0.6, 0.0)
-neck:set_material(blue)
 
 ears = gr.mesh('sphere', 'ears')
 head:add_child(ears)
@@ -48,6 +74,13 @@ head:add_child(rightEye)
 rightEye:scale(0.2, 0.1, 0.1)
 rightEye:translate(0.2, 0.2, 0.5)
 rightEye:set_material(blue)
+
+
+
+
+
+
+
 
 leftShoulder = gr.mesh('sphere', 'leftShoulder')
 torso:add_child(leftShoulder)

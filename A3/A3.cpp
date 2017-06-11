@@ -11,6 +11,7 @@ using namespace std;
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/io.hpp>
+#include <glm/ext.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 using namespace glm;
@@ -94,6 +95,20 @@ void A3::init()
 	// this point.
 }
 
+SceneNode* findNode(SceneNode* node, const std::string& name) {
+	if (node->m_name == name) {
+		return node;
+	}
+
+	for (SceneNode* child: node->children) {
+		SceneNode* result = findNode(child, name);
+		if (result != nullptr) {
+			return result;
+		}
+	}
+	return nullptr;
+}
+
 //----------------------------------------------------------------------------------------
 void A3::processLuaSceneFile(const std::string & filename) {
 	// This version of the code treats the Lua file as an Asset,
@@ -108,6 +123,10 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	if (!m_rootNode) {
 		std::cerr << "Could not open " << filename << std::endl;
 	}
+
+	neck = (JointNode*) findNode(m_rootNode.get(), "neck_ud_rotate_joint");
+	headLR = (JointNode*) findNode(m_rootNode.get(), "head_lr_rotate_joint");
+	headUD = (JointNode*) findNode(m_rootNode.get(), "head_ud_rotate_joint");
 }
 
 //----------------------------------------------------------------------------------------
@@ -432,7 +451,7 @@ void A3::draw() {
 }
 
 //----------------------------------------------------------------------------------------
-void A3::renderSceneGraph(const SceneNode & root) {
+void A3::renderSceneGraph(const SceneNode& root) {
 	// Bind the VAO once here, and reuse for all GeometryNode rendering below.
 	glBindVertexArray(m_vao_meshData); {
 
@@ -614,6 +633,34 @@ bool A3::keyInputEvent(int key, int action, int mods) {
 		}
 		else if (key == GLFW_KEY_C) {
 			drawCircle = !drawCircle;
+			return true;
+		}
+	}
+
+	// DEBUG
+	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+		if (key == GLFW_KEY_Q) {
+			neck->rotateX(2);
+			return true;
+		}
+		else if (key == GLFW_KEY_A) {
+			neck->rotateX(-2);
+			return true;
+		}
+		else if (key == GLFW_KEY_W) {
+			headLR->rotateY(2);
+			return true;
+		}
+		else if (key == GLFW_KEY_S) {
+			headLR->rotateY(-2);
+			return true;
+		}
+		else if (key == GLFW_KEY_E) {
+			headUD->rotateX(2);
+			return true;
+		}
+		else if (key == GLFW_KEY_D) {
+			headUD->rotateX(-2);
 			return true;
 		}
 	}
