@@ -396,10 +396,19 @@ void A3::draw() {
 
 //----------------------------------------------------------------------------------------
 void A3::renderSceneGraph(const SceneNode & root) {
-
 	// Bind the VAO once here, and reuse for all GeometryNode rendering below.
-	glBindVertexArray(m_vao_meshData);
+	glBindVertexArray(m_vao_meshData); {
 
+		renderSceneGraphRecursive(root, m_view);
+
+	} glBindVertexArray(0);
+	CHECK_GL_ERRORS;
+}
+
+void A3::renderSceneGraphRecursive(
+	const SceneNode& root,
+	const glm::mat4& transform
+) {
 	// This is emphatically *not* how you should be drawing the scene graph in
 	// your final implementation.  This is a non-hierarchical demonstration
 	// in which we assume that there is a list of GeometryNodes living directly
@@ -413,28 +422,32 @@ void A3::renderSceneGraph(const SceneNode & root) {
 	// could put a set of mutually recursive functions in this class, which
 	// walk down the tree from nodes of different types.
 
-	for (const SceneNode * node : root.children) {
 
-		if (node->m_nodeType != NodeType::GeometryNode)
-			continue;
+	if (root.m_nodeType == NodeType::GeometryNode) {
+		const GeometryNode& geometryNode = static_cast<const GeometryNode&>(root);
 
-		const GeometryNode * geometryNode = static_cast<const GeometryNode *>(node);
-
-		updateShaderUniforms(m_shader, *geometryNode, m_view);
-
+		updateShaderUniforms(m_shader, geometryNode, transform);
 
 		// Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
-		BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
+		BatchInfo batchInfo = m_batchInfoMap[geometryNode.meshId];
 
 		//-- Now render the mesh:
-		m_shader.enable();
-		glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
-		m_shader.disable();
+		m_shader.enable(); {
+
+			glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
+
+		} m_shader.disable();
 	}
 
-	glBindVertexArray(0);
+	const glm::mat4 newTransform = transform * root.trans;
+
+	for (const SceneNode* node: root.children) {
+		renderSceneGraphRecursive(*node, newTransform);
+	}
+
 	CHECK_GL_ERRORS;
 }
+
 
 //----------------------------------------------------------------------------------------
 // Draw the trackball circle.
