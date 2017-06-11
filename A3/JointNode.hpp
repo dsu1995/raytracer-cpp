@@ -11,9 +11,14 @@ public:
 	void set_joint_y(double min, double init, double max);
 
 	struct JointRange {
-		double min, init, max;
+		double min, init, max, cur;
 	};
 
 
 	JointRange m_joint_x, m_joint_y;
+
+	void reset();
+
+	void rotateX(double delta);
+	void rotateY(double delta);
 };
