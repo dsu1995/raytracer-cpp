@@ -81,4 +81,10 @@ protected:
 	std::string m_luaSceneFile;
 
 	std::shared_ptr<SceneNode> m_rootNode;
+
+private:
+	bool cullBackface;
+	bool cullFrontface;
+	bool enableZBuffer;
+	bool drawCircle;
 };

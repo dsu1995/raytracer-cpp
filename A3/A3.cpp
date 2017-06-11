@@ -29,7 +29,11 @@ A3::A3(const std::string & luaSceneFile)
 	  m_vbo_vertexPositions(0),
 	  m_vbo_vertexNormals(0),
 	  m_vao_arcCircle(0),
-	  m_vbo_arcCircle(0)
+	  m_vbo_arcCircle(0),
+	  cullBackface(false),
+	  cullFrontface(false),
+	  enableZBuffer(true),
+	  drawCircle(false)
 {
 
 }
@@ -299,6 +303,22 @@ void A3::appLogic()
 {
 	// Place per frame, application logic here ...
 
+	if (cullBackface || cullFrontface) {
+		glEnable(GL_CULL_FACE);
+		if (cullBackface && cullFrontface) {
+			glCullFace(GL_FRONT_AND_BACK);
+		}
+		else if (cullBackface) {
+			glCullFace(GL_BACK);
+		}
+		else if (cullFrontface) {
+			glCullFace(GL_FRONT);
+		}
+	}
+	else {
+		glDisable(GL_CULL_FACE);
+	}
+
 	uploadCommonSceneUniforms();
 }
 
@@ -312,31 +332,44 @@ void A3::guiLogic()
 		return;
 	}
 
-	static bool firstRun(true);
-	if (firstRun) {
-		ImGui::SetNextWindowPos(ImVec2(50, 50));
-		firstRun = false;
+	// static bool firstRun(true);
+	// if (firstRun) {
+	// 	ImGui::SetNextWindowPos(ImVec2(50, 50));
+	// 	firstRun = false;
+	// }
+
+	// static bool showDebugWindow(true);
+	// ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
+	// float opacity(0.5f);
+
+	// ImGui::Begin("Properties", &showDebugWindow, ImVec2(100,100), opacity,
+	// 		windowFlags);
+
+
+	// 	// Add more gui elements here here ...
+
+
+	// 	// Create Button, and check if it was clicked:
+	// 	if( ImGui::Button( "Quit Application" ) ) {
+	// 		glfwSetWindowShouldClose(m_window, GL_TRUE);
+	// 	}
+
+	// 	ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
+
+
+	if (ImGui::BeginMainMenuBar()) {
+		if (ImGui::BeginMenu("Options")) {
+			if (ImGui::Checkbox("Circle (C)", &drawCircle)) {}
+			if (ImGui::Checkbox("Z-buffer (Z)", &enableZBuffer)) {}
+			if (ImGui::Checkbox("Backface culling (B)", &cullBackface)) {}
+			if (ImGui::Checkbox("Frontface culling (F)", &cullFrontface)) {}
+
+			ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
 	}
 
-	static bool showDebugWindow(true);
-	ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
-	float opacity(0.5f);
-
-	ImGui::Begin("Properties", &showDebugWindow, ImVec2(100,100), opacity,
-			windowFlags);
-
-
-		// Add more gui elements here here ...
-
-
-		// Create Button, and check if it was clicked:
-		if( ImGui::Button( "Quit Application" ) ) {
-			glfwSetWindowShouldClose(m_window, GL_TRUE);
-		}
-
-		ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
-
-	ImGui::End();
+	// ImGui::End();
 }
 
 //----------------------------------------------------------------------------------------
@@ -385,13 +418,18 @@ static void updateShaderUniforms(
  * Called once per frame, after guiLogic().
  */
 void A3::draw() {
-
-	glEnable( GL_DEPTH_TEST );
+	if (enableZBuffer) {
+		glEnable(GL_DEPTH_TEST);
+	}
+	else {
+		glDisable(GL_DEPTH_TEST);
+	}
 	renderSceneGraph(*m_rootNode);
 
-
-	glDisable( GL_DEPTH_TEST );
-	renderArcCircle();
+	if (drawCircle) {
+		glDisable( GL_DEPTH_TEST );
+		renderArcCircle();
+	}
 }
 
 //----------------------------------------------------------------------------------------
@@ -557,20 +595,30 @@ bool A3::windowResizeEvent (
 /*
  * Event handler.  Handles key input events.
  */
-bool A3::keyInputEvent (
-		int key,
-		int action,
-		int mods
-) {
-	bool eventHandled(false);
+bool A3::keyInputEvent(int key, int action, int mods) {
 
-	if( action == GLFW_PRESS ) {
-		if( key == GLFW_KEY_M ) {
+	if (action == GLFW_PRESS) {
+		if (key == GLFW_KEY_M) {
 			show_gui = !show_gui;
-			eventHandled = true;
+			return true;
+		}
+		else if (key == GLFW_KEY_B) {
+			cullBackface = !cullBackface;
+			return true;
+		}
+		else if (key == GLFW_KEY_F) {
+			cullFrontface = !cullFrontface;
+			return true;
+		}
+		else if (key == GLFW_KEY_Z) {
+			enableZBuffer = !enableZBuffer;
+			return true;
+		}
+		else if (key == GLFW_KEY_C) {
+			drawCircle = !drawCircle;
+			return true;
 		}
 	}
-	// Fill in with event handling code...
 
-	return eventHandled;
+	return false;
 }
