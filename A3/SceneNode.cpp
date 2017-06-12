@@ -66,11 +66,13 @@ const glm::mat4& SceneNode::get_inverse() const {
 //---------------------------------------------------------------------------------------
 void SceneNode::add_child(SceneNode* child) {
 	children.push_back(child);
+	child->parent = this;
 }
 
 //---------------------------------------------------------------------------------------
 void SceneNode::remove_child(SceneNode* child) {
 	children.remove(child);
+    child->parent = nullptr;
 }
 
 //---------------------------------------------------------------------------------------

@@ -32,7 +32,8 @@ A4_[Ss]olution/A4
 
 */Assets/backup
 
-
+CMakeLists.txt
+cmake-build-debug
 
 # Ignore submission artifacts
 A0.zip

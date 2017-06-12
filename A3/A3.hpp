@@ -7,13 +7,21 @@
 
 #include "SceneNode.hpp"
 #include "JointNode.hpp"
+#include "GeometryNode.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
+#include <unordered_map>
 
 struct LightSource {
 	glm::vec3 position;
 	glm::vec3 rgbIntensity;
+};
+
+
+namespace Mode {
+    const int POSITION = 0;
+    const int JOINTS = 1;
 };
 
 
@@ -55,7 +63,7 @@ protected:
 	);
 	void renderArcCircle();
 
-	glm::mat4 m_perpsective;
+	glm::mat4 m_perspective;
 	glm::mat4 m_view;
 
 	LightSource m_light;
@@ -92,4 +100,23 @@ private:
 	JointNode* neck;
 	JointNode* headLR;
 	JointNode* headUD;
+
+	std::unordered_map<unsigned int, SceneNode*> idToNode;
+    void initIdToNode(SceneNode* root);
+    bool doPicking;
+
+    void updateShaderUniforms(
+        const ShaderProgram& shader,
+        const GeometryNode& node,
+        const glm::mat4& modelView
+    );
+
+    glm::vec2 curMousePos;
+    bool isLeftMousePressed;
+    bool isMiddleMousePressed;
+    bool isRightMousePressed;
+
+    int mode;
+
+    void selectJoint();
 };

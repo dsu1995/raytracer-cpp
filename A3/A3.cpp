@@ -34,7 +34,9 @@ A3::A3(const std::string & luaSceneFile)
 	  cullBackface(false),
 	  cullFrontface(false),
 	  enableZBuffer(true),
-	  drawCircle(false)
+	  drawCircle(false),
+      doPicking(false),
+      mode(Mode::POSITION)
 {
 
 }
@@ -95,13 +97,13 @@ void A3::init()
 	// this point.
 }
 
-SceneNode* findNode(SceneNode* node, const std::string& name) {
+const SceneNode* findNodeByName(SceneNode *node, const std::string &name) {
 	if (node->m_name == name) {
 		return node;
 	}
 
 	for (SceneNode* child: node->children) {
-		SceneNode* result = findNode(child, name);
+        const SceneNode* result = findNodeByName(child, name);
 		if (result != nullptr) {
 			return result;
 		}
@@ -124,9 +126,18 @@ void A3::processLuaSceneFile(const std::string & filename) {
 		std::cerr << "Could not open " << filename << std::endl;
 	}
 
-	neck = (JointNode*) findNode(m_rootNode.get(), "neck_ud_rotate_joint");
-	headLR = (JointNode*) findNode(m_rootNode.get(), "head_lr_rotate_joint");
-	headUD = (JointNode*) findNode(m_rootNode.get(), "head_ud_rotate_joint");
+	neck = (JointNode*) findNodeByName(m_rootNode.get(), "neck_ud_rotate_joint");
+	headLR = (JointNode*) findNodeByName(m_rootNode.get(), "head_lr_rotate_joint");
+	headUD = (JointNode*) findNodeByName(m_rootNode.get(), "head_ud_rotate_joint");
+
+    initIdToNode(m_rootNode.get());
+}
+
+void A3::initIdToNode(SceneNode* root) {
+    idToNode[root->m_nodeId] = root;
+    for (SceneNode* child: root->children) {
+        initIdToNode(child);
+    }
 }
 
 //----------------------------------------------------------------------------------------
@@ -267,7 +278,7 @@ void A3::mapVboDataToVertexShaderInputLocations()
 void A3::initPerspectiveMatrix()
 {
 	float aspect = ((float)m_windowWidth) / m_windowHeight;
-	m_perpsective = glm::perspective(degreesToRadians(60.0f), aspect, 0.1f, 100.0f);
+	m_perspective = glm::perspective(degreesToRadians(60.0f), aspect, 0.1f, 100.0f);
 }
 
 
@@ -288,28 +299,32 @@ void A3::initLightSources() {
 void A3::uploadCommonSceneUniforms() {
 	m_shader.enable();
 	{
-		//-- Set Perpsective matrix uniform for the scene:
+		//-- Set Perspective matrix uniform for the scene:
 		GLint location = m_shader.getUniformLocation("Perspective");
-		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perpsective));
+		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perspective));
 		CHECK_GL_ERRORS;
 
+        location = m_shader.getUniformLocation("picking");
+        glUniform1i(location, doPicking);
 
-		//-- Set LightSource uniform for the scene:
-		{
-			location = m_shader.getUniformLocation("light.position");
-			glUniform3fv(location, 1, value_ptr(m_light.position));
-			location = m_shader.getUniformLocation("light.rgbIntensity");
-			glUniform3fv(location, 1, value_ptr(m_light.rgbIntensity));
-			CHECK_GL_ERRORS;
-		}
+        if (!doPicking) {
+            //-- Set LightSource uniform for the scene:
+            {
+                location = m_shader.getUniformLocation("light.position");
+                glUniform3fv(location, 1, value_ptr(m_light.position));
+                location = m_shader.getUniformLocation("light.rgbIntensity");
+                glUniform3fv(location, 1, value_ptr(m_light.rgbIntensity));
+                CHECK_GL_ERRORS;
+            }
 
-		//-- Set background light ambient intensity
-		{
-			location = m_shader.getUniformLocation("ambientIntensity");
-			vec3 ambientIntensity(0.05f);
-			glUniform3fv(location, 1, value_ptr(ambientIntensity));
-			CHECK_GL_ERRORS;
-		}
+            //-- Set background light ambient intensity
+            {
+                location = m_shader.getUniformLocation("ambientIntensity");
+                vec3 ambientIntensity(0.05f);
+                glUniform3fv(location, 1, value_ptr(ambientIntensity));
+                CHECK_GL_ERRORS;
+            }
+        }
 	}
 	m_shader.disable();
 }
@@ -347,56 +362,58 @@ void A3::appLogic()
  */
 void A3::guiLogic()
 {
-	if( !show_gui ) {
+	if (!show_gui) {
 		return;
 	}
 
-	// static bool firstRun(true);
-	// if (firstRun) {
-	// 	ImGui::SetNextWindowPos(ImVec2(50, 50));
-	// 	firstRun = false;
-	// }
+    static bool firstRun = true;
+    if (firstRun) {
+        ImGui::SetNextWindowPos(ImVec2(50, 50));
+        firstRun = false;
+    }
 
-	// static bool showDebugWindow(true);
-	// ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
-	// float opacity(0.5f);
+    static bool showDebugWindow = true;
+    ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
+    float opacity = 0.5f;
 
-	// ImGui::Begin("Properties", &showDebugWindow, ImVec2(100,100), opacity,
-	// 		windowFlags);
+    ImGui::Begin(
+		"Properties",
+		&showDebugWindow,
+		ImVec2(100,100),
+		opacity,
+        windowFlags
+	);
+    {
+        if (ImGui::BeginMenuBar()) {
+            if (ImGui::BeginMenu("Options")) {
+                ImGui::Checkbox("Circle (C)", &drawCircle);
+                ImGui::Checkbox("Z-buffer (Z)", &enableZBuffer);
+                ImGui::Checkbox("Backface culling (B)", &cullBackface);
+                ImGui::Checkbox("Frontface culling (F)", &cullFrontface);
 
+                ImGui::EndMenu();
+            }
+        }
 
-	// 	// Add more gui elements here here ...
+		ImGui::RadioButton("Position/Orientation (P)", &mode, Mode::POSITION);
+		ImGui::RadioButton("Joints (J)", &mode, Mode::JOINTS);
 
+		// Create Button, and check if it was clicked:
+        if (ImGui::Button("Quit Application")) {
+            glfwSetWindowShouldClose(m_window, GL_TRUE);
+        }
 
-	// 	// Create Button, and check if it was clicked:
-	// 	if( ImGui::Button( "Quit Application" ) ) {
-	// 		glfwSetWindowShouldClose(m_window, GL_TRUE);
-	// 	}
-
-	// 	ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
-
-
-	if (ImGui::BeginMainMenuBar()) {
-		if (ImGui::BeginMenu("Options")) {
-			if (ImGui::Checkbox("Circle (C)", &drawCircle)) {}
-			if (ImGui::Checkbox("Z-buffer (Z)", &enableZBuffer)) {}
-			if (ImGui::Checkbox("Backface culling (B)", &cullBackface)) {}
-			if (ImGui::Checkbox("Frontface culling (F)", &cullFrontface)) {}
-
-			ImGui::EndMenu();
-		}
-		ImGui::EndMainMenuBar();
-	}
-
-	// ImGui::End();
+        ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
+    }
+    ImGui::End();
 }
 
 //----------------------------------------------------------------------------------------
 // Update mesh specific shader uniforms:
-static void updateShaderUniforms(
-		const ShaderProgram & shader,
-		const GeometryNode & node,
-		const glm::mat4 & modelView
+void A3::updateShaderUniforms(
+		const ShaderProgram& shader,
+		const GeometryNode& node,
+		const glm::mat4& modelView
 ) {
 
 	shader.enable();
@@ -406,26 +423,36 @@ static void updateShaderUniforms(
 		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(modelView));
 		CHECK_GL_ERRORS;
 
-		//-- Set NormMatrix:
-		location = shader.getUniformLocation("NormalMatrix");
-		mat3 normalMatrix = glm::transpose(glm::inverse(mat3(modelView)));
-		glUniformMatrix3fv(location, 1, GL_FALSE, value_ptr(normalMatrix));
-		CHECK_GL_ERRORS;
+        if (doPicking) {
+            unsigned int id = node.m_nodeId;
+            float r = float(id & 0xff) / 255.f;
+            float g = float((id >> 8) & 0xff) / 255.f;
+            float b = float((id >> 16) & 0xff) / 255.f;
 
+            location = m_shader.getUniformLocation("material.kd");
+            glUniform3f(location, r, g, b);
+            CHECK_GL_ERRORS;
+        }
+        else {
+            //-- Set NormMatrix:
+            location = shader.getUniformLocation("NormalMatrix");
+            mat3 normalMatrix = glm::transpose(glm::inverse(mat3(modelView)));
+            glUniformMatrix3fv(location, 1, GL_FALSE, value_ptr(normalMatrix));
+            CHECK_GL_ERRORS;
 
-		//-- Set Material values:
-		location = shader.getUniformLocation("material.kd");
-		vec3 kd = node.material.kd;
-		glUniform3fv(location, 1, value_ptr(kd));
-		CHECK_GL_ERRORS;
-		location = shader.getUniformLocation("material.ks");
-		vec3 ks = node.material.ks;
-		glUniform3fv(location, 1, value_ptr(ks));
-		CHECK_GL_ERRORS;
-		location = shader.getUniformLocation("material.shininess");
-		glUniform1f(location, node.material.shininess);
-		CHECK_GL_ERRORS;
-
+            //-- Set Material values:
+            location = shader.getUniformLocation("material.kd");
+            vec3 kd = node.isSelected ? vec3(1, 1, 0) : node.material.kd;
+            glUniform3fv(location, 1, value_ptr(kd));
+            CHECK_GL_ERRORS;
+            location = shader.getUniformLocation("material.ks");
+            const vec3& ks = node.material.ks;
+            glUniform3fv(location, 1, value_ptr(ks));
+            CHECK_GL_ERRORS;
+            location = shader.getUniformLocation("material.shininess");
+            glUniform1f(location, node.material.shininess);
+            CHECK_GL_ERRORS;
+        }
 	}
 	shader.disable();
 
@@ -530,19 +557,14 @@ void A3::renderArcCircle() {
 /*
  * Called once, after program is signaled to terminate.
  */
-void A3::cleanup()
-{
-
-}
+void A3::cleanup() {}
 
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles cursor entering the window area events.
  */
-bool A3::cursorEnterWindowEvent (
-		int entered
-) {
-	bool eventHandled(false);
+bool A3::cursorEnterWindowEvent(int entered) {
+	bool eventHandled = false;
 
 	// Fill in with event handling code...
 
@@ -553,42 +575,106 @@ bool A3::cursorEnterWindowEvent (
 /*
  * Event handler.  Handles mouse cursor movement events.
  */
-bool A3::mouseMoveEvent (
-		double xPos,
-		double yPos
-) {
-	bool eventHandled(false);
-
-	// Fill in with event handling code...
-
-	return eventHandled;
+bool A3::mouseMoveEvent(double xPos, double yPos) {
+    curMousePos = vec2(xPos, yPos);
+	return true;
 }
 
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles mouse button events.
  */
-bool A3::mouseButtonInputEvent (
-		int button,
-		int actions,
-		int mods
-) {
-	bool eventHandled(false);
+bool A3::mouseButtonInputEvent(int button, int action, int mods) {
+    if (ImGui::IsMouseHoveringAnyWindow()) {
+        return false;
+    }
 
-	// Fill in with event handling code...
+    bool eventHandled = false;
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        if (action == GLFW_PRESS) {
+            isLeftMousePressed = true;
+            eventHandled = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            isLeftMousePressed = false;
+            eventHandled = true;
+        }
+    }
+    else if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+        if (action == GLFW_PRESS) {
+            isMiddleMousePressed = true;
+            eventHandled = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            isMiddleMousePressed = false;
+            eventHandled = true;
+        }
+    }
+    else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        if (action == GLFW_PRESS) {
+            isRightMousePressed = true;
+            eventHandled = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            isRightMousePressed = false;
+            eventHandled = true;
+        }
+    }
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mode == Mode::JOINTS) {
+        selectJoint();
+        eventHandled = true;
+    }
 
 	return eventHandled;
+}
+
+void A3::selectJoint() {
+    doPicking = true;
+
+    uploadCommonSceneUniforms();
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.35, 0.35, 0.35, 1.0);
+
+    draw();
+
+    CHECK_GL_ERRORS;
+
+    float xPos = curMousePos.x;
+    float yPos = curMousePos.y;
+
+    xPos *= double(m_framebufferWidth) / double(m_windowWidth);
+
+    yPos = m_windowHeight - yPos;
+    yPos *= double(m_framebufferHeight) / double(m_windowHeight);
+
+    GLubyte buffer[] = {0, 0, 0, 0};
+
+    glReadBuffer(GL_BACK);
+    glReadPixels(int(xPos), int(yPos), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+    CHECK_GL_ERRORS;
+
+    unsigned int id = buffer[0] + (buffer[1] << 8) + (buffer[2] << 16);
+
+    // if id does not exist, do nothing
+    try {
+        idToNode.at(id)->isSelected ^= true; // toggle isSelected
+    }
+    catch (const std::out_of_range& e) {}
+
+    doPicking = false;
+
+    CHECK_GL_ERRORS;
 }
 
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles mouse scroll wheel events.
  */
-bool A3::mouseScrollEvent (
-		double xOffSet,
-		double yOffSet
-) {
-	bool eventHandled(false);
+bool A3::mouseScrollEvent(double xOffSet, double yOffSet) {
+	bool eventHandled = false;
 
 	// Fill in with event handling code...
 
@@ -599,10 +685,7 @@ bool A3::mouseScrollEvent (
 /*
  * Event handler.  Handles window resize events.
  */
-bool A3::windowResizeEvent (
-		int width,
-		int height
-) {
+bool A3::windowResizeEvent(int width, int height) {
 	bool eventHandled(false);
 	initPerspectiveMatrix();
 	return eventHandled;
@@ -633,6 +716,14 @@ bool A3::keyInputEvent(int key, int action, int mods) {
 		}
 		else if (key == GLFW_KEY_C) {
 			drawCircle = !drawCircle;
+			return true;
+		}
+		else if (key == GLFW_KEY_P) {
+			mode = Mode::POSITION;
+			return true;
+		}
+		else if (key == GLFW_KEY_J) {
+			mode = Mode::JOINTS;
 			return true;
 		}
 	}
