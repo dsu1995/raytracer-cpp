@@ -399,6 +399,14 @@ void A3::appLogic()
 	uploadCommonSceneUniforms();
 }
 
+void A3::resetJoints() {
+    undoStackIndex = 0;
+    if (undoStack.size() > 1) {
+        undoStack.erase(undoStack.begin() + 1, undoStack.end());
+    }
+    restoreSnapshot();
+}
+
 //----------------------------------------------------------------------------------------
 /*
  * Called once per frame, after appLogic(), but before the draw() method.
@@ -428,6 +436,18 @@ void A3::guiLogic()
 	);
     {
         if (ImGui::BeginMenuBar()) {
+            if (ImGui::BeginMenu("Application")) {
+                if (ImGui::MenuItem("Reset Joints (N)")) {
+                    resetJoints();
+                }
+
+                if (ImGui::MenuItem("Quit (Q)")) {
+                    glfwSetWindowShouldClose(m_window, GL_TRUE);
+                }
+
+                ImGui::EndMenu();
+            }
+
             if (ImGui::BeginMenu("Edit")) {
                 if (ImGui::MenuItem("Undo (U)")) {
                     undo();
@@ -453,11 +473,6 @@ void A3::guiLogic()
 
 		ImGui::RadioButton("Position/Orientation (P)", &mode, Mode::POSITION);
 		ImGui::RadioButton("Joints (J)", &mode, Mode::JOINTS);
-
-		// Create Button, and check if it was clicked:
-        if (ImGui::Button("Quit Application")) {
-            glfwSetWindowShouldClose(m_window, GL_TRUE);
-        }
 
         ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
         ImGui::Text("%s", statusMessage.c_str());
@@ -836,6 +851,14 @@ bool A3::keyInputEvent(int key, int action, int mods) {
         }
         else if (key == GLFW_KEY_R) {
             redo();
+            return true;
+        }
+        else if (key == GLFW_KEY_N) {
+            resetJoints();
+            return true;
+        }
+        else if (key == GLFW_KEY_Q) {
+            glfwSetWindowShouldClose(m_window, GL_TRUE);
             return true;
         }
 	}

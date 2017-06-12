@@ -148,4 +148,6 @@ private:
     void takeJointSnapshot();
 
     void restoreSnapshot();
+
+    void resetJoints();
 };
