@@ -101,6 +101,7 @@ private:
 	JointNode* neck;
 	JointNode* headLR;
 	JointNode* headUD;
+    GeometryNode* head;
 
 	std::unordered_map<unsigned int, SceneNode*> idToNode;
     void initIdToNode(SceneNode* root);

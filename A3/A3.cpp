@@ -126,9 +126,10 @@ void A3::processLuaSceneFile(const std::string & filename) {
 		std::cerr << "Could not open " << filename << std::endl;
 	}
 
-	neck = (JointNode*) findNodeByName(m_rootNode.get(), "neck_ud_rotate_joint");
-	headLR = (JointNode*) findNodeByName(m_rootNode.get(), "head_lr_rotate_joint");
-	headUD = (JointNode*) findNodeByName(m_rootNode.get(), "head_ud_rotate_joint");
+	neck = dynamic_cast<JointNode*>(findNodeByName(m_rootNode.get(), "neck_ud_rotate_joint"));
+	headLR = dynamic_cast<JointNode*>(findNodeByName(m_rootNode.get(), "head_lr_rotate_joint"));
+	headUD = dynamic_cast<JointNode*>(findNodeByName(m_rootNode.get(), "head_ud_rotate_joint"));
+    head = dynamic_cast<GeometryNode*>(findNodeByName(m_rootNode.get(), "head"));
 
     initIdToNode(m_rootNode.get());
 }
@@ -510,7 +511,7 @@ void A3::renderSceneGraphRecursive(
 	const glm::mat4 newTransform = transform * root.trans;
 
 	if (root.m_nodeType == NodeType::GeometryNode) {
-		const GeometryNode& geometryNode = static_cast<const GeometryNode&>(root);
+		const GeometryNode& geometryNode = dynamic_cast<const GeometryNode&>(root);
 
 		updateShaderUniforms(m_shader, geometryNode, newTransform);
 
@@ -586,6 +587,10 @@ bool A3::mouseMoveEvent(double xPos, double yPos) {
 			node->rotateX(deltaY);
 		}
 	}
+    if (mode == Mode::JOINTS && isRightMousePressed && head->isSelected) {
+        double deltaY = (yPos - curMousePos.y) * ROTATE_JOINT_SENSITIVITY;
+        headLR->rotateY(deltaY);
+    }
 
 	curMousePos = vec2(xPos, yPos);
 	return true;
@@ -676,7 +681,7 @@ void A3::selectJoint() {
 		if (parent != nullptr && parent->m_nodeType == NodeType::JointNode) {
 			node->isSelected ^= true;
 
-			JointNode* jointParent = static_cast<JointNode*>(parent);
+			JointNode* jointParent = dynamic_cast<JointNode*>(parent);
 			jointParent->isSelected ^= true;
 
 			// parent not in selectedJoints, add it
@@ -756,32 +761,32 @@ bool A3::keyInputEvent(int key, int action, int mods) {
 	}
 
 	// DEBUG
-	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-		if (key == GLFW_KEY_Q) {
-			neck->rotateX(2);
-			return true;
-		}
-		else if (key == GLFW_KEY_A) {
-			neck->rotateX(-2);
-			return true;
-		}
-		else if (key == GLFW_KEY_W) {
-			headLR->rotateY(2);
-			return true;
-		}
-		else if (key == GLFW_KEY_S) {
-			headLR->rotateY(-2);
-			return true;
-		}
-		else if (key == GLFW_KEY_E) {
-			headUD->rotateX(2);
-			return true;
-		}
-		else if (key == GLFW_KEY_D) {
-			headUD->rotateX(-2);
-			return true;
-		}
-	}
+//	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+//		if (key == GLFW_KEY_Q) {
+//			neck->rotateX(2);
+//			return true;
+//		}
+//		else if (key == GLFW_KEY_A) {
+//			neck->rotateX(-2);
+//			return true;
+//		}
+//		else if (key == GLFW_KEY_W) {
+//			headLR->rotateY(2);
+//			return true;
+//		}
+//		else if (key == GLFW_KEY_S) {
+//			headLR->rotateY(-2);
+//			return true;
+//		}
+//		else if (key == GLFW_KEY_E) {
+//			headUD->rotateX(2);
+//			return true;
+//		}
+//		else if (key == GLFW_KEY_D) {
+//			headUD->rotateX(-2);
+//			return true;
+//		}
+//	}
 
 	return false;
 }
