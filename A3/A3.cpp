@@ -133,9 +133,10 @@ void A3::processLuaSceneFile(const std::string & filename) {
 
     initIdToNode(m_rootNode.get());
 
-    undoStack.push_back(TransformSnapshot());
-    initUndoStack(m_rootNode.get(), undoStack.front());
-    undoStackIndex = 0;
+    findJointNodes(m_rootNode.get());
+
+    undoStackIndex = -1;
+    takeJointSnapshot();
 }
 
 void A3::initIdToNode(SceneNode* root) {
@@ -145,15 +146,40 @@ void A3::initIdToNode(SceneNode* root) {
     }
 }
 
-void A3::initUndoStack(SceneNode* root, TransformSnapshot& initSnapshot) {
-    if (root->m_nodeType == NodeType::JointNode) {
-        JointNode* jointNode = dynamic_cast<JointNode*>(root);
-        initSnapshot.push_back(
-            {jointNode, jointNode->trans, jointNode->m_joint_x.cur, jointNode->m_joint_y.cur}
+void A3::takeJointSnapshot() {
+    // there is stuff on the stack after the current index
+    if (undoStackIndex < undoStack.size() - 1) {
+        undoStack.erase(
+            undoStack.begin() + undoStackIndex + 1,
+            undoStack.end()
         );
     }
+    undoStack.push_back(TransformSnapshot());
+    undoStackIndex++;
+    TransformSnapshot& curSnapshot = undoStack.back();
+
+    for (JointNode* node: jointNodes) {
+        curSnapshot.push_back(
+            {node, node->trans, node->m_joint_x.cur, node->m_joint_y.cur}
+        );
+    }
+}
+
+void A3::restoreSnapshot() {
+    for (const JointNodeSnapshot& snapshot: undoStack.at(undoStackIndex)) {
+        snapshot.node->trans = snapshot.trans;
+        snapshot.node->m_joint_x.cur = snapshot.xCur;
+        snapshot.node->m_joint_y.cur = snapshot.yCur;
+    }
+}
+
+void A3::findJointNodes(SceneNode* root) {
+    if (root->m_nodeType == NodeType::JointNode) {
+        JointNode* jointNode = dynamic_cast<JointNode*>(root);
+        jointNodes.push_back(jointNode);
+    }
     for (SceneNode* child: root->children) {
-        initUndoStack(child, initSnapshot);
+        findJointNodes(child);
     }
 }
 
@@ -677,40 +703,13 @@ bool A3::mouseButtonInputEvent(int button, int action, int mods) {
         }
 
         if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_RELEASE) {
-            // there is stuff on the stack after the current index
-            if (undoStackIndex < undoStack.size() - 1) {
-                undoStack.erase(
-                    undoStack.begin() + undoStackIndex + 1,
-                    undoStack.end()
-                );
-            }
-            undoStack.push_back(TransformSnapshot());
-            undoStackIndex++;
-            TransformSnapshot& curSnapshot = undoStack.back();
-
-            for (JointNode* node: selectedJoints) {
-                curSnapshot.push_back(
-                    {node, node->trans, node->m_joint_x.cur, node->m_joint_y.cur}
-                );
-            }
+            takeJointSnapshot();
 
             eventHandled = true;
         }
 
         if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE && head->isSelected) {
-            // there is stuff on the stack after the current index
-            if (undoStackIndex < undoStack.size() - 1) {
-                undoStack.erase(
-                    undoStack.begin() + undoStackIndex + 1,
-                    undoStack.end()
-                );
-            }
-            undoStack.push_back(TransformSnapshot());
-            undoStackIndex++;
-            TransformSnapshot& curSnapshot = undoStack.back();
-            curSnapshot.push_back(
-                {headLR, headLR->trans, headLR->m_joint_x.cur, headLR->m_joint_y.cur}
-            );
+            takeJointSnapshot();
 
             eventHandled = true;
         }
@@ -880,11 +879,7 @@ void A3::undo() {
     statusMessage = "";
     undoStackIndex--;
 
-    for (const JointNodeSnapshot& snapshot: undoStack.at(undoStackIndex)) {
-        snapshot.node->trans = snapshot.trans;
-        snapshot.node->m_joint_x.cur = snapshot.xCur;
-        snapshot.node->m_joint_y.cur = snapshot.yCur;
-    }
+    restoreSnapshot();
 }
 
 void A3::redo() {
@@ -895,9 +890,5 @@ void A3::redo() {
     statusMessage = "";
     undoStackIndex++;
 
-    for (const JointNodeSnapshot& snapshot: undoStack.at(undoStackIndex)) {
-        snapshot.node->trans = snapshot.trans;
-        snapshot.node->m_joint_x.cur = snapshot.xCur;
-        snapshot.node->m_joint_y.cur = snapshot.yCur;
-    }
+    restoreSnapshot();
 }

@@ -133,13 +133,19 @@ private:
 
     using TransformSnapshot = std::vector<JointNodeSnapshot>;
 
-    std::vector<TransformSnapshot> undoStack;
-    unsigned int undoStackIndex;
+    std::vector<JointNode*> jointNodes;
 
-    void initUndoStack(SceneNode* root, TransformSnapshot& initSnapshot);
+    std::vector<TransformSnapshot> undoStack;
+    int undoStackIndex;
+
+    void findJointNodes(SceneNode* root);
 
     void undo();
     void redo();
 
     std::string statusMessage;
+
+    void takeJointSnapshot();
+
+    void restoreSnapshot();
 };
