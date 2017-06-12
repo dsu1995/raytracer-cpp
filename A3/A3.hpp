@@ -123,4 +123,23 @@ private:
     void selectJoint();
 
     std::unordered_set<JointNode*> selectedJoints;
+
+    struct JointNodeSnapshot {
+        JointNode* node;
+        glm::mat4 trans;
+        double xCur;
+        double yCur;
+    };
+
+    using TransformSnapshot = std::vector<JointNodeSnapshot>;
+
+    std::vector<TransformSnapshot> undoStack;
+    unsigned int undoStackIndex;
+
+    void initUndoStack(SceneNode* root, TransformSnapshot& initSnapshot);
+
+    void undo();
+    void redo();
+
+    std::string statusMessage;
 };

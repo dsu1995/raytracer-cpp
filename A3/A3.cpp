@@ -132,12 +132,28 @@ void A3::processLuaSceneFile(const std::string & filename) {
     head = dynamic_cast<GeometryNode*>(findNodeByName(m_rootNode.get(), "head"));
 
     initIdToNode(m_rootNode.get());
+
+    undoStack.push_back(TransformSnapshot());
+    initUndoStack(m_rootNode.get(), undoStack.front());
+    undoStackIndex = 0;
 }
 
 void A3::initIdToNode(SceneNode* root) {
     idToNode[root->m_nodeId] = root;
     for (SceneNode* child: root->children) {
         initIdToNode(child);
+    }
+}
+
+void A3::initUndoStack(SceneNode* root, TransformSnapshot& initSnapshot) {
+    if (root->m_nodeType == NodeType::JointNode) {
+        JointNode* jointNode = dynamic_cast<JointNode*>(root);
+        initSnapshot.push_back(
+            {jointNode, jointNode->trans, jointNode->m_joint_x.cur, jointNode->m_joint_y.cur}
+        );
+    }
+    for (SceneNode* child: root->children) {
+        initUndoStack(child, initSnapshot);
     }
 }
 
@@ -386,6 +402,17 @@ void A3::guiLogic()
 	);
     {
         if (ImGui::BeginMenuBar()) {
+            if (ImGui::BeginMenu("Edit")) {
+                if (ImGui::MenuItem("Undo (U)")) {
+                    undo();
+                }
+                if (ImGui::MenuItem("Redo (R)")) {
+                    redo();
+                }
+
+                ImGui::EndMenu();
+            }
+
             if (ImGui::BeginMenu("Options")) {
                 ImGui::Checkbox("Circle (C)", &drawCircle);
                 ImGui::Checkbox("Z-buffer (Z)", &enableZBuffer);
@@ -407,6 +434,8 @@ void A3::guiLogic()
         }
 
         ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
+        ImGui::Text("%s", statusMessage.c_str());
+        ImGui::Text("Undo Stack Index: %d", undoStackIndex);
     }
     ImGui::End();
 }
@@ -581,15 +610,17 @@ const float ROTATE_JOINT_SENSITIVITY = 0.1;
  * Event handler.  Handles mouse cursor movement events.
  */
 bool A3::mouseMoveEvent(double xPos, double yPos) {
-	if (mode == Mode::JOINTS && isMiddleMousePressed) {
-		double deltaY = (yPos - curMousePos.y) * ROTATE_JOINT_SENSITIVITY;
-		for (JointNode* node: selectedJoints) {
-			node->rotateX(deltaY);
-		}
-	}
-    if (mode == Mode::JOINTS && isRightMousePressed && head->isSelected) {
-        double deltaY = (yPos - curMousePos.y) * ROTATE_JOINT_SENSITIVITY;
-        headLR->rotateY(deltaY);
+    if (mode == Mode::JOINTS) {
+        if (isMiddleMousePressed) {
+            double deltaY = (yPos - curMousePos.y) * ROTATE_JOINT_SENSITIVITY;
+            for (JointNode* node: selectedJoints) {
+                node->rotateX(deltaY);
+            }
+        }
+        if (isRightMousePressed && head->isSelected) {
+            double deltaY = (yPos - curMousePos.y) * ROTATE_JOINT_SENSITIVITY;
+            headLR->rotateY(deltaY);
+        }
     }
 
 	curMousePos = vec2(xPos, yPos);
@@ -638,9 +669,51 @@ bool A3::mouseButtonInputEvent(int button, int action, int mods) {
         }
     }
 
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mode == Mode::JOINTS) {
-        selectJoint();
-        eventHandled = true;
+    // TODO there is something wrong with undoing the first time from the top
+    if (mode == Mode::JOINTS) {
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS ) {
+            selectJoint();
+            eventHandled = true;
+        }
+
+        if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_RELEASE) {
+            // there is stuff on the stack after the current index
+            if (undoStackIndex < undoStack.size() - 1) {
+                undoStack.erase(
+                    undoStack.begin() + undoStackIndex + 1,
+                    undoStack.end()
+                );
+            }
+            undoStack.push_back(TransformSnapshot());
+            undoStackIndex++;
+            TransformSnapshot& curSnapshot = undoStack.back();
+
+            for (JointNode* node: selectedJoints) {
+                curSnapshot.push_back(
+                    {node, node->trans, node->m_joint_x.cur, node->m_joint_y.cur}
+                );
+            }
+
+            eventHandled = true;
+        }
+
+        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE && head->isSelected) {
+            // there is stuff on the stack after the current index
+            if (undoStackIndex < undoStack.size() - 1) {
+                undoStack.erase(
+                    undoStack.begin() + undoStackIndex + 1,
+                    undoStack.end()
+                );
+            }
+            undoStack.push_back(TransformSnapshot());
+            undoStackIndex++;
+            TransformSnapshot& curSnapshot = undoStack.back();
+            curSnapshot.push_back(
+                {headLR, headLR->trans, headLR->m_joint_x.cur, headLR->m_joint_y.cur}
+            );
+
+            eventHandled = true;
+        }
     }
 
 	return eventHandled;
@@ -758,6 +831,14 @@ bool A3::keyInputEvent(int key, int action, int mods) {
 			mode = Mode::JOINTS;
 			return true;
 		}
+        else if (key == GLFW_KEY_U) {
+            undo();
+            return true;
+        }
+        else if (key == GLFW_KEY_R) {
+            redo();
+            return true;
+        }
 	}
 
 	// DEBUG
@@ -789,4 +870,34 @@ bool A3::keyInputEvent(int key, int action, int mods) {
 //	}
 
 	return false;
+}
+
+void A3::undo() {
+    if (undoStackIndex == 0) {
+        statusMessage = "Out of Undos";
+        return;
+    }
+    statusMessage = "";
+    undoStackIndex--;
+
+    for (const JointNodeSnapshot& snapshot: undoStack.at(undoStackIndex)) {
+        snapshot.node->trans = snapshot.trans;
+        snapshot.node->m_joint_x.cur = snapshot.xCur;
+        snapshot.node->m_joint_y.cur = snapshot.yCur;
+    }
+}
+
+void A3::redo() {
+    if (undoStackIndex == undoStack.size() - 1) {
+        statusMessage = "Out of Redos";
+        return;
+    }
+    statusMessage = "";
+    undoStackIndex++;
+
+    for (const JointNodeSnapshot& snapshot: undoStack.at(undoStackIndex)) {
+        snapshot.node->trans = snapshot.trans;
+        snapshot.node->m_joint_x.cur = snapshot.xCur;
+        snapshot.node->m_joint_y.cur = snapshot.yCur;
+    }
 }
