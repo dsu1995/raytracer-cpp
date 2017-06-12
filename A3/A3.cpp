@@ -373,7 +373,7 @@ void A3::guiLogic()
     }
 
     static bool showDebugWindow = true;
-    ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_MenuBar;
     float opacity = 0.5f;
 
     ImGui::Begin(
@@ -393,6 +393,8 @@ void A3::guiLogic()
 
                 ImGui::EndMenu();
             }
+
+            ImGui::EndMenuBar();
         }
 
 		ImGui::RadioButton("Position/Orientation (P)", &mode, Mode::POSITION);
