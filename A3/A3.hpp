@@ -12,6 +12,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 struct LightSource {
 	glm::vec3 position;
@@ -119,4 +120,6 @@ private:
     int mode;
 
     void selectJoint();
+
+    std::unordered_set<JointNode*> selectedJoints;
 };

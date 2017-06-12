@@ -97,13 +97,13 @@ void A3::init()
 	// this point.
 }
 
-const SceneNode* findNodeByName(SceneNode *node, const std::string &name) {
+SceneNode* findNodeByName(SceneNode *node, const std::string &name) {
 	if (node->m_name == name) {
 		return node;
 	}
 
 	for (SceneNode* child: node->children) {
-        const SceneNode* result = findNodeByName(child, name);
+        SceneNode* result = findNodeByName(child, name);
 		if (result != nullptr) {
 			return result;
 		}
@@ -523,7 +523,7 @@ void A3::renderSceneGraphRecursive(
 		} m_shader.disable();
 	}
 
-	for (const SceneNode* node: root.children) {
+	for (SceneNode* node: root.children) {
 		renderSceneGraphRecursive(*node, newTransform);
 	}
 
@@ -571,12 +571,21 @@ bool A3::cursorEnterWindowEvent(int entered) {
 	return eventHandled;
 }
 
+const float ROTATE_JOINT_SENSITIVITY = 0.1;
+
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles mouse cursor movement events.
  */
 bool A3::mouseMoveEvent(double xPos, double yPos) {
-    curMousePos = vec2(xPos, yPos);
+	if (mode == Mode::JOINTS && isMiddleMousePressed) {
+		double deltaY = (yPos - curMousePos.y) * ROTATE_JOINT_SENSITIVITY;
+		for (JointNode* node: selectedJoints) {
+			node->rotateX(deltaY);
+		}
+	}
+
+	curMousePos = vec2(xPos, yPos);
 	return true;
 }
 
@@ -660,7 +669,23 @@ void A3::selectJoint() {
 
     // if id does not exist, do nothing
     try {
-        idToNode.at(id)->isSelected ^= true; // toggle isSelected
+		SceneNode* node = idToNode.at(id); // may throw exception here
+		SceneNode* parent = node->parent;
+		if (parent != nullptr && parent->m_nodeType == NodeType::JointNode) {
+			node->isSelected ^= true;
+
+			JointNode* jointParent = static_cast<JointNode*>(parent);
+			jointParent->isSelected ^= true;
+
+			// parent not in selectedJoints, add it
+			if (selectedJoints.find(jointParent) == selectedJoints.end()) {
+				selectedJoints.insert(jointParent);
+			}
+			// parent in selectedJoints, remove it
+			else {
+				selectedJoints.erase(jointParent);
+			}
+		}
     }
     catch (const std::out_of_range& e) {}
 
