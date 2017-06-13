@@ -150,4 +150,7 @@ private:
     void restoreSnapshot();
 
     void resetJoints();
+
+    SceneNode* translationHelperNode;
+    SceneNode* rotationHelperNode;
 };

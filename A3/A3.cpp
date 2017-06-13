@@ -128,6 +128,8 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	headLR = dynamic_cast<JointNode*>(findNodeByName(m_rootNode.get(), "head_lr_rotate_joint"));
 	headUD = dynamic_cast<JointNode*>(findNodeByName(m_rootNode.get(), "head_ud_rotate_joint"));
     head = dynamic_cast<GeometryNode*>(findNodeByName(m_rootNode.get(), "head"));
+    translationHelperNode = findNodeByName(m_rootNode.get(), "root_translation_helper");
+    rotationHelperNode = findNodeByName(m_rootNode.get(), "root_rotation_helper");
 
     initIdToNode(m_rootNode.get());
 
@@ -643,6 +645,7 @@ bool A3::cursorEnterWindowEvent(int entered) {
 }
 
 const float ROTATE_JOINT_SENSITIVITY = 0.1;
+const float TRANSLATE_SENSITIVITY = 0.002;
 
 //----------------------------------------------------------------------------------------
 /*
@@ -659,6 +662,19 @@ bool A3::mouseMoveEvent(double xPos, double yPos) {
         if (isRightMousePressed && head->isSelected) {
             double deltaY = (yPos - curMousePos.y) * ROTATE_JOINT_SENSITIVITY;
             headLR->rotateY(deltaY);
+        }
+    }
+    else if (mode == Mode::POSITION) {
+        if (isLeftMousePressed) {
+            double deltaX = (xPos - curMousePos.x) * TRANSLATE_SENSITIVITY;
+            double deltaY = (yPos - curMousePos.y) * TRANSLATE_SENSITIVITY;
+
+            translationHelperNode->trans = glm::translate(vec3(deltaX, -deltaY, 0)) * translationHelperNode->trans;
+        }
+        if (isMiddleMousePressed) {
+            double deltaY = (yPos - curMousePos.y) * TRANSLATE_SENSITIVITY;
+
+            translationHelperNode->trans = glm::translate(vec3(0, 0, deltaY)) * translationHelperNode->trans;
         }
     }
 

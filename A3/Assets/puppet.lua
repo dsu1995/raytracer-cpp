@@ -3,18 +3,30 @@
 -- looks roughly humanoid.
 
 rootnode = gr.node('root')
-rootnode:rotate('y', -20.0)
-rootnode:scale( 0.25, 0.25, 0.25 )
-rootnode:translate(0.0, 0.0, -1.0)
+
 
 red = gr.material({1.0, 0.0, 0.0}, {0.1, 0.1, 0.1}, 10)
 blue = gr.material({0.0, 0.0, 1.0}, {0.1, 0.1, 0.1}, 10)
 green = gr.material({0.0, 1.0, 0.0}, {0.1, 0.1, 0.1}, 10)
 white = gr.material({1.0, 1.0, 1.0}, {0.1, 0.1, 0.1}, 10)
 
+-- whole model translation helper
+root_translation_helper = gr.node('root_translation_helper')
+rootnode:add_child(root_translation_helper)
+
+-- whole model rotation helper
+root_rotation_helper = gr.node('root_rotation_helper')
+root_translation_helper:add_child(root_rotation_helper)
+
+root_helper = gr.node('root_helper')
+root_translation_helper:add_child(root_helper)
+root_helper:rotate('y', -20.0)
+root_helper:scale( 0.25, 0.25, 0.25 )
+root_helper:translate(0.0, 0.0, -1.0)
+
 -- torso
 torso = gr.mesh('cube', 'torso')
-rootnode:add_child(torso)
+root_helper:add_child(torso)
 torso:set_material(white)
 torso:scale(0.5,1.0,0.5);
 
