@@ -132,6 +132,9 @@ void A3::processLuaSceneFile(const std::string & filename) {
     translationHelperNode = findNodeByName(m_rootNode.get(), "root_translation_helper");
     rotationHelperNode = findNodeByName(m_rootNode.get(), "root_rotation_helper");
 
+    initPosition = translationHelperNode->trans;
+    initRotation = rotationHelperNode->trans;
+
     initIdToNode(m_rootNode.get());
 
     findJointNodes(m_rootNode.get());
@@ -400,6 +403,20 @@ void A3::appLogic()
 	uploadCommonSceneUniforms();
 }
 
+void A3::resetPosition() {
+    translationHelperNode->trans = initPosition;
+}
+
+void A3::resetOrientation() {
+    rotationHelperNode->trans = initRotation;
+}
+
+void A3::resetAll() {
+    resetPosition();
+    resetOrientation();
+    resetJoints();
+}
+
 void A3::resetJoints() {
     undoStackIndex = 0;
     if (undoStack.size() > 1) {
@@ -438,8 +455,17 @@ void A3::guiLogic()
     {
         if (ImGui::BeginMenuBar()) {
             if (ImGui::BeginMenu("Application")) {
+                if (ImGui::MenuItem("Reset Position (I)")) {
+                    resetPosition();
+                }
+                if (ImGui::MenuItem("Reset Orientation (O)")) {
+                    resetOrientation();
+                }
                 if (ImGui::MenuItem("Reset Joints (N)")) {
                     resetJoints();
+                }
+                if (ImGui::MenuItem("Reset All (A)")) {
+                    resetAll();
                 }
 
                 if (ImGui::MenuItem("Quit (Q)")) {
@@ -477,7 +503,7 @@ void A3::guiLogic()
 
         ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
         ImGui::Text("%s", statusMessage.c_str());
-        ImGui::Text("Undo Stack Index: %d", undoStackIndex);
+//        ImGui::Text("Undo Stack Index: %d", undoStackIndex);
     }
     ImGui::End();
 }
@@ -891,6 +917,18 @@ bool A3::keyInputEvent(int key, int action, int mods) {
         }
         else if (key == GLFW_KEY_Q) {
             glfwSetWindowShouldClose(m_window, GL_TRUE);
+            return true;
+        }
+        else if (key == GLFW_KEY_I) {
+            resetPosition();
+            return true;
+        }
+        else if (key == GLFW_KEY_O) {
+            resetOrientation();
+            return true;
+        }
+        else if (key == GLFW_KEY_A) {
+            resetAll();
             return true;
         }
 	}

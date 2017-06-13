@@ -153,4 +153,13 @@ private:
 
     SceneNode* translationHelperNode;
     SceneNode* rotationHelperNode;
+
+    glm::mat4 initPosition;
+    glm::mat4 initRotation;
+
+    void resetPosition();
+
+    void resetOrientation();
+
+    void resetAll();
 };
