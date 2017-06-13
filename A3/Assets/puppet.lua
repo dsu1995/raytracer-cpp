@@ -13,22 +13,22 @@ white = gr.material({1.0, 1.0, 1.0}, {0.1, 0.1, 0.1}, 10)
 -- whole model translation helper
 root_translation_helper = gr.node('root_translation_helper')
 rootnode:add_child(root_translation_helper)
+root_translation_helper:translate(0.0, 0.0, -1.0)
+
 
 -- whole model rotation helper
 root_rotation_helper = gr.node('root_rotation_helper')
 root_translation_helper:add_child(root_rotation_helper)
+root_rotation_helper:rotate('y', -20.0)
 
-root_helper = gr.node('root_helper')
-root_translation_helper:add_child(root_helper)
-root_helper:rotate('y', -20.0)
-root_helper:scale( 0.25, 0.25, 0.25 )
-root_helper:translate(0.0, 0.0, -1.0)
 
 -- torso
 torso = gr.mesh('cube', 'torso')
-root_helper:add_child(torso)
+root_rotation_helper:add_child(torso)
 torso:set_material(white)
 torso:scale(0.5,1.0,0.5);
+torso:scale( 0.25, 0.25, 0.25 )
+
 
 -- neck up/down rotation helper
 neck_ud_rotate_helper = gr.joint('neck_ud_rotate_helper', {0, 0, 0}, {0, 0 ,0})

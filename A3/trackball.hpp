@@ -1,11 +1,16 @@
-// #ifndef TRACKBALL_H
-// #define TRACKBALL_H
+#pragma once
 
-// /* Function prototypes */
-// void vCalcRotVec(float fNewX, float fNewY,
-//                  float fOldX, float fOldY,
-//                  float fDiameter,
-//                  float *fVecX, float *fVecY, float *fVecZ);
-// void vAxisRotMatrix(float fVecX, float fVecY, float fVecZ, Matrix mNewMat);
+#include <glm/glm.hpp>
 
-// #endif
+namespace trackball {
+    glm::vec3 calculateRotationVector(
+        const glm::vec2& newVec,
+        const glm::vec2& oldVec,
+        float diameter
+    );
+
+    glm::mat4 rotationAroundAxisMatrix(
+        float radians,
+        const glm::vec3& axis
+    );
+}

@@ -4,6 +4,7 @@ using namespace std;
 
 #include "cs488-framework/GlErrorCheck.hpp"
 #include "cs488-framework/MathUtils.hpp"
+#include "trackball.hpp"
 
 #include <imgui/imgui.h>
 
@@ -334,7 +335,7 @@ void A3::initViewMatrix() {
 //----------------------------------------------------------------------------------------
 void A3::initLightSources() {
 	// World-space position
-	m_light.position = vec3(-2.0f, 5.0f, 0.5f);
+	m_light.position = vec3(0.0f, 0.0f, 2.0f);
 	m_light.rgbIntensity = vec3(0.8f); // White light
 }
 
@@ -675,6 +676,26 @@ bool A3::mouseMoveEvent(double xPos, double yPos) {
             double deltaY = (yPos - curMousePos.y) * TRANSLATE_SENSITIVITY;
 
             translationHelperNode->trans = glm::translate(vec3(0, 0, deltaY)) * translationHelperNode->trans;
+        }
+        if (isRightMousePressed) {
+            vec2 newPos(
+                xPos - m_framebufferWidth / 2,
+                -(yPos - m_framebufferHeight / 2)
+            );
+            vec2 oldPos(
+                curMousePos.x - m_framebufferWidth / 2,
+                -(curMousePos.y - m_framebufferHeight / 2)
+            );
+
+            vec3 rotationVector = trackball::calculateRotationVector(
+                newPos, oldPos,
+                std::min(m_framebufferHeight, m_framebufferWidth) / 2.0f
+            );
+
+            float rotationAngle = glm::length(rotationVector);
+
+            mat4 rotationMatrix = trackball::rotationAroundAxisMatrix(rotationAngle, rotationVector);
+            rotationHelperNode->trans = rotationMatrix * rotationHelperNode->trans;
         }
     }
 
