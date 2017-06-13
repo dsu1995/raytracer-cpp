@@ -4,8 +4,6 @@ using namespace std;
 
 #include "cs488-framework/GlErrorCheck.hpp"
 #include "cs488-framework/MathUtils.hpp"
-#include "GeometryNode.hpp"
-#include "JointNode.hpp"
 
 #include <imgui/imgui.h>
 
@@ -710,7 +708,6 @@ bool A3::mouseButtonInputEvent(int button, int action, int mods) {
         }
     }
 
-    // TODO there is something wrong with undoing the first time from the top
     if (mode == Mode::JOINTS) {
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS ) {
             selectJoint();
@@ -719,13 +716,11 @@ bool A3::mouseButtonInputEvent(int button, int action, int mods) {
 
         if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_RELEASE) {
             takeJointSnapshot();
-
             eventHandled = true;
         }
 
         if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE && head->isSelected) {
             takeJointSnapshot();
-
             eventHandled = true;
         }
     }
