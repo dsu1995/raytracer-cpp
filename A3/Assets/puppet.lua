@@ -92,7 +92,7 @@ head_top:scale(0.6, 0.4, 0.75)
 head_top:translate(0, 0.2, 0)
 
 
-iris_pink = gr.material({152 / 255.0, 108 / 255.0, 114 / 255.0}, {0.1, 0.1, 0.1}, 10)
+iris_pink = gr.material({252 / 255.0, 186 / 255.0, 198 / 255.0}, {0.1, 0.1, 0.1}, 10)
 
 
 -- left eye ball
@@ -143,8 +143,65 @@ right_iris:scale(0.3, 0.45, 0.3)
 right_iris:translate(-0.2, 0.1, 0.75)
 
 
+tongue_pink = gr.material({241 / 255.0, 161 / 255.0, 176 / 255.0}, {0.1, 0.1, 0.1}, 10)
+
+-- tongue
+tongue = gr.mesh('sphere', 'tongue')
+head:add_child(tongue)
+tongue:set_material(tongue_pink)
+tongue:scale(1 / 0.65, 1 / 0.45, 1 / 0.8)
+tongue:scale(0.8, 0.45, 0.9)
+tongue:translate(0, -0.4, 0)
+
+-- tongue2
+tongue2 = gr.mesh('sphere', 'tongue2')
+tongue:add_child(tongue2)
+tongue2:set_material(tongue_pink)
+tongue2:scale(1 / 0.8, 1 / 0.45, 1 / 0.9)
+tongue2:scale(0.1, 0.1, 0.60)
+tongue2:rotate('x', -60)
+tongue2:rotate('y', 40)
+tongue2:translate(-0.5, 0.3, -1)
+
+-- tongue3
+tongue3 = gr.mesh('sphere', 'tongue3')
+tongue:add_child(tongue3)
+tongue3:set_material(tongue_pink)
+tongue3:scale(1 / 0.8, 1 / 0.45, 1 / 0.9)
+tongue3:scale(0.25, 0.25, 0.8)
+
+tongue3:rotate('x', 40)
+tongue3:rotate('y', 100)
 
 
+tongue3:translate(-1.3, 0.2, -1.05)
+
+
+-- left arm pivot
+left_shoulder_pivot = gr.node('left_shoulder_pivot')
+torso:add_child(left_shoulder_pivot)
+left_shoulder_pivot:scale(1 / 0.75, 1 / 1.0, 1 / 0.6)
+left_shoulder_pivot:translate(0.5, 0.8, 0)
+
+-- left arm joint
+left_shoulder_joint = gr.joint('left_shoulder_joint', {-45, 20, 45}, {0, 0, 0})
+left_shoulder_pivot:add_child(left_shoulder_joint)
+
+-- left arm
+left_upper_arm = gr.mesh('sphere', 'left_upper_arm')
+left_shoulder_joint:add_child(left_upper_arm)
+left_upper_arm:set_material(body_blue)
+left_upper_arm:scale(1, 0.15, 0.15)
+left_upper_arm:rotate('y', 20)
+left_upper_arm:translate(0.5, 0, 0)
+
+-- left elbow
+left_elbow = gr.mesh('sphere', 'left_elbow')
+left_upper_arm:add_child(left_elbow)
+left_elbow:set_material(body_blue)
+left_elbow:scale(1.0 / 1, 1.0 / 0.15, 1.0 / 0.15)
+left_elbow:scale(0.15, 0.15, 0.15)
+left_elbow:translate(1, 0, 0)
 
 
 
