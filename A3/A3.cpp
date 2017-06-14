@@ -34,8 +34,14 @@ A3::A3(const std::string & luaSceneFile)
 	  cullFrontface(false),
 	  enableZBuffer(true),
 	  drawCircle(false),
+      neck(nullptr),
+      headLR(nullptr),
+      headUD(nullptr),
+      head(nullptr),
       doPicking(false),
-      mode(Mode::POSITION)
+      mode(Mode::POSITION),
+      translationHelperNode(nullptr),
+      rotationHelperNode(nullptr)
 {
 
 }
@@ -132,8 +138,12 @@ void A3::processLuaSceneFile(const std::string & filename) {
     translationHelperNode = findNodeByName(m_rootNode.get(), "root_translation_helper");
     rotationHelperNode = findNodeByName(m_rootNode.get(), "root_rotation_helper");
 
-    initPosition = translationHelperNode->trans;
-    initRotation = rotationHelperNode->trans;
+    if (translationHelperNode != nullptr) {
+        initPosition = translationHelperNode->trans;
+    }
+    if (rotationHelperNode != nullptr) {
+        initRotation = rotationHelperNode->trans;
+    }
 
     initIdToNode(m_rootNode.get());
 
@@ -404,11 +414,15 @@ void A3::appLogic()
 }
 
 void A3::resetPosition() {
-    translationHelperNode->trans = initPosition;
+    if (translationHelperNode != nullptr) {
+        translationHelperNode->trans = initPosition;
+    }
 }
 
 void A3::resetOrientation() {
-    rotationHelperNode->trans = initRotation;
+    if (rotationHelperNode != nullptr) {
+        rotationHelperNode->trans = initRotation;
+    }
 }
 
 void A3::resetAll() {
@@ -686,9 +700,11 @@ bool A3::mouseMoveEvent(double xPos, double yPos) {
                 node->rotateX(deltaY);
             }
         }
-        if (isRightMousePressed && head->isSelected) {
+        if (isRightMousePressed && head != nullptr && head->isSelected) {
             double deltaY = (yPos - curMousePos.y) * ROTATE_JOINT_SENSITIVITY;
-            headLR->rotateY(deltaY);
+            if (headLR != nullptr) {
+                headLR->rotateY(deltaY);
+            }
         }
     }
     else if (mode == Mode::POSITION) {
@@ -696,12 +712,16 @@ bool A3::mouseMoveEvent(double xPos, double yPos) {
             double deltaX = (xPos - curMousePos.x) * TRANSLATE_SENSITIVITY;
             double deltaY = (yPos - curMousePos.y) * TRANSLATE_SENSITIVITY;
 
-            translationHelperNode->trans = glm::translate(vec3(deltaX, -deltaY, 0)) * translationHelperNode->trans;
+            if (translationHelperNode != nullptr) {
+                translationHelperNode->trans = glm::translate(vec3(deltaX, -deltaY, 0)) * translationHelperNode->trans;
+            }
         }
         if (isMiddleMousePressed) {
             double deltaY = (yPos - curMousePos.y) * TRANSLATE_SENSITIVITY;
 
-            translationHelperNode->trans = glm::translate(vec3(0, 0, deltaY)) * translationHelperNode->trans;
+            if (translationHelperNode != nullptr) {
+                translationHelperNode->trans = glm::translate(vec3(0, 0, deltaY)) * translationHelperNode->trans;
+            }
         }
         if (isRightMousePressed) {
             vec2 newPos(
@@ -721,7 +741,9 @@ bool A3::mouseMoveEvent(double xPos, double yPos) {
             float rotationAngle = glm::length(rotationVector);
 
             mat4 rotationMatrix = trackball::rotationAroundAxisMatrix(rotationAngle, rotationVector);
-            rotationHelperNode->trans = rotationMatrix * rotationHelperNode->trans;
+            if (rotationHelperNode != nullptr) {
+                rotationHelperNode->trans = rotationMatrix * rotationHelperNode->trans;
+            }
         }
     }
 
@@ -782,7 +804,7 @@ bool A3::mouseButtonInputEvent(int button, int action, int mods) {
             eventHandled = true;
         }
 
-        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE && head->isSelected) {
+        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE && head != nullptr && head->isSelected) {
             takeJointSnapshot();
             eventHandled = true;
         }
