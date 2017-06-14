@@ -169,11 +169,8 @@ tongue:add_child(tongue3)
 tongue3:set_material(tongue_pink)
 tongue3:scale(1 / 0.8, 1 / 0.45, 1 / 0.9)
 tongue3:scale(0.25, 0.25, 0.8)
-
 tongue3:rotate('x', 40)
 tongue3:rotate('y', 100)
-
-
 tongue3:translate(-1.3, 0.2, -1.05)
 
 
@@ -181,27 +178,217 @@ tongue3:translate(-1.3, 0.2, -1.05)
 left_shoulder_pivot = gr.node('left_shoulder_pivot')
 torso:add_child(left_shoulder_pivot)
 left_shoulder_pivot:scale(1 / 0.75, 1 / 1.0, 1 / 0.6)
-left_shoulder_pivot:translate(0.5, 0.8, 0)
+left_shoulder_pivot:rotate('y', 120)
+left_shoulder_pivot:translate(0.5, 0.6, 0.3)
+
+
 
 -- left arm joint
-left_shoulder_joint = gr.joint('left_shoulder_joint', {-45, 20, 45}, {0, 0, 0})
+left_shoulder_joint = gr.joint('left_shoulder_joint', {-45, 0, 45}, {0, 0, 0})
 left_shoulder_pivot:add_child(left_shoulder_joint)
+
 
 -- left arm
 left_upper_arm = gr.mesh('sphere', 'left_upper_arm')
 left_shoulder_joint:add_child(left_upper_arm)
 left_upper_arm:set_material(body_blue)
-left_upper_arm:scale(1, 0.15, 0.15)
-left_upper_arm:rotate('y', 20)
-left_upper_arm:translate(0.5, 0, 0)
+left_upper_arm:scale(0.15, 0.15, 0.5)
+left_upper_arm:translate(0, 0, 0.5)
 
 -- left elbow
 left_elbow = gr.mesh('sphere', 'left_elbow')
 left_upper_arm:add_child(left_elbow)
 left_elbow:set_material(body_blue)
-left_elbow:scale(1.0 / 1, 1.0 / 0.15, 1.0 / 0.15)
+left_elbow:scale(1.0 / 0.15, 1.0 / 0.15, 1.0 / 0.5)
 left_elbow:scale(0.15, 0.15, 0.15)
-left_elbow:translate(1, 0, 0)
+left_elbow:translate(0, 0, 1)
+
+-- left elbow joint
+left_elbow_joint = gr.joint('left_elbow_joint', {0, 0, 45}, {0, 0, 0})
+left_elbow:add_child(left_elbow_joint)
+
+-- left elbow white
+left_elbow_white = gr.mesh('sphere', 'left_elbow_white')
+left_elbow:add_child(left_elbow_white)
+left_elbow_white:set_material(white)
+left_elbow_white:scale(0.8, 0.8, 0.8)
+left_elbow_white:translate(0, 0.25, 0)
+
+-- left lower arm
+left_lower_arm = gr.mesh('sphere', 'left_lower_arm')
+left_elbow_joint:add_child(left_lower_arm)
+left_lower_arm:set_material(body_blue)
+left_lower_arm:scale(1 / 0.15, 1 / 0.15, 1 / 0.15)
+left_lower_arm:scale(0.15, 0.15, 0.5)
+left_lower_arm:translate(0, 0, 3.3)
+
+
+-- left hand pivot
+left_hand_pivot = gr.node('left_hand_pivot')
+left_lower_arm:add_child(left_hand_pivot)
+left_hand_pivot:translate(0, 0, 0.4)
+left_hand_pivot:scale(1 / 0.15, 1 / 0.15, 1 / 0.5)
+
+-- left hand joint
+left_hand_joint = gr.joint('left_hand_joint', {-45, 0, 45}, {0, 0, 0})
+left_hand_pivot:add_child(left_hand_joint)
+
+-- left hand
+left_hand = gr.mesh('sphere', 'left_hand')
+left_hand_joint:add_child(left_hand)
+left_hand:set_material(body_blue)
+left_hand:scale(0.15, 0.1, 0.15)
+left_hand:translate(0, 0, 0.15)
+
+-- left hand white
+left_hand_white = gr.mesh('sphere', 'left_elbow_white')
+left_hand:add_child(left_hand_white)
+left_hand_white:set_material(white)
+left_hand_white:scale(0.8, 0.8, 0.8)
+left_hand_white:translate(0, 0.25, 0)
+
+-- left finger 1
+left_finger1 = gr.mesh('sphere', 'left_finger1')
+left_hand:add_child(left_finger1)
+left_finger1:set_material(body_blue)
+left_finger1:scale(1 / 0.15, 1 / 0.1, 1 / 0.1)
+left_finger1:scale(0.1, 0.1, 0.2)
+left_finger1:rotate('y', -30)
+left_finger1:translate(-1, 0, 1)
+
+-- left finger 2
+left_finger2 = gr.mesh('sphere', 'left_finger2')
+left_hand:add_child(left_finger2)
+left_finger2:set_material(body_blue)
+left_finger2:scale(1 / 0.15, 1 / 0.1, 1 / 0.1)
+left_finger2:scale(0.1, 0.1, 0.2)
+left_finger2:translate(0, 0, 1)
+
+-- left finger 3
+left_finger3 = gr.mesh('sphere', 'left_finger3')
+left_hand:add_child(left_finger3)
+left_finger3:set_material(body_blue)
+left_finger3:scale(1 / 0.15, 1 / 0.1, 1 / 0.1)
+left_finger3:scale(0.1, 0.1, 0.2)
+left_finger3:rotate('y', 30)
+left_finger3:translate(1, 0, 1)
+
+--------------------------- end left arm
+
+-- right arm pivot
+right_shoulder_pivot = gr.node('right_shoulder_pivot')
+torso:add_child(right_shoulder_pivot)
+right_shoulder_pivot:scale(1 / 0.75, 1 / 1.0, 1 / 0.6)
+left_shoulder_pivot:rotate('y', -20)
+right_shoulder_pivot:translate(-0.7, 0.6, 0.3)
+
+
+
+-- right arm joint
+right_shoulder_joint = gr.joint('right_shoulder_joint', {0, 45, 45}, {0, 0, 0})
+right_shoulder_pivot:add_child(right_shoulder_joint)
+
+
+-- right arm
+right_upper_arm = gr.mesh('sphere', 'right_upper_arm')
+right_shoulder_joint:add_child(right_upper_arm)
+right_upper_arm:set_material(body_blue)
+right_upper_arm:scale(0.15, 0.15, 0.5)
+right_upper_arm:translate(0, 0, 0.5)
+
+-- right elbow
+right_elbow = gr.mesh('sphere', 'right_elbow')
+right_upper_arm:add_child(right_elbow)
+right_elbow:set_material(body_blue)
+right_elbow:scale(1.0 / 0.15, 1.0 / 0.15, 1.0 / 0.5)
+right_elbow:scale(0.15, 0.15, 0.15)
+right_elbow:translate(0, 0, 1)
+
+-- right elbow joint
+right_elbow_joint = gr.joint('right_elbow_joint', {-45, -10, 45}, {0, 0, 0})
+right_elbow:add_child(right_elbow_joint)
+
+-- right elbow white
+right_elbow_white = gr.mesh('sphere', 'right_elbow_white')
+right_elbow:add_child(right_elbow_white)
+right_elbow_white:set_material(white)
+right_elbow_white:scale(0.8, 0.8, 0.8)
+right_elbow_white:translate(0, 0.25, 0)
+
+-- right lower arm
+right_lower_arm = gr.mesh('sphere', 'right_lower_arm')
+right_elbow_joint:add_child(right_lower_arm)
+right_lower_arm:set_material(body_blue)
+right_lower_arm:scale(1 / 0.15, 1 / 0.15, 1 / 0.15)
+right_lower_arm:scale(0.15, 0.15, 0.5)
+right_lower_arm:translate(0, 0, 3.3)
+
+
+-- right hand pivot
+right_hand_pivot = gr.node('right_hand_pivot')
+right_lower_arm:add_child(right_hand_pivot)
+right_hand_pivot:translate(0, 0, 0.4)
+right_hand_pivot:scale(1 / 0.15, 1 / 0.15, 1 / 0.5)
+
+-- right hand joint
+right_hand_joint = gr.joint('right_hand_joint', {-45, -40, 45}, {0, 0, 0})
+right_hand_pivot:add_child(right_hand_joint)
+
+-- right hand
+right_hand = gr.mesh('sphere', 'right_hand')
+right_hand_joint:add_child(right_hand)
+right_hand:set_material(body_blue)
+right_hand:scale(0.15, 0.1, 0.15)
+right_hand:translate(0, 0, 0.15)
+
+-- right hand white
+right_hand_white = gr.mesh('sphere', 'right_elbow_white')
+right_hand:add_child(right_hand_white)
+right_hand_white:set_material(white)
+right_hand_white:scale(0.8, 0.8, 0.8)
+right_hand_white:translate(0, 0.25, 0)
+
+-- right finger 1
+right_finger1 = gr.mesh('sphere', 'right_finger1')
+right_hand:add_child(right_finger1)
+right_finger1:set_material(body_blue)
+right_finger1:scale(1 / 0.15, 1 / 0.1, 1 / 0.1)
+right_finger1:scale(0.1, 0.1, 0.2)
+right_finger1:rotate('y', -30)
+right_finger1:translate(-1, 0, 1)
+
+-- right finger 2
+right_finger2 = gr.mesh('sphere', 'right_finger2')
+right_hand:add_child(right_finger2)
+right_finger2:set_material(body_blue)
+right_finger2:scale(1 / 0.15, 1 / 0.1, 1 / 0.1)
+right_finger2:scale(0.1, 0.1, 0.2)
+right_finger2:translate(0, 0, 1)
+
+-- right finger 3
+right_finger3 = gr.mesh('sphere', 'right_finger3')
+right_hand:add_child(right_finger3)
+right_finger3:set_material(body_blue)
+right_finger3:scale(1 / 0.15, 1 / 0.1, 1 / 0.1)
+right_finger3:scale(0.1, 0.1, 0.2)
+right_finger3:rotate('y', 30)
+right_finger3:translate(1, 0, 1)
+
+------------------------------------------- end right arm
+
+
+-- left leg
+-- right_shoulder_pivot = gr.node('right_shoulder_pivot')
+-- torso:add_child(right_shoulder_pivot)
+-- right_shoulder_pivot:scale(1 / 0.75, 1 / 1.0, 1 / 0.6)
+-- left_shoulder_pivot:rotate('y', -20)
+-- right_shoulder_pivot:translate(-0.7, 0.6, 0.3)
+
+
+
+
+
+
 
 
 
