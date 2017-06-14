@@ -32,6 +32,15 @@ torso:scale(0.15, 0.15, 0.15)
 torso:scale(0.75, 1.0, 0.6)
 torso:rotate('x', 40)
 
+-- tail
+tail = gr.mesh('tetrahedron', 'tail')
+torso:add_child(tail)
+tail:set_material(body_blue)
+tail:scale(1 / 0.75, 1 / 1.0, 1 / 0.6)
+tail:scale(0.1, 0.8, 0.8)
+tail:rotate('x', 180)
+tail:translate(0, 0.7, 0.9)
+
 
 belly_white = gr.material({187 / 255.0, 176 / 255.0, 155 / 255.0}, {0.1, 0.1, 0.1}, 10)
 
@@ -90,6 +99,49 @@ head_top:set_material(body_blue)
 head_top:scale(1 / 0.65, 1 / 0.45, 1 / 0.8)
 head_top:scale(0.6, 0.4, 0.75)
 head_top:translate(0, 0.2, 0)
+
+
+spike1 = gr.mesh('tetrahedron', 'spike1')
+head_top:add_child(spike1)
+spike1:set_material(belly_white)
+spike1:scale(1 / 0.6, 1 / 0.4, 1 / 0.75)
+spike1:scale(0.1, 0.8, 1.3)
+spike1:rotate('x', 135)
+spike1:translate(0.75, 4.2, -1.2)
+
+spike1b = gr.mesh('tetrahedron', 'spike1b')
+head_top:add_child(spike1b)
+spike1b:set_material(body_blue)
+spike1b:scale(1 / 0.6, 1 / 0.4, 1 / 0.75)
+spike1b:scale(0.1, 0.8, 1.3)
+spike1b:rotate('x', 135)
+spike1b:translate(0.7, 4.19, -1.2)
+
+spike2 = gr.mesh('tetrahedron', 'spike2')
+head_top:add_child(spike2)
+spike2:set_material(belly_white)
+spike2:scale(1 / 0.6, 1 / 0.4, 1 / 0.75)
+spike2:scale(0.1, 0.8, 1.3)
+spike2:rotate('x', 135)
+spike2:translate(0.75, 4.2, -1.2)
+spike2:scale(-1, 1, 1)
+
+spike2b = gr.mesh('tetrahedron', 'spike2b')
+head_top:add_child(spike2b)
+spike2b:set_material(body_blue)
+spike2b:scale(1 / 0.6, 1 / 0.4, 1 / 0.75)
+spike2b:scale(0.1, 0.8, 1.3)
+spike2b:rotate('x', 135)
+spike2b:translate(0.7, 4.19, -1.2)
+spike2b:scale(-1, 1, 1)
+
+spike3 = gr.mesh('tetrahedron', 'spike3')
+head_top:add_child(spike3)
+spike3:set_material(body_blue)
+spike3:scale(1 / 0.6, 1 / 0.4, 1 / 0.75)
+spike3:scale(0.1, 0.6, 1.5)
+spike3:rotate('x', 160)
+spike3:translate(0, 3.7, 1.825)
 
 
 iris_pink = gr.material({252 / 255.0, 186 / 255.0, 198 / 255.0}, {0.1, 0.1, 0.1}, 10)
