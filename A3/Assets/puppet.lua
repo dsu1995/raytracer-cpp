@@ -178,7 +178,7 @@ tongue3:translate(-1.3, 0.2, -1.05)
 left_shoulder_pivot = gr.node('left_shoulder_pivot')
 torso:add_child(left_shoulder_pivot)
 left_shoulder_pivot:scale(1 / 0.75, 1 / 1.0, 1 / 0.6)
-left_shoulder_pivot:rotate('y', 120)
+left_shoulder_pivot:rotate('y', 100)
 left_shoulder_pivot:translate(0.5, 0.6, 0.3)
 
 
@@ -279,7 +279,7 @@ left_finger3:translate(1, 0, 1)
 right_shoulder_pivot = gr.node('right_shoulder_pivot')
 torso:add_child(right_shoulder_pivot)
 right_shoulder_pivot:scale(1 / 0.75, 1 / 1.0, 1 / 0.6)
-left_shoulder_pivot:rotate('y', -20)
+right_shoulder_pivot:rotate('y', -20)
 right_shoulder_pivot:translate(-0.7, 0.6, 0.3)
 
 
@@ -378,8 +378,8 @@ right_finger3:translate(1, 0, 1)
 
 
 -- left leg
--- right_shoulder_pivot = gr.node('right_shoulder_pivot')
--- torso:add_child(right_shoulder_pivot)
+-- left_leg_pivot = gr.node('left_leg_pivot')
+-- torso:add_child(left_leg_pivot)
 -- right_shoulder_pivot:scale(1 / 0.75, 1 / 1.0, 1 / 0.6)
 -- left_shoulder_pivot:rotate('y', -20)
 -- right_shoulder_pivot:translate(-0.7, 0.6, 0.3)
