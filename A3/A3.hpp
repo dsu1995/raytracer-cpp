@@ -98,10 +98,10 @@ private:
 	bool enableZBuffer;
 	bool drawCircle;
 
-	JointNode* neck;
+    GeometryNode* neck;
 	JointNode* headLR;
-	JointNode* headUD;
     GeometryNode* head;
+    GeometryNode* tongue;
 
 	std::unordered_map<unsigned int, SceneNode*> idToNode;
     void initIdToNode(SceneNode* root);

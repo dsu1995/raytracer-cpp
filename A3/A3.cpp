@@ -36,8 +36,8 @@ A3::A3(const std::string & luaSceneFile)
 	  drawCircle(false),
       neck(nullptr),
       headLR(nullptr),
-      headUD(nullptr),
       head(nullptr),
+      tongue(nullptr),
       doPicking(false),
       mode(Mode::POSITION),
       translationHelperNode(nullptr),
@@ -131,10 +131,10 @@ void A3::processLuaSceneFile(const std::string & filename) {
 		std::cerr << "Could not open " << filename << std::endl;
 	}
 
-	neck = dynamic_cast<JointNode*>(findNodeByName(m_rootNode.get(), "neck_ud_rotate_joint"));
+	neck = dynamic_cast<GeometryNode*>(findNodeByName(m_rootNode.get(), "neck"));
 	headLR = dynamic_cast<JointNode*>(findNodeByName(m_rootNode.get(), "head_lr_rotate_joint"));
-	headUD = dynamic_cast<JointNode*>(findNodeByName(m_rootNode.get(), "head_ud_rotate_joint"));
     head = dynamic_cast<GeometryNode*>(findNodeByName(m_rootNode.get(), "head"));
+    tongue = dynamic_cast<GeometryNode*>(findNodeByName(m_rootNode.get(), "tongue"));
     translationHelperNode = findNodeByName(m_rootNode.get(), "root_translation_helper");
     rotationHelperNode = findNodeByName(m_rootNode.get(), "root_rotation_helper");
 
@@ -844,6 +844,9 @@ void A3::selectJoint() {
     // if id does not exist, do nothing
     try {
 		SceneNode* node = idToNode.at(id); // may throw exception here
+        if (tongue != nullptr && node == tongue) {
+            node = neck;
+        }
 		SceneNode* parent = node->parent;
 		if (parent != nullptr && parent->m_nodeType == NodeType::JointNode) {
 			node->isSelected ^= true;
@@ -860,6 +863,9 @@ void A3::selectJoint() {
 				selectedJoints.erase(jointParent);
 			}
 		}
+        if (tongue != nullptr && neck != nullptr) {
+            tongue->isSelected = neck->isSelected;
+        }
     }
     catch (const std::out_of_range& e) {}
 
@@ -954,34 +960,6 @@ bool A3::keyInputEvent(int key, int action, int mods) {
             return true;
         }
 	}
-
-	// DEBUG
-//	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-//		if (key == GLFW_KEY_Q) {
-//			neck->rotateX(2);
-//			return true;
-//		}
-//		else if (key == GLFW_KEY_A) {
-//			neck->rotateX(-2);
-//			return true;
-//		}
-//		else if (key == GLFW_KEY_W) {
-//			headLR->rotateY(2);
-//			return true;
-//		}
-//		else if (key == GLFW_KEY_S) {
-//			headLR->rotateY(-2);
-//			return true;
-//		}
-//		else if (key == GLFW_KEY_E) {
-//			headUD->rotateX(2);
-//			return true;
-//		}
-//		else if (key == GLFW_KEY_D) {
-//			headUD->rotateX(-2);
-//			return true;
-//		}
-//	}
 
 	return false;
 }
