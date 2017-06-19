@@ -19,27 +19,25 @@ public:
 
 class NonhierSphere : public Primitive {
 public:
-  NonhierSphere(const glm::vec3& pos, double radius)
-    : m_pos(pos), m_radius(radius)
-  {
-  }
-  virtual ~NonhierSphere();
+    NonhierSphere(const glm::vec3& pos, double radius)
+      : m_pos(pos), m_radius(radius)
+    {}
+    virtual ~NonhierSphere();
 
 private:
-  glm::vec3 m_pos;
-  double m_radius;
+    glm::vec3 m_pos;
+    double m_radius;
 };
 
 class NonhierBox : public Primitive {
 public:
-  NonhierBox(const glm::vec3& pos, double size)
-    : m_pos(pos), m_size(size)
-  {
-  }
-  
-  virtual ~NonhierBox();
+    NonhierBox(const glm::vec3& pos, double size)
+      : m_pos(pos), m_size(size)
+    {}
+
+    virtual ~NonhierBox();
 
 private:
-  glm::vec3 m_pos;
-  double m_size;
+    glm::vec3 m_pos;
+    double m_size;
 };

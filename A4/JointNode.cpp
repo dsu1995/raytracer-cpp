@@ -2,15 +2,14 @@
 
 //---------------------------------------------------------------------------------------
 JointNode::JointNode(const std::string& name)
-	: SceneNode(name)
+  : SceneNode(name)
 {
-	m_nodeType = NodeType::JointNode;
+    m_nodeType = NodeType::JointNode;
 }
 
 //---------------------------------------------------------------------------------------
-JointNode::~JointNode() {
+JointNode::~JointNode() {}
 
-}
  //---------------------------------------------------------------------------------------
 void JointNode::set_joint_x(double min, double init, double max) {
 	m_joint_x.min = min;

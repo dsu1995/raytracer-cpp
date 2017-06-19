@@ -6,7 +6,6 @@
 #include <sstream>
 using namespace std;
 
-#include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtx/transform.hpp>
 
@@ -24,26 +23,24 @@ SceneNode::SceneNode(const std::string& name)
 	trans(mat4()),
 	invtrans(mat4()),
 	m_nodeId(nodeInstanceCount++)
-{
-
-}
+{}
 
 //---------------------------------------------------------------------------------------
 // Deep copy
-SceneNode::SceneNode(const SceneNode & other)
-	: m_nodeType(other.m_nodeType),
-	  m_name(other.m_name),
-	  trans(other.trans),
-	  invtrans(other.invtrans)
+SceneNode::SceneNode(const SceneNode& other)
+  : m_nodeType(other.m_nodeType),
+    m_name(other.m_name),
+    trans(other.trans),
+    invtrans(other.invtrans)
 {
-	for(SceneNode * child : other.children) {
+	for(SceneNode* child : other.children) {
 		this->children.push_front(new SceneNode(*child));
 	}
 }
 
 //---------------------------------------------------------------------------------------
 SceneNode::~SceneNode() {
-	for(SceneNode * child : children) {
+	for(SceneNode* child : children) {
 		delete child;
 	}
 }
@@ -96,7 +93,7 @@ void SceneNode::rotate(char axis, float angle) {
 }
 
 //---------------------------------------------------------------------------------------
-void SceneNode::scale(const glm::vec3 & amount) {
+void SceneNode::scale(const glm::vec3& amount) {
 	set_transform( glm::scale(amount) * trans );
 }
 

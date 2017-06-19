@@ -6,9 +6,9 @@
 // #include "cs488-framework/ObjFileDecoder.hpp"
 #include "Mesh.hpp"
 
-Mesh::Mesh( const std::string& fname )
-	: m_vertices()
-	, m_faces()
+Mesh::Mesh(const std::string& fname)
+  : m_vertices(),
+	m_faces()
 {
 	std::string code;
 	double vx, vy, vz;

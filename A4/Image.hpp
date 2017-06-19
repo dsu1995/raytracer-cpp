@@ -2,7 +2,7 @@
 
 #include <string>
 
-typedef unsigned int uint;
+using uint = unsigned int;
 
 /**
  * An image, consisting of a rectangle of floating-point elements.
@@ -21,12 +21,12 @@ public:
 	Image(uint width, uint height);
 
 	// Copy an image.
-	Image(const Image & other);
+	Image(const Image& other);
 
-	~Image();
+	virtual ~Image();
 
 	// Copy the data from one image to another.
-	Image & operator=(const Image & other);
+	Image& operator=(const Image& other);
 
 	// Returns the width of the image.
 	uint width() const;
@@ -38,19 +38,19 @@ public:
 	double operator()(uint x, uint y, uint i) const;
 
 	// Retrieve a particular component from the image.
-	double & operator()(uint x, uint y, uint i);
+	double& operator()(uint x, uint y, uint i);
 
 	// Save this image into the PNG file with name 'filename'.
 	// Warning: If 'filename' already exists, it will be overwritten.
-	bool savePng(const std::string & filename) const;
+	bool savePng(const std::string& filename) const;
 
-	const double * data() const;
-	double * data();
+	const double* data() const;
+	double* data();
 
 private:
 	uint m_width;
 	uint m_height;
-	double * m_data;
+	double* m_data;
 
 	static const uint m_colorComponents;
 };

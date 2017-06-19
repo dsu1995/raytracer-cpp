@@ -2,16 +2,17 @@
 
 //---------------------------------------------------------------------------------------
 GeometryNode::GeometryNode(
-	const std::string & name, Primitive *prim, Material *mat )
-	: SceneNode( name )
-	, m_material( mat )
-	, m_primitive( prim )
+    const std::string& name,
+    Primitive* prim,
+    Material* mat
+) : SceneNode(name),
+    m_material(mat),
+    m_primitive(prim)
 {
-	m_nodeType = NodeType::GeometryNode;
+    m_nodeType = NodeType::GeometryNode;
 }
 
-void GeometryNode::setMaterial( Material *mat )
-{
+void GeometryNode::setMaterial(Material* mat) {
 	// Obviously, there's a potential memory leak here.  A good solution
 	// would be to use some kind of reference counting, as in the 
 	// C++ shared_ptr.  But I'm going to punt on that problem here.

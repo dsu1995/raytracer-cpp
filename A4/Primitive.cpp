@@ -1,21 +1,11 @@
 #include "Primitive.hpp"
 
-Primitive::~Primitive()
-{
-}
+Primitive::~Primitive() {}
 
-Sphere::~Sphere()
-{
-}
+Sphere::~Sphere() {}
 
-Cube::~Cube()
-{
-}
+Cube::~Cube() {}
 
-NonhierSphere::~NonhierSphere()
-{
-}
+NonhierSphere::~NonhierSphere() {}
 
-NonhierBox::~NonhierBox()
-{
-}
+NonhierBox::~NonhierBox() {}
