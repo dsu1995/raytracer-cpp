@@ -24,9 +24,8 @@ public:
     {}
     virtual ~NonhierSphere();
 
-private:
-    glm::vec3 m_pos;
-    double m_radius;
+    const glm::vec3 m_pos;
+    const double m_radius;
 };
 
 class NonhierBox : public Primitive {

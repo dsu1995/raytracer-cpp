@@ -31,21 +31,23 @@ public:
     void render();
 
 private:
-    void print();
-    glm::dvec3 rayColour(
-        uint x,
-        uint y,
-        const glm::dvec4& ray,
-        Light* light,
-        uint maxHits
-    );
-
     struct Hit {
         bool hasHit;
         glm::dvec3 point;
         glm::dvec3 normal;
         GeometryNode* node;
     };
+
+    void print();
+    glm::dvec3 rayColour(
+        uint x,
+        uint y,
+        const glm::dvec3& origin,
+        const glm::dvec3& ray,
+        const Hit& h,
+        Light* light,
+        uint maxHits
+    );
 
     Hit hit(
         const glm::dvec3& point,
@@ -55,7 +57,7 @@ private:
     glm::dvec3 background(
         uint x,
         uint y,
-        const glm::dvec4& rayDirection
+        const glm::dvec3& rayDirection
     );
 
     void initNonHier();

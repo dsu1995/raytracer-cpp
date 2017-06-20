@@ -3,6 +3,7 @@
 
 #include "A4.hpp"
 #include "PhongMaterial.hpp"
+#include "polyroots.hpp"
 
 using glm::dvec3;
 using glm::dvec4;
@@ -41,9 +42,9 @@ A4::A4(
     imageHeight(image.height()),
     rayOrigin(eye, 1)
 {
-    cout << "imageWidth: " << (imageWidth) << endl;
-    cout << "height: " << (imageHeight) << endl;
-    cout << "asdf: " << glm::to_string(dvec3(imageWidth / -2.0, imageHeight / -2.0, NEAR_PLANE_DISTANCE)) << endl;
+//    cout << "imageWidth: " << (imageWidth) << endl;
+//    cout << "height: " << (imageHeight) << endl;
+//    cout << "asdf: " << glm::to_string(dvec3(imageWidth / -2.0, imageHeight / -2.0, NEAR_PLANE_DISTANCE)) << endl;
 
     // Step 1
     const dmat4 T1 = glm::translate(dvec3(imageWidth / -2.0, imageHeight / -2.0, NEAR_PLANE_DISTANCE));
@@ -64,10 +65,10 @@ A4::A4(
     const dmat4 T4 = glm::translate(eye);
     MVW = T4 * R3 * S2 * T1;
 
-    cout << "T1: " << glm::to_string(T1) << endl;
-    cout << "S2: " << glm::to_string(S2) << endl;
-    cout << "R3: " << glm::to_string(R3) << endl;
-    cout << "T4: " << glm::to_string(T4) << endl;
+//    cout << "T1: " << glm::to_string(T1) << endl;
+//    cout << "S2: " << glm::to_string(S2) << endl;
+//    cout << "R3: " << glm::to_string(R3) << endl;
+//    cout << "T4: " << glm::to_string(T4) << endl;
 
 
     initNonHier();
@@ -92,10 +93,11 @@ void A4::initNonHier() {
 glm::dvec3 A4::background(
     uint x,
     uint y,
-    const glm::dvec4& rayDirection
+    const glm::dvec3& rayDirection
 ) {
 //    return {1.0, 1.0, 1.0};
-    return {0.1, 0.1, 0.1};
+//    return {0.1, 0.1, 0.1};
+    return {0, 0, 0};
 }
 
 void A4::render() {
@@ -113,22 +115,24 @@ void A4::render() {
 //            cout << "rayDirection: " << glm::to_string(rayDirection) << endl;
 
 
-            dvec3 colour(0, 0, 0);
-            for (Light* light: lights) {
-                colour += rayColour(x, y, rayDirection, light, 1);
+
+            dvec3 colour;
+
+            Hit h = hit(dvec3(rayOrigin), dvec3(rayDirection));
+            if (!h.hasHit) {
+                colour = background(x, y, dvec3(rayDirection));
+            }
+            else {
+                colour = ambient * dvec3(dynamic_cast<PhongMaterial*>(h.node->m_material)->m_kd);
+                for (Light* light: lights) {
+                    colour += rayColour(x, y, dvec3(rayOrigin), dvec3(rayDirection), h, light, 1);
+                }
             }
             image(x, y, 0) = colour[0];
             image(x, y, 1) = colour[1];
             image(x, y, 2) = colour[2];
 
 
-//            // Red: increasing from top to bottom
-//            image(x, y, 0) = double(y) / ny;
-//            // Green: increasing from left to right
-//            image(x, y, 1) = double(x) / nx;
-//            // Blue: in lower-left and upper-right corners
-//            image(x, y, 2) = ((y < ny/2 && x < nx/2)
-//                          || (y >= ny/2 && x >= nx/2)) ? 1.0 : 0.0;
         }
     }
 }
@@ -136,16 +140,12 @@ void A4::render() {
 dvec3 A4::rayColour(
     uint x,
     uint y,
-    const dvec4& ray,
+    const dvec3& origin,
+    const dvec3& ray,
+    const A4::Hit& h,
     Light* light,
-    unsigned int maxHits
+    uint maxHits
 ) {
-    Hit h = hit(dvec3(rayOrigin), dvec3(ray));
-
-    if (!h.hasHit) {
-        return background(x, y, ray);
-    }
-
     PhongMaterial* material = dynamic_cast<PhongMaterial*>(h.node->m_material);
 
     dvec3 k_d = material->m_kd;
@@ -153,40 +153,24 @@ dvec3 A4::rayColour(
     // TODO need to ensure that nothing is between light.position and hit.point
     // if there is, then its a shadow
     dvec3 n = glm::normalize(dvec3(h.normal));
-    dvec3 k_s = material->m_ks;
+    dvec3 k_s(material->m_ks);
     dvec3 r = glm::normalize(-l + 2 * glm::dot(l, n) * n);
-    dvec3 v = glm::normalize(-dvec3(ray));
+    dvec3 v = glm::normalize(-ray);
     double p = material->m_shininess;
     dvec3 I = light->colour;
 
-    double dist = glm::length(l);
+    double dist = glm::distance(dvec3(light->position), h.point);
 
     dvec3 L_in = I / (light->falloff[0] + light->falloff[1] * dist + light->falloff[2] * dist * dist);
 
-    // TODO use L_in???
-    dvec3 I_d = L_in; //I;
-    dvec3 I_s = L_in; //I_d;
 
-
-
-
-    dvec3 L_out =
-        ambient +
-        k_d * std::max(0.0, glm::dot(l, n)) * I_d +
-        k_s * pow(std::max(0.0, glm::dot(r, v)), p) * I_s;
+    dvec3 L_out = (
+        k_d * std::max(0.0, glm::dot(l, n)) + k_s * pow(std::max(0.0, glm::dot(r, v)), p)
+    ) * L_in;
 
 //    cout << "hit! L_out: " << glm::to_string(L_out) << endl;
 
     return L_out;
-
-//    glm::dvec3 colour = dvec3(light->colour) + dvec3(material->m_kd) * ambient;
-//
-//    if (dvec3(material->m_kd) != dvec3(0, 0, 0)) {
-//        colour = dvec3(material->m_kd) * directLight(h.point, h.normal, light);
-//    }
-//    if (dvec3(material->m_ks) != dvec3(0, 0, 0) && maxHits > 0) {
-//
-//    }
 }
 
 struct BoxFace {
@@ -206,7 +190,7 @@ A4::Hit A4::hit(
 
     for (GeometryNode* node: nonHierBoxes) {
         NonhierBox* box = dynamic_cast<NonhierBox*>(node->m_primitive);
-        const dvec3& pos = box->m_pos;
+        dvec3 pos = box->m_pos;
         double side = box->m_size;
         std::vector<BoxFace> faces = {
             {pos, pos + dvec3(side, side, 0), {0, 0, -1}},
@@ -250,7 +234,32 @@ A4::Hit A4::hit(
         }
     }
 
-    // TODO spheres
+    for (GeometryNode* node: nonHierSpheres) {
+        NonhierSphere* sphere = dynamic_cast<NonhierSphere*>(node->m_primitive);
+
+        dvec3 c = sphere->m_pos;
+        double r = sphere->m_radius;
+        double A = glm::dot(direction, direction);
+        double B = glm::dot(direction, point - c) * 2;
+        double C = glm::dot(point - c, point - c) - r * r;
+
+        double roots[2];
+        size_t numRoots = quadraticRoots(A, B, C, roots);
+
+        if (numRoots > 0) {
+            double closestRoot = roots[0];
+            if (numRoots == 2) {
+                closestRoot = std::min(roots[0], roots[1]);
+            }
+
+            if (closestRoot < closest) {
+                closest = closestRoot;
+                dvec3 intersection = point + closestRoot * direction;
+                dvec3 normal = intersection - c;
+                hit = {true, intersection, normal, node};
+            }
+        }
+    }
 
     return hit;
 }
