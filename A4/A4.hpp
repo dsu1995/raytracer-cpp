@@ -68,6 +68,14 @@ private:
         const glm::dvec3& rayDirection
     );
 
+    Hit rayTriangleIntersect(
+        const glm::dvec3& p0,
+        const glm::dvec3& p1,
+        const glm::dvec3& p2,
+        const glm::dvec3& origin,
+        const glm::dvec3& direction
+    );
+
 
     const SceneNode* root;
     Image& image;
@@ -89,4 +97,11 @@ private:
 
     std::vector<GeometryNode*> nonHierBoxes;
     std::vector<GeometryNode*> nonHierSpheres;
+
+    struct MeshNode {
+        GeometryNode* gnode;
+
+    };
+
+    std::vector<GeometryNode*> meshes;
 };

@@ -25,6 +25,14 @@ struct Triangle
 class Mesh : public Primitive {
 public:
     Mesh(const std::string& fname);
+
+	const std::vector<glm::vec3>& vertices() const {
+		return m_vertices;
+	}
+
+	const std::vector<Triangle>& faces() const {
+		return m_faces;
+	}
   
 private:
 	std::vector<glm::vec3> m_vertices;

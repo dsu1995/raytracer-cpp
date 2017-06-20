@@ -4,9 +4,11 @@
 #include "A4.hpp"
 #include "PhongMaterial.hpp"
 #include "polyroots.hpp"
+#include "Mesh.hpp"
 
 using glm::dvec3;
 using glm::dvec4;
+using glm::dmat3;
 using glm::dmat4;
 
 using std::cout;
@@ -14,7 +16,7 @@ using std::endl;
 
 const double NEAR_PLANE_DISTANCE = 1;
 
-const double EPS = 0.001;
+const double EPS = 0.00001;
 
 
 A4::A4(
@@ -78,6 +80,9 @@ void A4::initNonHier() {
             }
             else if (dynamic_cast<NonhierBox*>(primitive) != nullptr) {
                 nonHierBoxes.push_back(gnode);
+            }
+            else if (dynamic_cast<Mesh*>(primitive) != nullptr) {
+                meshes.push_back(gnode);
             }
         }
     }
@@ -160,6 +165,60 @@ dvec3 A4::rayColour(
 
     return L_out;
 }
+
+
+A4::Hit A4::rayTriangleIntersect(
+    const dvec3& p0,
+    const dvec3& p1,
+    const dvec3& p2,
+    const dvec3& origin,
+    const dvec3& direction
+) {
+    dvec3 R = origin - p0;
+
+    dmat3 M(
+        p1 - p0,
+        p2 - p0,
+        -direction
+    );
+
+//    dvec3 solution = glm::inverse(M) * R;
+//
+//    double beta = solution.x;
+//    double gamma = solution.y;
+//    double t = solution.z;
+
+    double D = glm::determinant(M);
+
+    dmat3 M1(M);
+    M1[0] = R;
+    double D1 = glm::determinant(M1);
+
+    dmat3 M2(M);
+    M2[1] = R;
+    double D2 = glm::determinant(M2);
+
+    dmat3 M3(M);
+    M3[2] = R;
+    double D3 = glm::determinant(M3);
+
+    double beta = D1 / D;
+    double gamma = D2 / D;
+    double t = D3 / D;
+
+    cout << beta << ' ' << gamma << ' ' << t << endl;
+
+    if (beta >= 0 && gamma >= 0 && beta + gamma <= 1 && t >= 0) {
+        dvec3 intersection = origin + t * direction;
+        dvec3 normal = glm::cross(p1 - p0, p2 - p1); // TODO check normal direction
+        return {true, intersection, normal, nullptr, t};
+    }
+    else {
+        return {false, dvec3(), dvec3(), nullptr, 0.0};
+    }
+}
+
+
 
 struct BoxFace {
     dvec3 point1;
@@ -257,6 +316,26 @@ A4::Hit A4::hit(
             dvec3 intersection = point + t * direction;
             dvec3 normal = intersection - c;
             hit = {true, intersection, normal, node, t};
+        }
+    }
+
+    for (GeometryNode* node: meshes) {
+        Mesh* mesh = dynamic_cast<Mesh*>(node->m_primitive);
+        const std::vector<glm::vec3>& vertices = mesh->vertices();
+        for (const Triangle& triangle: mesh->faces()) {
+            Hit triangleHit = rayTriangleIntersect(
+                vertices.at(triangle.v1),
+                vertices.at(triangle.v2),
+                vertices.at(triangle.v3),
+                point,
+                direction
+            );
+            triangleHit.node = node;
+
+            if (triangleHit.hasHit && triangleHit.t < closest) {
+                closest = triangleHit.t;
+                hit = triangleHit;
+            }
         }
     }
 
