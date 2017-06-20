@@ -4,7 +4,6 @@
 #include "A4.hpp"
 #include "PhongMaterial.hpp"
 #include "polyroots.hpp"
-#include "Mesh.hpp"
 
 using glm::dvec3;
 using glm::dvec4;
@@ -129,9 +128,32 @@ void A4::render() {
     }
 }
 
+const A4::Hit& A4::minHit(
+    const dvec3 origin,
+    const A4::Hit& h1,
+    const A4::Hit& h2
+) const {
+    if (!h1.hasHit && !h2.hasHit) {
+        return h1;
+    }
+    else if (h1.hasHit && !h2.hasHit) {
+        return h1;
+    }
+    else if (!h1.hasHit && h2.hasHit) {
+        return h2;
+    }
+    else {
+        if (glm::distance(origin, h1.point) < glm::distance(origin, h2.point)) {
+            return h1;
+        }
+        else {
+            return h2;
+        }
+    }
+}
+
 bool A4::between(const glm::dvec3& p1, const glm::dvec3& p2) {
     Hit h = hit(p1, p2 - p1);
-    cout << h.hasHit << ' ' << glm::to_string(h.point) << ' ' << h.t << endl;
     return h.hasHit && h.t <= 1;
 }
 
@@ -148,8 +170,6 @@ dvec3 A4::rayColour(
 
     dvec3 k_d = material->m_kd;
     dvec3 l = glm::normalize(dvec3(light->position) - h.point);
-    // TODO need to ensure that nothing is between light.position and hit.point
-    // if there is, then its a shadow
     dvec3 n = glm::normalize(dvec3(h.normal));
     dvec3 k_s(material->m_ks);
     dvec3 r = glm::normalize(-l + 2 * glm::dot(l, n) * n);
@@ -168,11 +188,12 @@ dvec3 A4::rayColour(
 
 
 A4::Hit A4::rayTriangleIntersect(
-    const dvec3& p0,
-    const dvec3& p1,
-    const dvec3& p2,
-    const dvec3& origin,
-    const dvec3& direction
+    const glm::dvec3& p0,
+    const glm::dvec3& p1,
+    const glm::dvec3& p2,
+    const glm::dvec3& origin,
+    const glm::dvec3& direction,
+    GeometryNode* node
 ) {
     dvec3 R = origin - p0;
 
@@ -211,13 +232,61 @@ A4::Hit A4::rayTriangleIntersect(
     if (beta >= 0 && gamma >= 0 && beta + gamma <= 1 && t >= 0) {
         dvec3 intersection = origin + t * direction;
         dvec3 normal = glm::cross(p1 - p0, p2 - p1); // TODO check normal direction
-        return {true, intersection, normal, nullptr, t};
+        return {true, intersection, normal, node, t};
     }
     else {
         return {false, dvec3(), dvec3(), nullptr, 0.0};
     }
 }
 
+A4::Hit A4::hierHit(
+    SceneNode* node,
+    const dvec3& origin,
+    const dvec3& direction
+) {
+    dmat4 inv = node->get_inverse();
+    dvec3 newOrigin(inv * dvec4(origin, 1));
+    dvec3 newDirection(inv * dvec4(direction, 0));
+
+    Hit closest = {false, dvec3(), dvec3(), nullptr, 0};
+
+    GeometryNode * const gnode = dynamic_cast<GeometryNode*>(node);
+    if (gnode != nullptr) {
+        if (Mesh* mesh = dynamic_cast<Mesh*>(gnode->m_primitive)) {
+            Hit hit = meshIntersect(mesh, newOrigin, newDirection, gnode);
+
+            closest = minHit(newOrigin, closest, hit);
+        }
+        else if (Sphere* sphere = dynamic_cast<Sphere*>(gnode->m_primitive)) {
+            NonhierSphere nonhierSphere(glm::vec3(0, 0, 0), 1);
+            Hit hit = nonHierSphereIntersect(&nonhierSphere, newOrigin, newDirection, gnode);
+
+            closest = minHit(newOrigin, closest, hit);
+        }
+        else if (Cube* cube = dynamic_cast<Cube*>(gnode->m_primitive)) {
+            NonhierBox nonhierBox(glm::vec3(0, 0, 0), 1);
+            Hit hit = nonHierBoxIntersect(&nonhierBox, newOrigin, newDirection, gnode);
+
+            closest = minHit(newOrigin, closest, hit);
+        }
+    }
+
+    for (SceneNode* child: node->children) {
+        Hit hit = hierHit(child, newOrigin, newDirection);
+
+        closest = minHit(newOrigin, closest, hit);
+    }
+
+    if (closest.hasHit) {
+        closest.point = dvec3(node->get_transform() * glm::vec4(closest.point, 1));
+
+        dmat3 normalTransform(node->get_inverse());
+        normalTransform = glm::transpose(normalTransform);
+        closest.normal = normalTransform * closest.normal;
+    }
+
+    return closest;
+}
 
 
 struct BoxFace {
@@ -228,118 +297,166 @@ struct BoxFace {
 
 
 A4::Hit A4::hit(
-    const dvec3& point,
+    const dvec3& origin,
     const dvec3& direction
 ) {
-    double closest = std::numeric_limits<double>::max();
-    Hit hit = {false, dvec3(), dvec3(), nullptr, 0};
+    Hit closest = {false, dvec3(), dvec3(), nullptr, 0};
 
     for (GeometryNode* node: nonHierBoxes) {
         NonhierBox* box = dynamic_cast<NonhierBox*>(node->m_primitive);
-        dvec3 pos = box->m_pos;
-        double side = box->m_size;
-        std::vector<BoxFace> faces = {
-            {pos, pos + dvec3(side, side, 0), {0, 0, -1}},
-            {pos, pos + dvec3(side, 0, side), {0, -1, 0}},
-            {pos, pos + dvec3(0, side, side), {-1, 0, 0}},
-            {pos + dvec3(side, 0, 0), pos + dvec3(side, side, side), {1, 0, 0}},
-            {pos + dvec3(0, side, 0), pos + dvec3(side, side, side), {0, 1, 0}},
-            {pos + dvec3(0, 0, side), pos + dvec3(side, side, side), {0, 0, 1}}
-        };
 
-        for (const BoxFace& face: faces) {
-            if (glm::dot(face.normal, direction) >= 0) {
-                continue;
-            }
-            double wecA = glm::dot(point - face.point1, face.normal);
-            double wecB = glm::dot(point + direction - face.point1, face.normal);
-            double t = wecA / (wecA - wecB);
-            if (t < 0) {
-                continue;
-            }
-            dvec3 intersection = point + t * direction;
+        Hit hit = nonHierBoxIntersect(box, origin, direction, node);
 
-            if (
-                (face.point1.x - EPS <= intersection.x && intersection.x <= face.point2.x + EPS) &&
-                (face.point1.y - EPS <= intersection.y && intersection.y <= face.point2.y + EPS) &&
-                (face.point1.z - EPS <= intersection.z && intersection.z <= face.point2.z + EPS)
-            ) {
-                if (t < closest) {
-                    closest = t;
-                    hit = {true, intersection, face.normal, node, t};
-                }
-            }
-        }
+        closest = minHit(origin, closest, hit);
     }
 
     for (GeometryNode* node: nonHierSpheres) {
         NonhierSphere* sphere = dynamic_cast<NonhierSphere*>(node->m_primitive);
 
-        dvec3 c = sphere->m_pos;
-        double r = sphere->m_radius;
-        double A = glm::length2(direction);
-        double B = glm::dot(direction, point - c) * 2;
-        double C = glm::length2(point - c) - r * r;
+        Hit hit = nonHierSphereIntersect(sphere, origin, direction, node);
 
-        double roots[2];
-        size_t numRoots = quadraticRoots(A, B, C, roots);
-
-        double t;
-        if (numRoots == 0) {
-            continue;
-        }
-        else if (numRoots == 1) {
-            t = roots[0];
-            if (t < 0) {
-                continue;
-            }
-        }
-        else if (numRoots == 2) {
-            double t1 = roots[0];
-            double t2 = roots[1];
-            if (t1 < 0 && t2 < 0) {
-                continue;
-            }
-            else if (t1 >= 0 && t2 >= 0) {
-                t = std::min(t1, t2);
-            }
-            else if (t1 >= 0 && t2 < 0) {
-                t = t1;
-            }
-            else if (t1 < 0 && t2 >= 0) {
-                t = t2;
-            }
-        }
-
-        if (t < closest) {
-            closest = t;
-            dvec3 intersection = point + t * direction;
-            dvec3 normal = intersection - c;
-            hit = {true, intersection, normal, node, t};
-        }
+        closest = minHit(origin, closest, hit);
     }
 
     for (GeometryNode* node: meshes) {
         Mesh* mesh = dynamic_cast<Mesh*>(node->m_primitive);
-        const std::vector<glm::vec3>& vertices = mesh->vertices();
-        for (const Triangle& triangle: mesh->faces()) {
-            Hit triangleHit = rayTriangleIntersect(
-                vertices.at(triangle.v1),
-                vertices.at(triangle.v2),
-                vertices.at(triangle.v3),
-                point,
-                direction
-            );
-            triangleHit.node = node;
 
-            if (triangleHit.hasHit && triangleHit.t < closest) {
-                closest = triangleHit.t;
-                hit = triangleHit;
-            }
+        Hit hit = meshIntersect(mesh, origin, direction, node);
+
+        closest = minHit(origin, closest, hit);
+    }
+
+    Hit hh = hierHit(root, origin, direction);
+
+    closest = minHit(origin, closest, hh);
+
+    return closest;
+}
+
+A4::Hit A4::nonHierSphereIntersect(
+    NonhierSphere* sphere,
+    const glm::dvec3 origin,
+    const glm::dvec3 direction,
+    GeometryNode* node
+) {
+    Hit closest = {false, dvec3(), dvec3(), nullptr, 0};
+
+    dvec3 c = sphere->m_pos;
+    double r = sphere->m_radius;
+    double A = glm::length2(direction);
+    double B = glm::dot(direction, origin - c) * 2;
+    double C = glm::length2(origin - c) - r * r;
+
+    double roots[2];
+    size_t numRoots = quadraticRoots(A, B, C, roots);
+
+    double t;
+    if (numRoots == 0) {
+        return closest;
+    }
+    else if (numRoots == 1) {
+        t = roots[0];
+        if (t < 0) {
+            return closest;
+        }
+    }
+    else if (numRoots == 2) {
+        double t1 = roots[0];
+        double t2 = roots[1];
+        if (t1 < 0 && t2 < 0) {
+            return closest;
+        }
+        else if (t1 >= 0 && t2 >= 0) {
+            t = std::min(t1, t2);
+        }
+        else if (t1 >= 0 && t2 < 0) {
+            t = t1;
+        }
+        else if (t1 < 0 && t2 >= 0) {
+            t = t2;
+        }
+        else {
+            assert(false);
+        }
+    }
+    else {
+        assert(false);
+    }
+
+    dvec3 intersection = origin + t * direction;
+    dvec3 normal = intersection - c;
+    return {true, intersection, normal, node, t};
+}
+
+A4::Hit
+A4::nonHierBoxIntersect(
+    NonhierBox* box,
+    const glm::dvec3 origin,
+    const glm::dvec3 direction,
+    GeometryNode* node
+) {
+    Hit closest = {false, dvec3(), dvec3(), nullptr, 0};
+
+    dvec3 pos = box->m_pos;
+    double side = box->m_size;
+    std::vector<BoxFace> faces = {
+        {pos, pos + dvec3(side, side, 0), {0, 0, -1}},
+        {pos, pos + dvec3(side, 0, side), {0, -1, 0}},
+        {pos, pos + dvec3(0, side, side), {-1, 0, 0}},
+        {pos + dvec3(side, 0, 0), pos + dvec3(side, side, side), {1, 0, 0}},
+        {pos + dvec3(0, side, 0), pos + dvec3(side, side, side), {0, 1, 0}},
+        {pos + dvec3(0, 0, side), pos + dvec3(side, side, side), {0, 0, 1}}
+    };
+
+    for (const BoxFace& face: faces) {
+        if (glm::dot(face.normal, direction) >= 0) {
+            continue;
+        }
+        double wecA = glm::dot(origin - face.point1, face.normal);
+        double wecB = glm::dot(origin + direction - face.point1, face.normal);
+        double t = wecA / (wecA - wecB);
+        if (t < 0) {
+            continue;
+        }
+        dvec3 intersection = origin + t * direction;
+
+        if (
+            (face.point1.x - EPS <= intersection.x && intersection.x <= face.point2.x + EPS) &&
+            (face.point1.y - EPS <= intersection.y && intersection.y <= face.point2.y + EPS) &&
+            (face.point1.z - EPS <= intersection.z && intersection.z <= face.point2.z + EPS)
+            ) {
+            Hit hit = {true, intersection, face.normal, node, t};
+
+            closest = minHit(origin, closest, hit);
         }
     }
 
-    return hit;
+    return closest;
+}
+
+A4::Hit A4::meshIntersect(
+    Mesh* mesh,
+    const glm::dvec3 origin,
+    const glm::dvec3 direction,
+    GeometryNode* node
+) {
+    Hit closest = {false, dvec3(), dvec3(), nullptr, 0};
+
+    const std::vector<glm::vec3>& vertices = mesh->vertices();
+    for (const Triangle& triangle: mesh->faces()) {
+        Hit triangleHit = rayTriangleIntersect(
+            vertices.at(triangle.v1),
+            vertices.at(triangle.v2),
+            vertices.at(triangle.v3),
+            origin,
+            direction,
+            node
+        );
+
+        closest = minHit(origin, closest, triangleHit);
+    }
+
+    return closest;
 }
 
 

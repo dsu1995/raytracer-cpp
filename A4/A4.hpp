@@ -7,6 +7,7 @@
 #include "Light.hpp"
 #include "Image.hpp"
 #include "GeometryNode.hpp"
+#include "Mesh.hpp"
 
 class A4 {
 public:
@@ -58,7 +59,7 @@ private:
     );
 
     Hit hit(
-        const glm::dvec3& point,
+        const glm::dvec3& origin,
         const glm::dvec3& direction
     );
 
@@ -68,16 +69,13 @@ private:
         const glm::dvec3& rayDirection
     );
 
-    Hit rayTriangleIntersect(
-        const glm::dvec3& p0,
-        const glm::dvec3& p1,
-        const glm::dvec3& p2,
-        const glm::dvec3& origin,
-        const glm::dvec3& direction
-    );
+    Hit rayTriangleIntersect(const glm::dvec3& p0, const glm::dvec3& p1, const glm::dvec3& p2, const glm::dvec3& origin,
+                                 const glm::dvec3& direction, GeometryNode* node);
+
+    A4::Hit meshIntersect(Mesh* mesh, const glm::dvec3 origin, const glm::dvec3 direction, GeometryNode* node);
 
 
-    const SceneNode* root;
+    SceneNode* const root;
     Image& image;
 
     const glm::dvec3 eye;
@@ -98,10 +96,23 @@ private:
     std::vector<GeometryNode*> nonHierBoxes;
     std::vector<GeometryNode*> nonHierSpheres;
 
-    struct MeshNode {
-        GeometryNode* gnode;
-
-    };
-
     std::vector<GeometryNode*> meshes;
+
+    Hit hierHit(
+        SceneNode* node,
+        const glm::dvec3& origin,
+        const glm::dvec3& direction
+    );
+
+    A4::Hit
+    nonHierBoxIntersect(NonhierBox* box, const glm::dvec3 origin, const glm::dvec3 direction, GeometryNode* node);
+
+    A4::Hit nonHierSphereIntersect(NonhierSphere* sphere, const glm::dvec3 origin, const glm::dvec3 direction,
+                                       GeometryNode* node);
+
+    const Hit& minHit(
+        const glm::dvec3 origin,
+        const Hit& h1,
+        const Hit& h2
+    ) const;
 };
