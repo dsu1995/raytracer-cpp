@@ -14,6 +14,9 @@ using std::endl;
 
 const double NEAR_PLANE_DISTANCE = 1;
 
+const double EPS = 0.001;
+
+
 A4::A4(
     // What to render
     SceneNode* root,
@@ -42,10 +45,6 @@ A4::A4(
     imageHeight(image.height()),
     rayOrigin(eye, 1)
 {
-//    cout << "imageWidth: " << (imageWidth) << endl;
-//    cout << "height: " << (imageHeight) << endl;
-//    cout << "asdf: " << glm::to_string(dvec3(imageWidth / -2.0, imageHeight / -2.0, NEAR_PLANE_DISTANCE)) << endl;
-
     // Step 1
     const dmat4 T1 = glm::translate(dvec3(imageWidth / -2.0, imageHeight / -2.0, NEAR_PLANE_DISTANCE));
     // Step 2
@@ -64,12 +63,6 @@ A4::A4(
     // Step 4
     const dmat4 T4 = glm::translate(eye);
     MVW = T4 * R3 * S2 * T1;
-
-//    cout << "T1: " << glm::to_string(T1) << endl;
-//    cout << "S2: " << glm::to_string(S2) << endl;
-//    cout << "R3: " << glm::to_string(R3) << endl;
-//    cout << "T4: " << glm::to_string(T4) << endl;
-
 
     initNonHier();
 
@@ -105,36 +98,36 @@ void A4::render() {
         for (uint x = 0; x < imageWidth; x++) {
             const dvec4 screenCoordPixel(x, y, 0, 1);
             const dvec4 worldCoordPixel = MVW * screenCoordPixel;
-
-//            cout << "MVW: " << glm::to_string(MVW) << endl;
-
-//            cout << "worldCoordPixel: " << glm::to_string(worldCoordPixel) << endl;
-
             const dvec4 rayDirection = worldCoordPixel - rayOrigin;
 
-//            cout << "rayDirection: " << glm::to_string(rayDirection) << endl;
-
-
+            Hit h = hit(dvec3(rayOrigin), dvec3(rayDirection));
 
             dvec3 colour;
-
-            Hit h = hit(dvec3(rayOrigin), dvec3(rayDirection));
             if (!h.hasHit) {
                 colour = background(x, y, dvec3(rayDirection));
             }
             else {
-                colour = ambient * dvec3(dynamic_cast<PhongMaterial*>(h.node->m_material)->m_kd);
+                PhongMaterial* material = dynamic_cast<PhongMaterial*>(h.node->m_material);
+                dvec3 intersectionEps = h.point + glm::normalize(h.normal) * EPS;
+
+                colour = ambient * dvec3(material->m_kd);
                 for (Light* light: lights) {
-                    colour += rayColour(x, y, dvec3(rayOrigin), dvec3(rayDirection), h, light, 1);
+                    if (!between(intersectionEps, light->position)) {
+                        colour += rayColour(x, y, dvec3(rayOrigin), dvec3(rayDirection), h, light, 1);
+                    }
                 }
             }
             image(x, y, 0) = colour[0];
             image(x, y, 1) = colour[1];
             image(x, y, 2) = colour[2];
-
-
         }
     }
+}
+
+bool A4::between(const glm::dvec3& p1, const glm::dvec3& p2) {
+    Hit h = hit(p1, p2 - p1);
+    cout << h.hasHit << ' ' << glm::to_string(h.point) << ' ' << h.t << endl;
+    return h.hasHit && h.t <= 1;
 }
 
 dvec3 A4::rayColour(
@@ -158,17 +151,12 @@ dvec3 A4::rayColour(
     dvec3 v = glm::normalize(-ray);
     double p = material->m_shininess;
     dvec3 I = light->colour;
-
     double dist = glm::distance(dvec3(light->position), h.point);
 
     dvec3 L_in = I / (light->falloff[0] + light->falloff[1] * dist + light->falloff[2] * dist * dist);
-
-
     dvec3 L_out = (
         k_d * std::max(0.0, glm::dot(l, n)) + k_s * pow(std::max(0.0, glm::dot(r, v)), p)
     ) * L_in;
-
-//    cout << "hit! L_out: " << glm::to_string(L_out) << endl;
 
     return L_out;
 }
@@ -179,14 +167,13 @@ struct BoxFace {
     dvec3 normal;
 };
 
-const double EPS = 0.001;
 
 A4::Hit A4::hit(
     const dvec3& point,
     const dvec3& direction
 ) {
     double closest = std::numeric_limits<double>::max();
-    Hit hit = {false, dvec3(), dvec3(), nullptr};
+    Hit hit = {false, dvec3(), dvec3(), nullptr, 0};
 
     for (GeometryNode* node: nonHierBoxes) {
         NonhierBox* box = dynamic_cast<NonhierBox*>(node->m_primitive);
@@ -202,33 +189,25 @@ A4::Hit A4::hit(
         };
 
         for (const BoxFace& face: faces) {
-            if (glm::dot(face.normal, direction) < 0) {
+            if (glm::dot(face.normal, direction) >= 0) {
+                continue;
+            }
+            double wecA = glm::dot(point - face.point1, face.normal);
+            double wecB = glm::dot(point + direction - face.point1, face.normal);
+            double t = wecA / (wecA - wecB);
+            if (t < 0) {
+                continue;
+            }
+            dvec3 intersection = point + t * direction;
 
-                double wecA = glm::dot(point - face.point1, face.normal);
-                double wecB = glm::dot(point + direction - face.point1, face.normal);
-                double t = wecA / (wecA - wecB);
-                if (t >= 0) {
-                    dvec3 intersection = point + t * direction;
-
-//                    cout << "Point: " << glm::to_string(point) << endl;
-//                    cout << "Direction: " << glm::to_string(direction) << endl;
-//                    cout << "t: " << t << endl;
-//                    cout << "Point 1: " << glm::to_string(face.point1) << endl;
-//                    cout << "Point 2: " << glm::to_string(face.point2) << endl;
-//                    cout << "Intersection: " << glm::to_string(intersection) << endl << endl;
-
-                    if (
-                        (face.point1.x - EPS <= intersection.x && intersection.x <= face.point2.x + EPS) &&
-                        (face.point1.y - EPS <= intersection.y && intersection.y <= face.point2.y + EPS) &&
-                        (face.point1.z - EPS <= intersection.z && intersection.z <= face.point2.z + EPS)
-                    ) {
-                        cout << "intersection: " << glm::to_string(intersection) << endl;
-
-                        if (t < closest) {
-                            closest = t;
-                            hit = {true, intersection, face.normal, node};
-                        }
-                    }
+            if (
+                (face.point1.x - EPS <= intersection.x && intersection.x <= face.point2.x + EPS) &&
+                (face.point1.y - EPS <= intersection.y && intersection.y <= face.point2.y + EPS) &&
+                (face.point1.z - EPS <= intersection.z && intersection.z <= face.point2.z + EPS)
+            ) {
+                if (t < closest) {
+                    closest = t;
+                    hit = {true, intersection, face.normal, node, t};
                 }
             }
         }
@@ -239,25 +218,45 @@ A4::Hit A4::hit(
 
         dvec3 c = sphere->m_pos;
         double r = sphere->m_radius;
-        double A = glm::dot(direction, direction);
+        double A = glm::length2(direction);
         double B = glm::dot(direction, point - c) * 2;
-        double C = glm::dot(point - c, point - c) - r * r;
+        double C = glm::length2(point - c) - r * r;
 
         double roots[2];
         size_t numRoots = quadraticRoots(A, B, C, roots);
 
-        if (numRoots > 0) {
-            double closestRoot = roots[0];
-            if (numRoots == 2) {
-                closestRoot = std::min(roots[0], roots[1]);
+        double t;
+        if (numRoots == 0) {
+            continue;
+        }
+        else if (numRoots == 1) {
+            t = roots[0];
+            if (t < 0) {
+                continue;
             }
+        }
+        else if (numRoots == 2) {
+            double t1 = roots[0];
+            double t2 = roots[1];
+            if (t1 < 0 && t2 < 0) {
+                continue;
+            }
+            else if (t1 >= 0 && t2 >= 0) {
+                t = std::min(t1, t2);
+            }
+            else if (t1 >= 0 && t2 < 0) {
+                t = t1;
+            }
+            else if (t1 < 0 && t2 >= 0) {
+                t = t2;
+            }
+        }
 
-            if (closestRoot < closest) {
-                closest = closestRoot;
-                dvec3 intersection = point + closestRoot * direction;
-                dvec3 normal = intersection - c;
-                hit = {true, intersection, normal, node};
-            }
+        if (t < closest) {
+            closest = t;
+            dvec3 intersection = point + t * direction;
+            dvec3 normal = intersection - c;
+            hit = {true, intersection, normal, node, t};
         }
     }
 

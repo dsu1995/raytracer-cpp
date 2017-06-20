@@ -36,9 +36,12 @@ private:
         glm::dvec3 point;
         glm::dvec3 normal;
         GeometryNode* node;
+        double t;
     };
 
+    void initNonHier();
     void print();
+
     glm::dvec3 rayColour(
         uint x,
         uint y,
@@ -47,6 +50,11 @@ private:
         const Hit& h,
         Light* light,
         uint maxHits
+    );
+
+    bool between(
+        const glm::dvec3& p1,
+        const glm::dvec3& p2
     );
 
     Hit hit(
@@ -59,8 +67,6 @@ private:
         uint y,
         const glm::dvec3& rayDirection
     );
-
-    void initNonHier();
 
 
     const SceneNode* root;
