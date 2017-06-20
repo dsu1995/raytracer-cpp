@@ -37,7 +37,6 @@ public:
 
     virtual ~NonhierBox();
 
-private:
-    glm::vec3 m_pos;
-    double m_size;
+    const glm::vec3 m_pos;
+    const double m_size;
 };
