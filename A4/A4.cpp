@@ -19,6 +19,8 @@ const double EPS = 0.0001;
 
 const bool SHOW_BOUNDING_BOXES = false;
 
+const bool SUPERSAMPLE_ON = false;
+
 A4::A4(
     // What to render
     SceneNode* root,
@@ -88,16 +90,21 @@ void A4::render() {
 
     for (uint y = 0; y < imageHeight; y++) {
         for (uint x = 0; x < imageWidth; x++, complete++) {
-
-            // super sample 9 times per pixel
             dvec3 colour(0, 0, 0);
-            double delta = 1.0 / 3;
-            for (int i = -1; i <= 1; i++) {
-                for (int j = -1; j <= 1; j++) {
-                    colour += renderPixel(x + i * delta, y + j * delta);
+
+            if (SUPERSAMPLE_ON) {
+                // super sample 9 times per pixel
+                double delta = 1.0 / 3;
+                for (int i = -1; i <= 1; i++) {
+                    for (int j = -1; j <= 1; j++) {
+                        colour += renderPixel(x + i * delta, y + j * delta);
+                    }
                 }
+                colour /= 9;
             }
-            colour /= 9;
+            else {
+                colour = renderPixel(x, y);
+            }
 
             image(x, y, 0) = colour[0];
             image(x, y, 1) = colour[1];
