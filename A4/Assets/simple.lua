@@ -39,22 +39,6 @@ steldodec:set_material(mat3)
 scene_root:add_child(steldodec)
 
 
-cow_poly = gr.mesh('cow', 'cow.obj')
-factor = 20
-hide = gr.material({0.84, 0.6, 0.53}, {0.3, 0.3, 0.3}, 20)
-cow_poly:set_material(hide)
-cow_poly:translate(0.0, 3.637, 0.0)
-cow_poly:scale(factor, factor, factor)
-cow_poly:translate(-250.0, 0.0, 0.0)
-scene_root:add_child(cow_poly)
-
-buckyball = gr.mesh( 'buckyball', 'buckyball.obj' )
-scene_root:add_child(buckyball)
-stone = gr.material({0.8, 0.7, 0.7}, {0.0, 0.0, 0.0}, 0)
-buckyball:set_material(stone)
-buckyball:scale(50, 50, 50)
-buckyball:translate(200, -200, 0)
-
 -- the arc
 gold = gr.material({0.9, 0.8, 0.4}, {0.8, 0.8, 0.4}, 25)
 
