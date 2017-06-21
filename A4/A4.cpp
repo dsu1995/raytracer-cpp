@@ -17,6 +17,7 @@ const double NEAR_PLANE_DISTANCE = 1;
 
 const double EPS = 0.0001;
 
+const bool SHOW_BOUNDING_BOXES = true;
 
 A4::A4(
     // What to render
@@ -77,8 +78,13 @@ glm::dvec3 A4::background(
 }
 
 void A4::render() {
+    size_t total = imageWidth * imageHeight;
+    size_t complete = 0;
+    double increment = 0.01;
+    double nextGoal = increment;
+
     for (uint y = 0; y < imageHeight; y++) {
-        for (uint x = 0; x < imageWidth; x++) {
+        for (uint x = 0; x < imageWidth; x++, complete++) {
             const dvec4 screenCoordPixel(x, y, 0, 1);
             const dvec4 worldCoordPixel = MVW * screenCoordPixel;
             const dvec4 rayDirection = worldCoordPixel - rayOrigin;
@@ -104,7 +110,14 @@ void A4::render() {
             image(x, y, 1) = colour[1];
             image(x, y, 2) = colour[2];
         }
+
+        if (complete > total * nextGoal) {
+            nextGoal += increment;
+            cout << "Pixels rendered: " << complete << '/' << total << '\r';
+            cout.flush();
+        }
     }
+    cout << "Pixels rendered: " << complete << '/' << total << endl;
 }
 
 const A4::Hit& A4::minHit(
@@ -200,8 +213,6 @@ A4::Hit A4::rayTriangleIntersect(
     double gamma = D2 / D;
     double t = D3 / D;
 
-    cout << beta << ' ' << gamma << ' ' << t << endl;
-
     if (beta >= 0 && gamma >= 0 && beta + gamma <= 1 && t >= 0) {
         dvec3 intersection = origin + t * direction;
         dvec3 normal = glm::cross(p1 - p0, p2 - p1); // TODO check normal direction
@@ -226,21 +237,22 @@ A4::Hit A4::hierHit(
     GeometryNode * const gnode = dynamic_cast<GeometryNode*>(node);
     if (gnode != nullptr) {
         if (Mesh* mesh = dynamic_cast<Mesh*>(gnode->m_primitive)) {
-            Hit hit = meshIntersect(mesh, newOrigin, newDirection, gnode);
+            if (SHOW_BOUNDING_BOXES) {
+                NonhierBox boundingBox = mesh->boundingBox();
+                Hit hit = nonHierBoxIntersect(&boundingBox, newOrigin, newDirection, gnode);
 
-            closest = minHit(newOrigin, closest, hit);
-        }
-        else if (Sphere* sphere = dynamic_cast<Sphere*>(gnode->m_primitive)) {
-            NonhierSphere nonhierSphere(glm::vec3(0, 0, 0), 1);
-            Hit hit = nonHierSphereIntersect(&nonhierSphere, newOrigin, newDirection, gnode);
+                closest = minHit(newOrigin, closest, hit);
+            }
+            else {
+                NonhierBox boundingBox = mesh->boundingBox();
+                Hit boundingBoxHit = nonHierBoxIntersect(&boundingBox, newOrigin, newDirection, gnode);
 
-            closest = minHit(newOrigin, closest, hit);
-        }
-        else if (Cube* cube = dynamic_cast<Cube*>(gnode->m_primitive)) {
-            NonhierBox nonhierBox(glm::vec3(0, 0, 0), 1);
-            Hit hit = nonHierBoxIntersect(&nonhierBox, newOrigin, newDirection, gnode);
+                if (boundingBoxHit.hasHit) {
+                    Hit hit = meshIntersect(mesh, newOrigin, newDirection, gnode);
 
-            closest = minHit(newOrigin, closest, hit);
+                    closest = minHit(newOrigin, closest, hit);
+                }
+            }
         }
         else if (NonhierBox* box = dynamic_cast<NonhierBox*>(gnode->m_primitive)) {
             Hit hit = nonHierBoxIntersect(box, newOrigin, newDirection, gnode);
@@ -351,20 +363,21 @@ A4::nonHierBoxIntersect(
     Hit closest = {false, dvec3(), dvec3(), nullptr, 0};
 
     dvec3 pos = box->m_pos;
-    double side = box->m_size;
+    dvec3 dims = box->dims;
     std::vector<BoxFace> faces = {
-        {pos, pos + dvec3(side, side, 0), {0, 0, -1}},
-        {pos, pos + dvec3(side, 0, side), {0, -1, 0}},
-        {pos, pos + dvec3(0, side, side), {-1, 0, 0}},
-        {pos + dvec3(side, 0, 0), pos + dvec3(side, side, side), {1, 0, 0}},
-        {pos + dvec3(0, side, 0), pos + dvec3(side, side, side), {0, 1, 0}},
-        {pos + dvec3(0, 0, side), pos + dvec3(side, side, side), {0, 0, 1}}
+        {pos, pos + dvec3(dims.x, dims.y, 0), {0, 0, -1}},
+        {pos, pos + dvec3(dims.x, 0, dims.z), {0, -1, 0}},
+        {pos, pos + dvec3(0, dims.y, dims.z), {-1, 0, 0}},
+        {pos + dvec3(dims.x, 0, 0), pos + dims, {1, 0, 0}},
+        {pos + dvec3(0, dims.y, 0), pos + dims, {0, 1, 0}},
+        {pos + dvec3(0, 0, dims.z), pos + dims, {0, 0, 1}}
     };
 
     for (const BoxFace& face: faces) {
-        if (glm::dot(face.normal, direction) >= 0) {
-            continue;
-        }
+        // Backface culling breaks when the ray starts inside the cube
+//        if (glm::dot(face.normal, direction) >= 0) {
+//            continue;
+//        }
         double wecA = glm::dot(origin - face.point1, face.normal);
         double wecB = glm::dot(origin + direction - face.point1, face.normal);
         double t = wecA / (wecA - wecB);

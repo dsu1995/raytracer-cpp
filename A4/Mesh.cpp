@@ -8,7 +8,9 @@
 
 Mesh::Mesh(const std::string& fname)
   : m_vertices(),
-	m_faces()
+	m_faces(),
+    point1(std::numeric_limits<float>::max()),
+    point2(std::numeric_limits<float>::min())
 {
 	std::string code;
 	double vx, vy, vz;
@@ -24,6 +26,17 @@ Mesh::Mesh(const std::string& fname)
 			m_faces.push_back( Triangle( s1 - 1, s2 - 1, s3 - 1 ) );
 		}
 	}
+
+    for (const glm::vec3& vertex: m_vertices) {
+        for (uint i = 0; i < 3; i++) {
+            point1[i] = std::min(point1[i], vertex[i]);
+            point2[i] = std::max(point2[i], vertex[i]);
+        }
+    }
+}
+
+NonhierBox Mesh::boundingBox() {
+    return NonhierBox(point1, point2 - point1);
 }
 
 std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
