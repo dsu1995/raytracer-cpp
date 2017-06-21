@@ -40,15 +40,14 @@ private:
         double t;
     };
 
-    void initNonHier();
     void print();
 
     glm::dvec3 rayColour(
         uint x,
         uint y,
         const glm::dvec3& origin,
-        const glm::dvec3& ray,
-        const Hit& h,
+        const glm::dvec3& direction,
+        const Hit& hit,
         Light* light,
         uint maxHits
     );
@@ -92,11 +91,6 @@ private:
     const glm::dvec4 rayOrigin;
 
     glm::dmat4 MVW;
-
-    std::vector<GeometryNode*> nonHierBoxes;
-    std::vector<GeometryNode*> nonHierSpheres;
-
-    std::vector<GeometryNode*> meshes;
 
     Hit hierHit(
         SceneNode* node,

@@ -15,7 +15,7 @@ using std::endl;
 
 const double NEAR_PLANE_DISTANCE = 1;
 
-const double EPS = 0.00001;
+const double EPS = 0.0001;
 
 
 A4::A4(
@@ -65,26 +65,7 @@ A4::A4(
     const dmat4 T4 = glm::translate(eye);
     MVW = T4 * R3 * S2 * T1;
 
-    initNonHier();
-
     print();
-}
-
-void A4::initNonHier() {
-    for (SceneNode* snode: root->children) {
-        if (GeometryNode* gnode = dynamic_cast<GeometryNode*>(snode)) {
-            Primitive* primitive = gnode->m_primitive;
-            if (dynamic_cast<NonhierSphere*>(primitive) != nullptr) {
-                nonHierSpheres.push_back(gnode);
-            }
-            else if (dynamic_cast<NonhierBox*>(primitive) != nullptr) {
-                nonHierBoxes.push_back(gnode);
-            }
-            else if (dynamic_cast<Mesh*>(primitive) != nullptr) {
-                meshes.push_back(gnode);
-            }
-        }
-    }
 }
 
 glm::dvec3 A4::background(
@@ -92,8 +73,6 @@ glm::dvec3 A4::background(
     uint y,
     const glm::dvec3& rayDirection
 ) {
-//    return {1.0, 1.0, 1.0};
-//    return {0.1, 0.1, 0.1};
     return {0, 0, 0};
 }
 
@@ -161,22 +140,22 @@ dvec3 A4::rayColour(
     uint x,
     uint y,
     const dvec3& origin,
-    const dvec3& ray,
-    const A4::Hit& h,
+    const dvec3& direction,
+    const A4::Hit& hit,
     Light* light,
     uint maxHits
 ) {
-    PhongMaterial* material = dynamic_cast<PhongMaterial*>(h.node->m_material);
+    PhongMaterial* material = dynamic_cast<PhongMaterial*>(hit.node->m_material);
 
     dvec3 k_d = material->m_kd;
-    dvec3 l = glm::normalize(dvec3(light->position) - h.point);
-    dvec3 n = glm::normalize(dvec3(h.normal));
+    dvec3 l = glm::normalize(dvec3(light->position) - hit.point);
+    dvec3 n = glm::normalize(dvec3(hit.normal));
     dvec3 k_s(material->m_ks);
     dvec3 r = glm::normalize(-l + 2 * glm::dot(l, n) * n);
-    dvec3 v = glm::normalize(-ray);
+    dvec3 v = glm::normalize(-direction);
     double p = material->m_shininess;
     dvec3 I = light->colour;
-    double dist = glm::distance(dvec3(light->position), h.point);
+    double dist = glm::distance(dvec3(light->position), hit.point);
 
     dvec3 L_in = I / (light->falloff[0] + light->falloff[1] * dist + light->falloff[2] * dist * dist);
     dvec3 L_out = (
@@ -202,12 +181,6 @@ A4::Hit A4::rayTriangleIntersect(
         p2 - p0,
         -direction
     );
-
-//    dvec3 solution = glm::inverse(M) * R;
-//
-//    double beta = solution.x;
-//    double gamma = solution.y;
-//    double t = solution.z;
 
     double D = glm::determinant(M);
 
@@ -269,6 +242,16 @@ A4::Hit A4::hierHit(
 
             closest = minHit(newOrigin, closest, hit);
         }
+        else if (NonhierBox* box = dynamic_cast<NonhierBox*>(gnode->m_primitive)) {
+            Hit hit = nonHierBoxIntersect(box, newOrigin, newDirection, gnode);
+
+            closest = minHit(newOrigin, closest, hit);
+        }
+        else if (NonhierSphere* nhsphere = dynamic_cast<NonhierSphere*>(gnode->m_primitive)) {
+            Hit hit = nonHierSphereIntersect(nhsphere, newOrigin, newDirection, gnode);
+
+            closest = minHit(newOrigin, closest, hit);
+        }
     }
 
     for (SceneNode* child: node->children) {
@@ -300,37 +283,7 @@ A4::Hit A4::hit(
     const dvec3& origin,
     const dvec3& direction
 ) {
-    Hit closest = {false, dvec3(), dvec3(), nullptr, 0};
-
-    for (GeometryNode* node: nonHierBoxes) {
-        NonhierBox* box = dynamic_cast<NonhierBox*>(node->m_primitive);
-
-        Hit hit = nonHierBoxIntersect(box, origin, direction, node);
-
-        closest = minHit(origin, closest, hit);
-    }
-
-    for (GeometryNode* node: nonHierSpheres) {
-        NonhierSphere* sphere = dynamic_cast<NonhierSphere*>(node->m_primitive);
-
-        Hit hit = nonHierSphereIntersect(sphere, origin, direction, node);
-
-        closest = minHit(origin, closest, hit);
-    }
-
-    for (GeometryNode* node: meshes) {
-        Mesh* mesh = dynamic_cast<Mesh*>(node->m_primitive);
-
-        Hit hit = meshIntersect(mesh, origin, direction, node);
-
-        closest = minHit(origin, closest, hit);
-    }
-
-    Hit hh = hierHit(root, origin, direction);
-
-    closest = minHit(origin, closest, hh);
-
-    return closest;
+    return hierHit(root, origin, direction);
 }
 
 A4::Hit A4::nonHierSphereIntersect(
@@ -476,7 +429,4 @@ void A4::print() {
     }
     std::cout << "\t}" << std::endl;
     std::cout <<")" << std::endl;
-
-    cout << "Non-hierarchical boxes: " << nonHierBoxes.size() << endl;
-    cout << "Non-hierarchical spheres: " << nonHierSpheres.size() << endl;
 }
