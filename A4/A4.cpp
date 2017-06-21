@@ -19,7 +19,7 @@ const double EPS = 0.0001;
 
 const bool SHOW_BOUNDING_BOXES = false;
 
-const bool SUPERSAMPLE_ON = false;
+const bool SUPERSAMPLE_ON = true;
 
 A4::A4(
     // What to render

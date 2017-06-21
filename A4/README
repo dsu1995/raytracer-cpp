@@ -1,0 +1,10 @@
+Compilation
+
+There are no changes to the default build steps. This assignment was tested on lab computer gl17.
+
+
+
+Manual
+
+Extra feature:
+Supersampling: sample 9 times per pixel and average their colours.
