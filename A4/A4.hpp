@@ -43,11 +43,9 @@ private:
     void print();
 
     glm::dvec3 rayColour(
-        uint x,
-        uint y,
         const glm::dvec3& origin,
         const glm::dvec3& direction,
-        const Hit& hit,
+        const A4::Hit& hit,
         Light* light,
         uint maxHits
     );
@@ -63,15 +61,26 @@ private:
     );
 
     glm::dvec3 background(
-        uint x,
-        uint y,
+        double x,
+        double y,
         const glm::dvec3& rayDirection
     );
 
-    Hit rayTriangleIntersect(const glm::dvec3& p0, const glm::dvec3& p1, const glm::dvec3& p2, const glm::dvec3& origin,
-                                 const glm::dvec3& direction, GeometryNode* node);
+    Hit rayTriangleIntersect(
+        const glm::dvec3& p0,
+        const glm::dvec3& p1,
+        const glm::dvec3& p2,
+        const glm::dvec3& origin,
+        const glm::dvec3& direction,
+        GeometryNode* node
+    );
 
-    A4::Hit meshIntersect(Mesh* mesh, const glm::dvec3 origin, const glm::dvec3 direction, GeometryNode* node);
+    A4::Hit meshIntersect(
+        Mesh* mesh,
+        const glm::dvec3 origin,
+        const glm::dvec3 direction,
+        GeometryNode* node
+    );
 
 
     SceneNode* const root;
@@ -98,15 +107,25 @@ private:
         const glm::dvec3& direction
     );
 
-    A4::Hit
-    nonHierBoxIntersect(NonhierBox* box, const glm::dvec3 origin, const glm::dvec3 direction, GeometryNode* node);
+    A4::Hit nonHierBoxIntersect(
+        NonhierBox* box,
+        const glm::dvec3 origin,
+        const glm::dvec3 direction,
+        GeometryNode* node
+    );
 
-    A4::Hit nonHierSphereIntersect(NonhierSphere* sphere, const glm::dvec3 origin, const glm::dvec3 direction,
-                                       GeometryNode* node);
+    A4::Hit nonHierSphereIntersect(
+        NonhierSphere* sphere,
+        const glm::dvec3 origin,
+        const glm::dvec3 direction,
+        GeometryNode* node
+    );
 
     const Hit& minHit(
         const glm::dvec3 origin,
         const Hit& h1,
         const Hit& h2
     ) const;
+
+    glm::dvec3 renderPixel(double x, double y);
 };

@@ -17,7 +17,7 @@ const double NEAR_PLANE_DISTANCE = 1;
 
 const double EPS = 0.0001;
 
-const bool SHOW_BOUNDING_BOXES = true;
+const bool SHOW_BOUNDING_BOXES = false;
 
 A4::A4(
     // What to render
@@ -70,54 +70,73 @@ A4::A4(
 }
 
 glm::dvec3 A4::background(
-    uint x,
-    uint y,
+    double x,
+    double y,
     const glm::dvec3& rayDirection
 ) {
-    return {0, 0, 0};
+    x /= imageWidth;
+    y /= imageHeight;
+    return {x, x * y, y};
 }
+
+const double INCREMENT = 0.01;
 
 void A4::render() {
     size_t total = imageWidth * imageHeight;
     size_t complete = 0;
-    double increment = 0.01;
-    double nextGoal = increment;
+    double nextGoal = INCREMENT;
 
     for (uint y = 0; y < imageHeight; y++) {
         for (uint x = 0; x < imageWidth; x++, complete++) {
-            const dvec4 screenCoordPixel(x, y, 0, 1);
-            const dvec4 worldCoordPixel = MVW * screenCoordPixel;
-            const dvec4 rayDirection = worldCoordPixel - rayOrigin;
 
-            Hit h = hit(dvec3(rayOrigin), dvec3(rayDirection));
-
-            dvec3 colour;
-            if (!h.hasHit) {
-                colour = background(x, y, dvec3(rayDirection));
-            }
-            else {
-                PhongMaterial* material = dynamic_cast<PhongMaterial*>(h.node->m_material);
-                dvec3 intersectionEps = h.point + glm::normalize(h.normal) * EPS;
-
-                colour = ambient * dvec3(material->m_kd);
-                for (Light* light: lights) {
-                    if (!between(intersectionEps, light->position)) {
-                        colour += rayColour(x, y, dvec3(rayOrigin), dvec3(rayDirection), h, light, 1);
-                    }
+            // super sample 9 times per pixel
+            dvec3 colour(0, 0, 0);
+            double delta = 1.0 / 3;
+            for (int i = -1; i <= 1; i++) {
+                for (int j = -1; j <= 1; j++) {
+                    colour += renderPixel(x + i * delta, y + j * delta);
                 }
             }
+            colour /= 9;
+
             image(x, y, 0) = colour[0];
             image(x, y, 1) = colour[1];
             image(x, y, 2) = colour[2];
         }
 
         if (complete > total * nextGoal) {
-            nextGoal += increment;
+            nextGoal += INCREMENT;
             cout << "Pixels rendered: " << complete << '/' << total << '\r';
             cout.flush();
         }
     }
     cout << "Pixels rendered: " << complete << '/' << total << endl;
+}
+
+dvec3 A4::renderPixel(double x, double y) {
+    const dvec4 screenCoordPixel(x, y, 0, 1);
+    const dvec4 worldCoordPixel = MVW * screenCoordPixel;
+    const dvec4 rayDirection = worldCoordPixel - rayOrigin;
+
+    Hit h = hit(dvec3(rayOrigin), dvec3(rayDirection));
+
+    dvec3 colour;
+    if (!h.hasHit) {
+        colour = background(x, y, dvec3(rayDirection));
+    }
+    else {
+        PhongMaterial* material = dynamic_cast<PhongMaterial*>(h.node->m_material);
+        dvec3 intersectionEps = h.point + glm::normalize(h.normal) * EPS;
+
+        colour = ambient * dvec3(material->m_kd);
+        for (Light* light: lights) {
+            if (!between(intersectionEps, light->position)) {
+                colour += rayColour(dvec3(rayOrigin), dvec3(rayDirection), h, light, 1);
+            }
+        }
+    }
+
+    return colour;
 }
 
 const A4::Hit& A4::minHit(
@@ -150,8 +169,6 @@ bool A4::between(const glm::dvec3& p1, const glm::dvec3& p2) {
 }
 
 dvec3 A4::rayColour(
-    uint x,
-    uint y,
     const dvec3& origin,
     const dvec3& direction,
     const A4::Hit& hit,
