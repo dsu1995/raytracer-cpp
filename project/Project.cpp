@@ -1,5 +1,6 @@
 #include <glm/ext.hpp>
 #include <cmath>
+#include <atomic>
 
 #include "Project.hpp"
 
@@ -72,11 +73,12 @@ const double INCREMENT = 0.01;
 
 void Project::render() {
     size_t total = imageWidth * imageHeight;
-    size_t complete = 0;
+    std::atomic<size_t> complete(0);
     double nextGoal = INCREMENT;
 
+    #pragma omp parallel for
     for (uint y = 0; y < imageHeight; y++) {
-        for (uint x = 0; x < imageWidth; x++, complete++) {
+        for (uint x = 0; x < imageWidth; x++) {
             dvec3 colour(0, 0, 0);
 
             if (SUPERSAMPLE_ON) {
@@ -98,6 +100,7 @@ void Project::render() {
             image(x, y, 2) = colour[2];
         }
 
+        complete += imageWidth;
         if (complete > total * nextGoal) {
             nextGoal += INCREMENT;
             cout << "Pixels rendered: " << complete << '/' << total << '\r';
