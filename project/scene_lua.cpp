@@ -55,6 +55,7 @@
 #include "Project.hpp"
 #include "primitives/Sphere.hpp"
 #include "primitives/Cylinder.hpp"
+#include "primitives/Cone.hpp"
 
 typedef std::map<std::string,Mesh*> MeshMap;
 static MeshMap mesh_map;
@@ -174,6 +175,23 @@ int gr_cylinder_cmd(lua_State* L) {
   lua_setmetatable(L, -2);
 
   return 1;
+}
+
+// Create a cone node
+extern "C"
+int gr_cone_cmd(lua_State* L) {
+    GRLUA_DEBUG_CALL;
+
+    gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+    data->node = 0;
+
+    const char* name = luaL_checkstring(L, 1);
+    data->node = new GeometryNode( name, new Cone() );
+
+    luaL_getmetatable(L, "gr.node");
+    lua_setmetatable(L, -2);
+
+    return 1;
 }
 
 // Create a sphere node
@@ -546,6 +564,7 @@ static const luaL_Reg grlib_functions[] = {
   {"render", gr_render_cmd},
   // new for project
   {"cylinder", gr_cylinder_cmd},
+  {"cone", gr_cone_cmd},
   {0, 0}
 };
 
