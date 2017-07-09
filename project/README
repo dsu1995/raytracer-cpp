@@ -1,0 +1,11 @@
+Objectives
+1. Implement 2 additional primitives: cone and cylinder
+2. Implement Constructive Solid Geometry (CSG) to allow more complex shapes to be modeled using primitives
+3. Implement Texture Mapping 
+4. Implement Bump Mapping
+5. Implement reflective surfaces
+6. Implement refractive materials
+7. Implement glossy reflection/transmission
+8. Implement soft shadows
+9. Implement a grid-based data structure for accelerating the detection of ray-model intersections
+10. Construct a final scene to be displayed.
