@@ -47,13 +47,13 @@
 #include "lua488.hpp"
 
 #include "Light.hpp"
-#include "Mesh.hpp"
-#include "GeometryNode.hpp"
-#include "JointNode.hpp"
-#include "Primitive.hpp"
-#include "Material.hpp"
+#include "primitives/Mesh.hpp"
+#include "nodes/GeometryNode.hpp"
+#include "nodes/JointNode.hpp"
+#include "primitives/Primitive.hpp"
 #include "PhongMaterial.hpp"
 #include "Project.hpp"
+#include "primitives/Sphere.hpp"
 
 typedef std::map<std::string,Mesh*> MeshMap;
 static MeshMap mesh_map;
@@ -91,7 +91,7 @@ struct gr_node_ud {
 // The "userdata" type for a material. Objects of this type will be
 // allocated by Lua to represent materials.
 struct gr_material_ud {
-  Material* material;
+  PhongMaterial* material;
 };
 
 // The "userdata" type for a light. Objects of this type will be
@@ -210,7 +210,7 @@ int gr_nh_sphere_cmd(lua_State* L)
 
   double radius = luaL_checknumber(L, 3);
 
-  data->node = new GeometryNode(name, new NonhierSphere(pos, radius));
+  data->node = new GeometryNode(name, new Sphere(pos, radius));
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -234,7 +234,7 @@ int gr_nh_box_cmd(lua_State* L)
 
   double size = luaL_checknumber(L, 3);
 
-  data->node = new GeometryNode(name, new NonhierBox(pos, size));
+  data->node = new GeometryNode(name, new Cube(pos, size));
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -344,8 +344,8 @@ int gr_render_cmd(lua_State* L)
   }
 
 	Image im( width, height);
-	Project a4(root->node, im, eye, view, up, fov, ambient, lights);
-    a4.render();
+	Project project(root->node, im, eye, view, up, fov, ambient, lights);
+    project.render();
     im.savePng( filename );
 
 	return 0;
@@ -413,7 +413,7 @@ int gr_node_set_material_cmd(lua_State* L)
   gr_material_ud* matdata = (gr_material_ud*)luaL_checkudata(L, 2, "gr.material");
   luaL_argcheck(L, matdata != 0, 2, "Material expected");
 
-  Material* material = matdata->material;
+  PhongMaterial* material = matdata->material;
 
   self->setMaterial(material);
 

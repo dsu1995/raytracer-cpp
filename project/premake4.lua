@@ -46,7 +46,7 @@ if os.get() == "macosx" then
     linkOptionList = { "-framework IOKit", "-framework Cocoa", "-framework CoreVideo", "-framework OpenGL" }
 end
 
-buildOptions = {"-std=c++11"}
+buildOptions = {"-std=c++11 -O2"}
 
 solution "CS488-Projects"
     configurations { "Debug", "Release" }
@@ -62,7 +62,8 @@ solution "CS488-Projects"
         links (linkLibs)
         linkoptions (linkOptionList)
         includedirs (includeDirList)
-        files { "*.cpp" }
+        files { "**.cpp" }
+        excludes { "Assets/**", "build/**", "cmake-build-debug/**" }
 
     configuration "Debug"
         defines { "DEBUG" }
