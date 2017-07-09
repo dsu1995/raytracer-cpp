@@ -15,8 +15,6 @@ public:
         const glm::dvec3& rayDirection
     ) const override;
 
-    virtual ~Cube();
-
     const glm::vec3 m_pos;
     const glm::dvec3 dims;
 };

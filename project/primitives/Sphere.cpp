@@ -6,8 +6,6 @@
 using glm::vec3;
 using glm::dvec3;
 
-Sphere::~Sphere() {}
-
 Sphere::Sphere(const vec3& pos, double radius)
     : m_pos(pos), m_radius(radius) {}
 

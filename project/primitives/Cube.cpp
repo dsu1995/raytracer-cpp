@@ -4,8 +4,6 @@
 using glm::vec3;
 using glm::dvec3;
 
-Cube::~Cube() {}
-
 Cube::Cube(const vec3& pos, const vec3& dims)
     : m_pos(pos), dims(dims) {}
 

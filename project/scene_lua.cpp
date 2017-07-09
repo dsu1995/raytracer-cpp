@@ -54,6 +54,7 @@
 #include "PhongMaterial.hpp"
 #include "Project.hpp"
 #include "primitives/Sphere.hpp"
+#include "primitives/Cylinder.hpp"
 
 typedef std::map<std::string,Mesh*> MeshMap;
 static MeshMap mesh_map;
@@ -151,6 +152,23 @@ int gr_joint_cmd(lua_State* L)
   node->set_joint_y(y[0], y[1], y[2]);
   
   data->node = node;
+
+  luaL_getmetatable(L, "gr.node");
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
+// Create a cylinder node
+extern "C"
+int gr_cylinder_cmd(lua_State* L) {
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+  data->node = 0;
+
+  const char* name = luaL_checkstring(L, 1);
+  data->node = new GeometryNode( name, new Cylinder() );
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -526,6 +544,8 @@ static const luaL_Reg grlib_functions[] = {
   {"mesh", gr_mesh_cmd},
   {"light", gr_light_cmd},
   {"render", gr_render_cmd},
+  // new for project
+  {"cylinder", gr_cylinder_cmd},
   {0, 0}
 };
 

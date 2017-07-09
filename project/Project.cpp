@@ -1,6 +1,7 @@
 #include <glm/ext.hpp>
 #include <cmath>
 #include <atomic>
+#include <sstream>
 
 #include "Project.hpp"
 
@@ -103,8 +104,9 @@ void Project::render() {
         complete += imageWidth;
         if (complete > total * nextGoal) {
             nextGoal += INCREMENT;
-            cout << "Pixels rendered: " << complete << '/' << total << '\r';
-            cout.flush();
+            std::stringstream sstream;
+            sstream << "Pixels rendered: " << complete << '/' << total << '\r';
+            cout << sstream.str() << std::flush;
         }
     }
     cout << "Pixels rendered: " << complete << '/' << total << endl;
