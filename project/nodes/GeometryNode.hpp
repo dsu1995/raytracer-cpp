@@ -1,14 +1,14 @@
 #pragma once
 
 #include "SceneNode.hpp"
-#include "../primitives/Primitive.hpp"
+#include "../primitives/Geometry.hpp"
 #include "../PhongMaterial.hpp"
 
 class GeometryNode : public SceneNode {
 public:
     GeometryNode(
         const std::string& name,
-        Primitive* prim,
+        Geometry* prim,
         PhongMaterial* mat = nullptr
     );
 
@@ -20,5 +20,5 @@ public:
     );
 
     PhongMaterial* m_material;
-    Primitive* m_primitive;
+    Geometry* m_primitive;
 };

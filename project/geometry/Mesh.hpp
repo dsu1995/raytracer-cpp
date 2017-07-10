@@ -6,8 +6,8 @@
 
 #include <glm/glm.hpp>
 
-#include "Primitive.hpp"
-#include "Cube.hpp"
+#include "Geometry.hpp"
+#include "primtivies/Cube.hpp"
 
 struct Triangle {
     size_t v1;
@@ -21,7 +21,7 @@ struct Triangle {
 };
 
 // A polygonal mesh.
-class Mesh : public Primitive {
+class Mesh : public Geometry {
 public:
     Mesh(const std::string& fname);
 

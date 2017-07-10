@@ -1,7 +1,7 @@
 #include "Sphere.hpp"
 #include <glm/ext.hpp>
 
-#include "../polyroots.hpp"
+#include "../../polyroots.hpp"
 
 using glm::vec3;
 using glm::dvec3;

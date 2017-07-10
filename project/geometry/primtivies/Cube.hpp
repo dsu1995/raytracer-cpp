@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Primitive.hpp"
+#include "ConvexSolid.hpp"
 
-class Cube : public Primitive {
+class Cube : public ConvexSolid {
 public:
     Cube(const glm::vec3& pos, double size);
 

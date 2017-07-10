@@ -47,15 +47,14 @@
 #include "lua488.hpp"
 
 #include "Light.hpp"
-#include "primitives/Mesh.hpp"
-#include "nodes/GeometryNode.hpp"
-#include "nodes/JointNode.hpp"
-#include "primitives/Primitive.hpp"
+#include "geometry/Geometry.hpp"
 #include "PhongMaterial.hpp"
 #include "Project.hpp"
-#include "primitives/Sphere.hpp"
-#include "primitives/Cylinder.hpp"
-#include "primitives/Cone.hpp"
+#include "geometry/primtivies/Sphere.hpp"
+#include "geometry/primtivies/Cylinder.hpp"
+#include "geometry/primtivies/Cone.hpp"
+#include "nodes/Node.hpp"
+#include "geometry/Mesh.hpp"
 
 typedef std::map<std::string,Mesh*> MeshMap;
 static MeshMap mesh_map;
@@ -87,7 +86,7 @@ static MeshMap mesh_map;
 // The "userdata" type for a node. Objects of this type will be
 // allocated by Lua to represent nodes.
 struct gr_node_ud {
-  SceneNode* node;
+  Node* node;
 };
 
 // The "userdata" type for a material. Objects of this type will be
@@ -125,34 +124,7 @@ int gr_node_cmd(lua_State* L)
   data->node = 0;
 
   const char* name = luaL_checkstring(L, 1);
-  data->node = new SceneNode(name);
-
-  luaL_getmetatable(L, "gr.node");
-  lua_setmetatable(L, -2);
-
-  return 1;
-}
-
-// Create a joint node
-extern "C"
-int gr_joint_cmd(lua_State* L)
-{
-  GRLUA_DEBUG_CALL;
-  
-  gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
-  data->node = 0;
-
-  const char* name = luaL_checkstring(L, 1);
-  JointNode* node = new JointNode(name);
-
-  double x[3], y[3];
-  get_tuple(L, 2, x, 3);
-  get_tuple(L, 3, y, 3);
-
-  node->set_joint_x(x[0], x[1], x[2]);
-  node->set_joint_y(y[0], y[1], y[2]);
-  
-  data->node = node;
+  data->node = new Node(name);
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -169,7 +141,7 @@ int gr_cylinder_cmd(lua_State* L) {
   data->node = 0;
 
   const char* name = luaL_checkstring(L, 1);
-  data->node = new GeometryNode( name, new Cylinder() );
+  data->node = new Node( name, new Cylinder() );
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -186,7 +158,7 @@ int gr_cone_cmd(lua_State* L) {
     data->node = 0;
 
     const char* name = luaL_checkstring(L, 1);
-    data->node = new GeometryNode( name, new Cone() );
+    data->node = new Node( name, new Cone() );
 
     luaL_getmetatable(L, "gr.node");
     lua_setmetatable(L, -2);
@@ -204,7 +176,7 @@ int gr_sphere_cmd(lua_State* L)
   data->node = 0;
   
   const char* name = luaL_checkstring(L, 1);
-  data->node = new GeometryNode( name, new Sphere() );
+  data->node = new Node( name, new Sphere() );
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -222,7 +194,7 @@ int gr_cube_cmd(lua_State* L)
   data->node = 0;
   
   const char* name = luaL_checkstring(L, 1);
-  data->node = new GeometryNode(name, new Cube());
+  data->node = new Node(name, new Cube());
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -246,7 +218,7 @@ int gr_nh_sphere_cmd(lua_State* L)
 
   double radius = luaL_checknumber(L, 3);
 
-  data->node = new GeometryNode(name, new Sphere(pos, radius));
+  data->node = new Node(name, new Sphere(pos, radius));
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -270,7 +242,7 @@ int gr_nh_box_cmd(lua_State* L)
 
   double size = luaL_checknumber(L, 3);
 
-  data->node = new GeometryNode(name, new Cube(pos, size));
+  data->node = new Node(name, new Cube(pos, size));
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -303,7 +275,7 @@ int gr_mesh_cmd(lua_State* L)
 		mesh = i->second;
 	}
 
-	data->node = new GeometryNode( name, mesh );
+	data->node = new Node( name, mesh );
 
 	luaL_getmetatable(L, "gr.node");
 	lua_setmetatable(L, -2);
@@ -421,14 +393,14 @@ int gr_node_add_child_cmd(lua_State* L)
   gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
   luaL_argcheck(L, selfdata != 0, 1, "Node expected");
 
-  SceneNode* self = selfdata->node;
+  Node* self = selfdata->node;
   
   gr_node_ud* childdata = (gr_node_ud*)luaL_checkudata(L, 2, "gr.node");
   luaL_argcheck(L, childdata != 0, 2, "Node expected");
 
-  SceneNode* child = childdata->node;
+  Node* child = childdata->node;
 
-  self->add_child(child);
+  self->addChild(child);
 
   return 0;
 }
@@ -442,7 +414,7 @@ int gr_node_set_material_cmd(lua_State* L)
   gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
   luaL_argcheck(L, selfdata != 0, 1, "Node expected");
 
-  GeometryNode* self = dynamic_cast<GeometryNode*>(selfdata->node);
+  Node* self = selfdata->node;
 
   luaL_argcheck(L, self != 0, 1, "Geometry node expected");
   
@@ -465,7 +437,7 @@ int gr_node_scale_cmd(lua_State* L)
   gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
   luaL_argcheck(L, selfdata != 0, 1, "Node expected");
 
-  SceneNode* self = selfdata->node;
+  Node* self = selfdata->node;
 
   double values[3];
   
@@ -473,7 +445,7 @@ int gr_node_scale_cmd(lua_State* L)
     values[i] = luaL_checknumber(L, i + 2);
   }
 
-  self->scale(glm::vec3(values[0], values[1], values[2]));
+  self->scale(glm::dvec3(values[0], values[1], values[2]));
 
   return 0;
 }
@@ -487,7 +459,7 @@ int gr_node_translate_cmd(lua_State* L)
   gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
   luaL_argcheck(L, selfdata != 0, 1, "Node expected");
 
-  SceneNode* self = selfdata->node;
+  Node* self = selfdata->node;
 
   double values[3];
   
@@ -495,7 +467,7 @@ int gr_node_translate_cmd(lua_State* L)
     values[i] = luaL_checknumber(L, i + 2);
   }
 
-  self->translate(glm::vec3(values[0], values[1], values[2]));
+  self->translate(glm::dvec3(values[0], values[1], values[2]));
 
   return 0;
 }
@@ -509,7 +481,7 @@ int gr_node_rotate_cmd(lua_State* L)
   gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
   luaL_argcheck(L, selfdata != 0, 1, "Node expected");
 
-  SceneNode* self = selfdata->node;
+  Node* self = selfdata->node;
 
   const char* axis_string = luaL_checkstring(L, 2);
 
@@ -553,7 +525,6 @@ int gr_node_gc_cmd(lua_State* L)
 static const luaL_Reg grlib_functions[] = {
   {"node", gr_node_cmd},
   {"sphere", gr_sphere_cmd},
-  {"joint", gr_joint_cmd},
   {"material", gr_material_cmd},
   // New for assignment 4
   {"cube", gr_cube_cmd},

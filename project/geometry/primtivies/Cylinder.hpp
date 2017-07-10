@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Primitive.hpp"
+#include "ConvexSolid.hpp"
 
-class Cylinder : public Primitive {
+class Cylinder : public ConvexSolid {
 public:
     Intersection intersect(
         const glm::dvec3& rayOrigin,

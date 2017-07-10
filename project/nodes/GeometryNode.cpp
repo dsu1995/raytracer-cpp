@@ -5,7 +5,7 @@ using glm::dvec3;
 //---------------------------------------------------------------------------------------
 GeometryNode::GeometryNode(
     const std::string& name,
-    Primitive* prim,
+    Geometry* prim,
     PhongMaterial* mat
 ) : SceneNode(name),
     m_material(mat),

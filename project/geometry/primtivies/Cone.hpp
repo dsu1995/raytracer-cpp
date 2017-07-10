@@ -1,15 +1,11 @@
 #pragma once
 
+#include "ConvexSolid.hpp"
 
-#include "Primitive.hpp"
-
-class Cone : public Primitive {
+class Cone : public ConvexSolid {
 public:
     Intersection intersect(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection
     ) const override;
 };
-
-
-

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Primitive.hpp"
+#include "ConvexSolid.hpp"
 
-class Sphere : public Primitive {
+class Sphere : public ConvexSolid {
 public:
     Sphere();
 
