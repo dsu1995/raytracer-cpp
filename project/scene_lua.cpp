@@ -56,6 +56,7 @@
 #include "primitives/Sphere.hpp"
 #include "primitives/Cylinder.hpp"
 #include "primitives/Cone.hpp"
+#include "primitives/CSGUnion.hpp"
 
 typedef std::map<std::string,Mesh*> MeshMap;
 static MeshMap mesh_map;
@@ -113,6 +114,35 @@ void get_tuple(lua_State* L, int arg, T* data, int n)
     data[i - 1] = luaL_checknumber(L, -1);
     lua_pop(L, 1);
   }
+}
+
+// Create a GeometryNode containing CSGUnion
+extern "C"
+int gr_union_cmd(lua_State* L) {
+    GRLUA_DEBUG_CALL;
+
+    const char* name = luaL_checkstring(L, 1);
+
+    gr_node_ud* leftdata = (gr_node_ud*)luaL_checkudata(L, 2, "gr.node");
+    luaL_argcheck(L, leftdata != 0, 1, "Node expected");
+    GeometryNode* const left = dynamic_cast<GeometryNode*>(leftdata->node);
+    luaL_argcheck(L, left != 0, 1, "Geometry node expected");
+
+    gr_node_ud* rightdata = (gr_node_ud*)luaL_checkudata(L, 3, "gr.node");
+    luaL_argcheck(L, rightdata != 0, 1, "Node expected");
+    GeometryNode* const right = dynamic_cast<GeometryNode*>(rightdata->node);
+    luaL_argcheck(L, right != 0, 1, "Geometry node expected");
+
+    gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+    data->node = new GeometryNode(
+        name,
+        new CSGUnion(left, right)
+    );
+
+    luaL_getmetatable(L, "gr.node");
+    lua_setmetatable(L, -2);
+
+    return 1;
 }
 
 // Create a node
@@ -565,6 +595,7 @@ static const luaL_Reg grlib_functions[] = {
   // new for project
   {"cylinder", gr_cylinder_cmd},
   {"cone", gr_cone_cmd},
+  {"union", gr_union_cmd},
   {0, 0}
 };
 

@@ -5,6 +5,7 @@
 #include <list>
 #include <string>
 #include <iostream>
+#include "../Intersection.hpp"
 
 enum class NodeType {
     SceneNode,
@@ -38,6 +39,11 @@ public:
     void scale(const glm::vec3& amount);
 
     void translate(const glm::vec3& amount);
+
+    virtual Intersection intersect(
+        const glm::dvec3& rayOrigin,
+        const glm::dvec3& rayDirection
+    );
 
 
     friend std::ostream& operator<<(std::ostream& os, const SceneNode& node);

@@ -130,3 +130,25 @@ std::ostream& operator<<(std::ostream& os, const SceneNode& node) {
     os << "]\n";
     return os;
 }
+
+Intersection SceneNode::intersect(const glm::dvec3& rayOrigin, const glm::dvec3& rayDirection) {
+    dmat4 inv(invtrans);
+    dvec3 newOrigin(inv * dvec4(rayOrigin, 1));
+    dvec3 newDirection(inv * dvec4(rayDirection, 0));
+
+    Intersection closest;
+    for (SceneNode* child: children) {
+        Intersection intersection = child->intersect(newOrigin, newDirection);
+        closest = Intersection::min(newOrigin, closest, intersection);
+    }
+
+    if (closest.intersected) {
+        closest.point = dvec3(dmat4(trans) * glm::vec4(closest.point, 1));
+
+        dmat3 normalTransform(inv);
+        normalTransform = glm::transpose(normalTransform);
+        closest.normal = normalTransform * closest.normal;
+    }
+
+    return closest;
+}

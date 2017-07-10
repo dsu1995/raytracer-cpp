@@ -1,6 +1,9 @@
 #include "GeometryNode.hpp"
 
 using glm::dvec3;
+using glm::dvec4;
+using glm::dmat3;
+using glm::dmat4;
 
 //---------------------------------------------------------------------------------------
 GeometryNode::GeometryNode(
@@ -32,7 +35,29 @@ Intersection GeometryNode::intersect(
     const dvec3& rayOrigin,
     const dvec3& rayDirection
 ) {
-    Intersection intersection = m_primitive->intersect(rayOrigin, rayDirection);
-    intersection.node = this;
-    return intersection;
+    dmat4 inv(invtrans);
+    dvec3 newOrigin(inv * dvec4(rayOrigin, 1));
+    dvec3 newDirection(inv * dvec4(rayDirection, 0));
+
+    // intersect with this node
+    Intersection closest = m_primitive->intersect(newOrigin, newDirection);
+    if (closest.intersected && closest.node == nullptr) {
+        closest.node = this;
+    }
+
+    // intersect with children
+    for (SceneNode* child: children) {
+        Intersection intersection = child->intersect(newOrigin, newDirection);
+        closest = Intersection::min(newOrigin, closest, intersection);
+    }
+
+    if (closest.intersected) {
+        closest.point = dvec3(dmat4(trans) * glm::vec4(closest.point, 1));
+
+        dmat3 normalTransform(inv);
+        normalTransform = glm::transpose(normalTransform);
+        closest.normal = normalTransform * closest.normal;
+    }
+
+    return closest;
 }

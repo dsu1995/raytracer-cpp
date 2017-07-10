@@ -3,7 +3,6 @@
 #include <glm/glm.hpp>
 #include "../Intersection.hpp"
 
-
 class Primitive {
 public:
     virtual ~Primitive() {}

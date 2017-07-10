@@ -14,7 +14,7 @@ public:
 
     void setMaterial(PhongMaterial* material);
 
-    Intersection intersect(
+    virtual Intersection intersect(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection
     );
