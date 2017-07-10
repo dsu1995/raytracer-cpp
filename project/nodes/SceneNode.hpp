@@ -24,22 +24,10 @@ public:
 
     int totalSceneNodes() const;
 
-    const glm::mat4& get_transform() const;
-
-    const glm::mat4& get_inverse() const;
-
-    void set_transform(const glm::mat4& m);
-
     void add_child(SceneNode* child);
 
     void remove_child(SceneNode* child);
 
-    //-- Transformations:
-//    void rotate(char axis, float angle);
-//
-//    void scale(const glm::vec3& amount);
-//
-//    void translate(const glm::vec3& amount);
 
     virtual Intersection intersect(
         const glm::dvec3& rayOrigin,
@@ -47,10 +35,6 @@ public:
     );
 
     friend std::ostream& operator<<(std::ostream& os, const SceneNode& node);
-
-//    // Transformations
-//    glm::mat4 trans;
-//    glm::mat4 invtrans;
 
     std::list<SceneNode*> children;
 

@@ -8,22 +8,14 @@ class GeometryNode : public SceneNode {
 public:
     GeometryNode(
         const std::string& name,
-        Primitive* prim,
-        PhongMaterial* mat = nullptr
+        Primitive* prim
     );
 
     Primitive* const m_primitive;
-
 
 protected:
     virtual Intersection intersect(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection
     );
-
-//    virtual LineSegment intersect2(
-//        const glm::dvec3& rayOrigin,
-//        const glm::dvec3& rayDirection
-//    );
-
 };

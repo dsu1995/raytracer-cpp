@@ -14,15 +14,16 @@ c1:set_material(mat1)
 c1:rotate('X', 90)
 --s1:rotate('Y', 45)
 --s1:rotate('Z', 45)
-c1:translate(0, -2, 0)
+c1:translate(0, -0.75, 0)
 
 
 sphere = gr.sphere('sphere')
 sphere:set_material(mat2)
-sphere:translate(0, 2, 0)
+sphere:translate(0, 0.75, 0)
 
 union = gr.union('union', c1, sphere)
 scene_root:add_child(union)
+union:rotate('Z', 90)
 
 
 white_light = gr.light({-100.0, 150.0, 400.0}, {0.9, 0.9, 0.9}, {1, 0, 0})
