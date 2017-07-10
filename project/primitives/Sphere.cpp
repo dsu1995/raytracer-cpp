@@ -1,5 +1,7 @@
 #include "Sphere.hpp"
 #include <glm/ext.hpp>
+#include <vector>
+#include <algorithm>
 
 #include "../polyroots.hpp"
 
@@ -12,7 +14,7 @@ Sphere::Sphere(const vec3& pos, double radius)
 Sphere::Sphere() : Sphere(vec3(), 1.0) {}
 
 
-Intersection Sphere::intersect(
+Intersection2 Sphere::intersect2(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection
 ) const {
@@ -27,40 +29,38 @@ Intersection Sphere::intersect(
     double roots[2];
     size_t numRoots = quadraticRoots(A, B, C, roots);
 
-    double t;
-    if (numRoots == 0) {
-        return closest;
-    }
-    else if (numRoots == 1) {
-        t = roots[0];
-        if (t < 0) {
-            return closest;
+    std::vector<Intersection> intersections;
+    for (size_t i = 0; i < numRoots; i++) {
+        double t = roots[i];
+        if (t >= 0) {
+            dvec3 intersectionPoint = rayOrigin + t * rayDirection;
+            dvec3 normal = intersectionPoint - c;
+            Intersection intersection(intersectionPoint, normal);
+            intersections.push_back(intersection);
         }
     }
-    else if (numRoots == 2) {
-        double t1 = roots[0];
-        double t2 = roots[1];
-        if (t1 < 0 && t2 < 0) {
-            return closest;
-        }
-        else if (t1 >= 0 && t2 >= 0) {
-            t = std::min(t1, t2);
-        }
-        else if (t1 >= 0 && t2 < 0) {
-            t = t1;
-        }
-        else if (t1 < 0 && t2 >= 0) {
-            t = t2;
-        }
-        else {
-            assert(false);
-        }
+
+    Intersection2 intersection2{Intersection(), Intersection()};
+    if (intersections.size() == 0) { ;
+    }
+    else if (intersections.size() == 1) {
+        intersection2.i1 = intersection2.i2 = intersections.at(0);
+    }
+    else if (intersections.size() == 2) {
+        std::sort(
+            intersections.begin(), intersections.end(),
+            [](const Intersection& a, const Intersection& b) {
+                return glm::distance2(rayOrigin, a.point) <
+                       glm::distance2(rayOrigin, b.point);
+            }
+        );
+
+        intersection2.i1 = intersections.at(0);
+        intersection2.i2 = intersections.at(1);
     }
     else {
         assert(false);
     }
 
-    dvec3 intersection = rayOrigin + t * rayDirection;
-    dvec3 normal = intersection - c;
-    return {intersection, normal};
+    return intersection2;
 }

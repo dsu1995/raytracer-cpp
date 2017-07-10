@@ -25,3 +25,7 @@ struct Intersection {
     );
 };
 
+struct Intersection2 {
+    Intersection i1;
+    Intersection i2;
+};

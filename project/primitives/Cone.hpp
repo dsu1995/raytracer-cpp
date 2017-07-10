@@ -5,7 +5,7 @@
 
 class Cone : public Primitive {
 public:
-    Intersection intersect(
+    Intersection2 intersect2(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection
     ) const override;

@@ -13,7 +13,7 @@ using glm::dvec3;
  *
  * Models a cylinder centered at (0,0,0), with radius = 1, z_max = 1, z_min = -1
  */
-Intersection Cylinder::intersect(
+Intersection2 Cylinder::intersect2(
     const dvec3& rayOrigin,
     const dvec3& rayDirection
 ) const {
@@ -31,7 +31,7 @@ Intersection Cylinder::intersect(
     double B = 2 * (xe * xd + ye * yd);
     double C = xe * xe + ye * ye - 1;
 
-    Intersection closest;
+    std::vector<Intersection> intersections;
 
     { // intersection with sides of cylinder
         double roots[2];
@@ -43,7 +43,7 @@ Intersection Cylinder::intersect(
                 if (z_min < intersectionPoint.z && intersectionPoint.z < z_max) {
                     dvec3 normal(intersectionPoint.xy(), 0);
                     Intersection intersection(intersectionPoint, normal);
-                    closest = Intersection::min(rayOrigin, closest, intersection);
+                    intersections.push_back(intersection);
                 }
             }
         }
@@ -56,7 +56,7 @@ Intersection Cylinder::intersect(
             if (glm::length2(intersectionPoint.xy()) <= 1) {
                 dvec3 normal(0, 0, 1);
                 Intersection intersection(intersectionPoint, normal);
-                closest = Intersection::min(rayOrigin, closest, intersection);
+                intersections.push_back(intersection);
             }
         }
     }
@@ -68,10 +68,32 @@ Intersection Cylinder::intersect(
             if (glm::length2(intersectionPoint.xy()) <= 1) {
                 dvec3 normal(0, 0, -1);
                 Intersection intersection(intersectionPoint, normal);
-                closest = Intersection::min(rayOrigin, closest, intersection);
+                intersections.push_back(intersection);
             }
         }
     }
 
-    return closest;
+    Intersection2 intersection2{Intersection(), Intersection()};
+    if (intersections.size() == 0) { ;
+    }
+    else if (intersections.size() == 1) {
+        intersection2.i1 = intersection2.i2 = intersections.at(0);
+    }
+    else if (intersections.size() == 2) {
+        std::sort(
+            intersections.begin(), intersections.end(),
+            [](const Intersection& a, const Intersection& b) {
+                return glm::distance2(rayOrigin, a.point) <
+                       glm::distance2(rayOrigin, b.point);
+            }
+        );
+
+        intersection2.i1 = intersections.at(0);
+        intersection2.i2 = intersections.at(1);
+    }
+    else {
+        assert(false);
+    }
+
+    return intersection2;
 }

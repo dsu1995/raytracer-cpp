@@ -34,6 +34,13 @@ public:
         const glm::dvec3& rayDirection
     ) const override;
 
+    Intersection2 intersect2(
+        const glm::dvec3& rayOrigin,
+        const glm::dvec3& rayDirection
+    ) const override {
+        assert(false && "Mesh cannot be used in CSG!");
+    }
+
 private:
     std::vector<glm::vec3> m_vertices;
     std::vector<Triangle> m_faces;

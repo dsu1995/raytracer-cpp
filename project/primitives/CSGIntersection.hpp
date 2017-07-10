@@ -1,11 +1,10 @@
 #pragma once
 
-
 #include "CSGOperator.hpp"
 
-class CSGUnion : public CSGOperator {
+class CSGIntersection : public CSGOperator {
 public:
-    CSGUnion(GeometryNode* left, GeometryNode* right);
+    CSGIntersection(GeometryNode* left, GeometryNode* right);
 
     Intersection2 intersect2(
         const glm::dvec3& rayOrigin,

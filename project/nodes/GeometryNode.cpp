@@ -61,3 +61,35 @@ Intersection GeometryNode::intersect(
 
     return closest;
 }
+
+Intersection2 GeometryNode::intersect2(const glm::dvec3& rayOrigin, const glm::dvec3& rayDirection) {
+    dmat4 inv(invtrans);
+    dvec3 newOrigin(inv * dvec4(rayOrigin, 1));
+    dvec3 newDirection(inv * dvec4(rayDirection, 0));
+
+    // intersect with this node
+    Intersection2 intersection2 = m_primitive->intersect2(newOrigin, newDirection);
+    if (intersection2.i1.intersected && intersection2.i1.node == nullptr) {
+        intersection2.i1.node = this;
+    }
+    if (intersection2.i2.intersected && intersection2.i2.node == nullptr) {
+        intersection2.i2.node = this;
+    }
+
+    if (intersection2.i1.intersected) {
+        intersection2.i1.point = dvec3(dmat4(trans) * glm::vec4(intersection2.i1.point, 1));
+
+        dmat3 normalTransform(inv);
+        normalTransform = glm::transpose(normalTransform);
+        intersection2.i1.normal = normalTransform * intersection2.i1.normal;
+    }
+    if (intersection2.i2.intersected) {
+        intersection2.i2.point = dvec3(dmat4(trans) * glm::vec4(intersection2.i2.point, 1));
+
+        dmat3 normalTransform(inv);
+        normalTransform = glm::transpose(normalTransform);
+        intersection2.i2.normal = normalTransform * intersection2.i2.normal;
+    }
+
+    return intersection2;
+}

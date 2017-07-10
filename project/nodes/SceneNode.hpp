@@ -45,7 +45,6 @@ public:
         const glm::dvec3& rayDirection
     );
 
-
     friend std::ostream& operator<<(std::ostream& os, const SceneNode& node);
 
     // Transformations

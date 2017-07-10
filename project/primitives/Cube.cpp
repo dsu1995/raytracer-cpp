@@ -1,5 +1,7 @@
 #include "Cube.hpp"
 #include <vector>
+#include <algorithm>
+#include <glm/ext.hpp>
 
 using glm::vec3;
 using glm::dvec3;
@@ -22,11 +24,11 @@ struct BoxFace {
 
 const double EPS = 0.0001;
 
-Intersection Cube::intersect(
-    const dvec3& rayOrigin,
-    const dvec3& rayDirection
+Intersection2 Cube::intersect2(
+    const glm::dvec3& rayOrigin,
+    const glm::dvec3& rayDirection
 ) const {
-    Intersection closest;
+    std::vector<Intersection> intersections;
 
     dvec3 pos(m_pos);
     std::vector<BoxFace> faces = {
@@ -58,9 +60,31 @@ Intersection Cube::intersect(
             ) {
             Intersection intersection(intersectionPoint, face.normal);
 
-            closest = Intersection::min(rayOrigin, closest, intersection);
+            intersections.push_back(intersection);
         }
     }
 
-    return closest;
+    Intersection2 intersection2{Intersection(), Intersection()};
+    if (intersections.size() == 0) { ;
+    }
+    else if (intersections.size() == 1) {
+        intersection2.i1 = intersection2.i2 = intersections.at(0);
+    }
+    else if (intersections.size() == 2) {
+        std::sort(
+            intersections.begin(), intersections.end(),
+            [](const Intersection& a, const Intersection& b) {
+                return glm::distance2(rayOrigin, a.point) <
+                       glm::distance2(rayOrigin, b.point);
+            }
+        );
+
+        intersection2.i1 = intersections.at(0);
+        intersection2.i2 = intersections.at(1);
+    }
+    else {
+        assert(false);
+    }
+
+    return intersection2;
 }

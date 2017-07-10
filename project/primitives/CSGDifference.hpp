@@ -3,9 +3,9 @@
 
 #include "CSGOperator.hpp"
 
-class CSGUnion : public CSGOperator {
+class CSGDifference : public CSGOperator {
 public:
-    CSGUnion(GeometryNode* left, GeometryNode* right);
+    CSGDifference(GeometryNode* left, GeometryNode* right);
 
     Intersection2 intersect2(
         const glm::dvec3& rayOrigin,

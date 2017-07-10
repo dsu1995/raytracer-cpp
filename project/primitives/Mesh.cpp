@@ -122,3 +122,4 @@ std::ostream& operator<<(std::ostream& out, const Mesh& mesh) {
     out << "}";
     return out;
 }
+

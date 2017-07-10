@@ -19,6 +19,11 @@ public:
         const glm::dvec3& rayDirection
     );
 
+    virtual Intersection2 intersect2(
+        const glm::dvec3& rayOrigin,
+        const glm::dvec3& rayDirection
+    );
+
     PhongMaterial* m_material;
     Primitive* m_primitive;
 };
