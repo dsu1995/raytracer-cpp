@@ -10,13 +10,13 @@ using glm::dvec3;
 using glm::dmat3;
 
 
-Intersection rayTriangleIntersect(
+Intersection Mesh::rayTriangleIntersect(
     const dvec3& p0,
     const dvec3& p1,
     const dvec3& p2,
     const dvec3& rayOrigin,
     const dvec3& rayDirection
-) {
+) const {
     dvec3 R = rayOrigin - p0;
 
     dmat3 M(
@@ -33,7 +33,7 @@ Intersection rayTriangleIntersect(
     if (beta >= 0 && gamma >= 0 && beta + gamma <= 1 && t >= 0) {
         dvec3 intersection = rayOrigin + t * rayDirection;
         dvec3 normal = glm::cross(p1 - p0, p2 - p1); // TODO check normal direction
-        return {intersection, normal};
+        return {intersection, normal, this};
     }
     else {
         return {};
@@ -77,12 +77,16 @@ const std::vector<glm::vec3>& Mesh::vertices() const {
     return m_vertices;
 }
 
-Intersection Mesh::intersect(
-    const dvec3& rayOrigin,
-    const dvec3& rayDirection
+Intersection Mesh::closestIntersect(
+    const dvec3& oldOrigin,
+    const dvec3& oldDirection
 ) const {
+    Ray transformedRay = transformRay(oldOrigin, oldDirection);
+    const glm::dvec3& rayOrigin = transformedRay.rayOrigin;
+    const glm::dvec3& rayDirection = transformedRay.rayDirection;
+
     Cube boundingBox(point1, point2 - point1);
-    if (!boundingBox.intersect(rayOrigin, rayDirection).intersected) {
+    if (!boundingBox.isInside(rayOrigin) && !boundingBox.closestIntersect(rayOrigin, rayDirection).intersected) {
         return {};
     }
 
@@ -99,7 +103,7 @@ Intersection Mesh::intersect(
         closest = Intersection::min(rayOrigin, closest, triangleIntersection);
     }
 
-    return closest;
+    return transformIntersectionBack(closest);
 }
 
 

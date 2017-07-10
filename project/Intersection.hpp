@@ -2,20 +2,20 @@
 
 #include <glm/glm.hpp>
 
-class GeometryNode;
+class Primitive;
 
 struct Intersection {
     bool intersected;
     glm::dvec3 point;
     glm::dvec3 normal;
-    GeometryNode* node;
+    const Primitive* primitive;
 
     Intersection();
 
     Intersection(
         const glm::dvec3& point,
         const glm::dvec3& normal,
-        GeometryNode* node = nullptr
+        const Primitive* node
     );
 
     static const Intersection& min(
@@ -25,7 +25,12 @@ struct Intersection {
     );
 };
 
-struct Intersection2 {
-    Intersection i1;
-    Intersection i2;
+struct LineSegment {
+    Intersection near;
+    Intersection far;
+
+    LineSegment();
+    LineSegment(const Intersection& near, const Intersection& far);
+
+    bool isEmpty() const;
 };

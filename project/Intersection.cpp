@@ -8,16 +8,16 @@ Intersection::Intersection()
     : intersected(false),
       point(),
       normal(),
-      node(nullptr) {}
+      primitive(nullptr) {}
 
 Intersection::Intersection(
     const dvec3& point,
     const dvec3& normal,
-    GeometryNode* node
+    const Primitive* node
 ) : intersected(true),
     point(point),
     normal(normal),
-    node(node) {}
+    primitive(node) {}
 
 
 const Intersection& Intersection::min(
@@ -42,4 +42,17 @@ const Intersection& Intersection::min(
             return i2;
         }
     }
+}
+
+LineSegment::LineSegment()
+    : near(), far() {}
+
+LineSegment::LineSegment(const Intersection& near, const Intersection& far)
+    : near(near), far(far) {
+    assert(near.intersected && far.intersected && "Line segment has one end unbounded");
+}
+
+
+bool LineSegment::isEmpty() const {
+    return !near.intersected;
 }

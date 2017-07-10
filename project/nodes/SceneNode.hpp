@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include "../Intersection.hpp"
+#include "../Transformable.hpp"
 
 enum class NodeType {
     SceneNode,
@@ -13,7 +14,7 @@ enum class NodeType {
     JointNode
 };
 
-class SceneNode {
+class SceneNode : public Transformable {
 public:
     SceneNode(const std::string& name);
 
@@ -34,11 +35,11 @@ public:
     void remove_child(SceneNode* child);
 
     //-- Transformations:
-    void rotate(char axis, float angle);
-
-    void scale(const glm::vec3& amount);
-
-    void translate(const glm::vec3& amount);
+//    void rotate(char axis, float angle);
+//
+//    void scale(const glm::vec3& amount);
+//
+//    void translate(const glm::vec3& amount);
 
     virtual Intersection intersect(
         const glm::dvec3& rayOrigin,
@@ -47,15 +48,16 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const SceneNode& node);
 
-    // Transformations
-    glm::mat4 trans;
-    glm::mat4 invtrans;
+//    // Transformations
+//    glm::mat4 trans;
+//    glm::mat4 invtrans;
 
     std::list<SceneNode*> children;
 
     NodeType m_nodeType;
     std::string m_name;
     unsigned int m_nodeId;
+
 
 private:
     // The number of SceneNode instances.

@@ -472,7 +472,7 @@ int gr_node_set_material_cmd(lua_State* L)
   gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
   luaL_argcheck(L, selfdata != 0, 1, "Node expected");
 
-  GeometryNode* self = dynamic_cast<GeometryNode*>(selfdata->node);
+  GeometryNode* const self = dynamic_cast<GeometryNode*>(selfdata->node);
 
   luaL_argcheck(L, self != 0, 1, "Geometry node expected");
   
@@ -481,7 +481,7 @@ int gr_node_set_material_cmd(lua_State* L)
 
   PhongMaterial* material = matdata->material;
 
-  self->setMaterial(material);
+  self->m_primitive->setMaterial(material);
 
   return 0;
 }

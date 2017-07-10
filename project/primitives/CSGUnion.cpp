@@ -3,41 +3,118 @@
 #include "Mesh.hpp"
 
 CSGUnion::CSGUnion(GeometryNode* left, GeometryNode* right)
-    : left(left), right(right) {
-    assert(dynamic_cast<Mesh*>(left) == nullptr && "CSG doesn't support meshes");
-    assert(dynamic_cast<Mesh*>(right) == nullptr && "CSG doesn't support meshes");
-}
+    : CSGOperator(left, right) {}
 
-Intersection2 CSGUnion::intersect2(
+std::vector<LineSegment> CSGUnion::allIntersectPostTransform(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection
 ) const {
-    Intersection2 leftIntersection = left->intersect2(rayOrigin, rayDirection);
-    Intersection2 rightIntersection = right->intersect2(rayOrigin, rayDirection);
+    std::vector<LineSegment> leftSegments = left->allIntersect(rayOrigin, rayDirection);
+    std::vector<LineSegment> rightSegments = right->allIntersect(rayOrigin, rayDirection);
 
-    if (!leftIntersection.i1.intersected) {
-        return rightIntersection;
-    }
-    if (!rightIntersection.i1.intersected) {
-        return leftIntersection;
+    std::vector<LineSegment> output;
+
+    size_t i = 0;
+    size_t j = 0;
+    while (i < leftSegments.size() && j < rightSegments.size()) {
+        const LineSegment& a = leftSegments.at(i);
+        const LineSegment& b = rightSegments.at(j);
+
+        double a_near_dist = glm::distance2(rayOrigin, a.near.point);
+        double a_far_dist = glm::distance2(rayOrigin, a.far.point);
+
+        double b_near_dist = glm::distance2(rayOrigin, b.near.point);
+        double b_far_dist = glm::distance2(rayOrigin, b.far.point);
+
+        if (output.empty()) {
+            if (a_near_dist < b_near_dist) {
+                output.push_back(a);
+                i++;
+            }
+            else {
+                output.push_back(b);
+                j++;
+            }
+        }
+        else {
+            LineSegment& top = output.back();
+            double top_far_dist = glm::distance2(rayOrigin, top.far.point);
+
+            // a smaller
+            if (a_near_dist < b_near_dist) {
+                // disjoint
+                if (top_far_dist < a_near_dist) {
+                    output.push_back(a);
+                }
+                else {
+                    if (top_far_dist < a_far_dist) {
+                        top.far = a.far;
+                    }
+                }
+                i++;
+            }
+            // b smaller
+            else {
+                // disjoint
+                if (top_far_dist < b_near_dist) {
+                    output.push_back(b);
+                }
+                else {
+                    if (top_far_dist < b_far_dist) {
+                        top.far = b.far;
+                    }
+                }
+                j++;
+            }
+        }
     }
 
-    double leftFar = glm::distance2(rayOrigin, leftIntersection.i2.point);
-    double rightNear = glm::distance2(rayOrigin, rightIntersection.i1.point);
-    if (leftFar < rightNear) {
-        return leftIntersection;
+    for ( ;i < leftSegments.size(); i++) {
+        const LineSegment& a = leftSegments.at(i);
+        double a_near_dist = glm::distance2(rayOrigin, a.near.point);
+        double a_far_dist = glm::distance2(rayOrigin, a.far.point);
+
+        if (output.empty()) {
+            output.push_back(a);
+        }
+        else {
+            LineSegment& top = output.back();
+            double top_far_dist = glm::distance2(rayOrigin, top.far.point);
+
+            // disjoint
+            if (top_far_dist < a_near_dist) {
+                output.push_back(a);
+            }
+            else {
+                if (top_far_dist < a_far_dist) {
+                    top.far = a.far;
+                }
+            }
+        }
     }
 
-    double rightFar = glm::distance2(rayOrigin, rightIntersection.i2.point);
-    double leftNear = glm::distance2(rayOrigin, leftIntersection.i1.point);
-    if (rightFar < leftNear) {
-        return rightIntersection;
+    for ( ; j < rightSegments.size(); j++) {
+        const LineSegment& b = rightSegments.at(j);
+        double b_near_dist = glm::distance2(rayOrigin, b.near.point);
+        double b_far_dist = glm::distance2(rayOrigin, b.far.point);
+
+        if (output.empty()) {
+            output.push_back(b);
+        }
+        else {
+            LineSegment& top = output.back();
+            double top_far_dist = glm::distance2(rayOrigin, top.far.point);
+            // disjoint
+            if (top_far_dist < b_near_dist) {
+                output.push_back(b);
+            }
+            else {
+                if (top_far_dist < b_far_dist) {
+                    top.far = b.far;
+                }
+            }
+        }
     }
 
-    if (leftNear < rightNear && rightNear < leftFar) {
-        return {leftIntersection.i1, rightIntersection.i2};
-    }
-    else {
-        return {rightIntersection.i1, leftIntersection.i2};
-    }
+    return output;
 }

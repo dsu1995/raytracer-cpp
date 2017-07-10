@@ -5,7 +5,7 @@
 
 class Cone : public Primitive {
 public:
-    Intersection2 intersect2(
+    std::vector<LineSegment> allIntersectPostTransform(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection
     ) const override;

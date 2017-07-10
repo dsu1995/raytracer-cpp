@@ -14,7 +14,7 @@ Sphere::Sphere(const vec3& pos, double radius)
 Sphere::Sphere() : Sphere(vec3(), 1.0) {}
 
 
-Intersection2 Sphere::intersect2(
+std::vector<LineSegment> Sphere::allIntersectPostTransform(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection
 ) const {
@@ -35,32 +35,27 @@ Intersection2 Sphere::intersect2(
         if (t >= 0) {
             dvec3 intersectionPoint = rayOrigin + t * rayDirection;
             dvec3 normal = intersectionPoint - c;
-            Intersection intersection(intersectionPoint, normal);
+            Intersection intersection(intersectionPoint, normal, this);
             intersections.push_back(intersection);
         }
     }
 
-    Intersection2 intersection2{Intersection(), Intersection()};
-    if (intersections.size() == 0) { ;
-    }
-    else if (intersections.size() == 1) {
-        intersection2.i1 = intersection2.i2 = intersections.at(0);
+    if (intersections.size() == 0 || intersections.size() == 1) {
+        return {};
     }
     else if (intersections.size() == 2) {
         std::sort(
             intersections.begin(), intersections.end(),
-            [](const Intersection& a, const Intersection& b) {
+            [&rayOrigin](const Intersection& a, const Intersection& b) {
                 return glm::distance2(rayOrigin, a.point) <
                        glm::distance2(rayOrigin, b.point);
             }
         );
-
-        intersection2.i1 = intersections.at(0);
-        intersection2.i2 = intersections.at(1);
+        return {
+            LineSegment(intersections.at(0), intersections.at(1))
+        };
     }
     else {
-        assert(false);
+        assert(false && "Sphere should have between 0 and 2 intersections with ray.");
     }
-
-    return intersection2;
 }

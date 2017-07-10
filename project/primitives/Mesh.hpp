@@ -29,12 +29,12 @@ public:
 
     const std::vector<Triangle>& faces() const;
 
-    Intersection intersect(
+    virtual Intersection closestIntersect(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection
     ) const override;
 
-    Intersection2 intersect2(
+    std::vector<LineSegment> allIntersectPostTransform(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection
     ) const override {
@@ -49,4 +49,12 @@ private:
     glm::vec3 point2;
 
     friend std::ostream& operator<<(std::ostream& out, const Mesh& mesh);
+
+    Intersection rayTriangleIntersect(
+        const glm::dvec3& p0,
+        const glm::dvec3& p1,
+        const glm::dvec3& p2,
+        const glm::dvec3& rayOrigin,
+        const glm::dvec3& rayDirection
+    ) const;
 };

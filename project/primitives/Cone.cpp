@@ -18,15 +18,8 @@ using glm::dvec3;
  *
  * Models an inverted cone with its tip at (0,0,0), with base radius = 1, and height 1
  */
-Intersection Cone::intersect(
-    const dvec3& rayOrigin,
-    const dvec3& rayDirection
-) const {
-    Intersection2 intersection2 = intersect2(rayOrigin, rayDirection);
-    return Intersection::min(rayOrigin, intersection2.i1, intersection2.i2);
-}
 
-Intersection2 Cone::intersect2(
+std::vector<LineSegment> Cone::allIntersectPostTransform(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection
 ) const {
@@ -55,7 +48,7 @@ Intersection2 Cone::intersect2(
                 dvec3 intersectionPoint = rayOrigin + t * rayDirection;
                 if (z_min <= intersectionPoint.z && intersectionPoint.z < z_max) {
                     dvec3 normal = intersectionPoint * dvec3(2, 2, -2);
-                    Intersection intersection(intersectionPoint, normal);
+                    Intersection intersection(intersectionPoint, normal, this);
                     intersections.push_back(intersection);
                 }
             }
@@ -68,33 +61,28 @@ Intersection2 Cone::intersect2(
             dvec3 intersectionPoint = rayOrigin + t * rayDirection;
             if (glm::length2(intersectionPoint.xy()) <= 1) {
                 dvec3 normal(0, 0, 1);
-                Intersection intersection(intersectionPoint, normal);
+                Intersection intersection(intersectionPoint, normal, this);
                 intersections.push_back(intersection);
             }
         }
     }
 
-    Intersection2 intersection2{Intersection(), Intersection()};
-    if (intersections.size() == 0) { ;
-    }
-    else if (intersections.size() == 1) {
-        intersection2.i1 = intersection2.i2 = intersections.at(0);
+    if (intersections.size() == 0 || intersections.size() == 1) {
+        return {};
     }
     else if (intersections.size() == 2) {
         std::sort(
             intersections.begin(), intersections.end(),
-            [](const Intersection& a, const Intersection& b) {
+            [&rayOrigin](const Intersection& a, const Intersection& b) {
                 return glm::distance2(rayOrigin, a.point) <
                        glm::distance2(rayOrigin, b.point);
             }
         );
-
-        intersection2.i1 = intersections.at(0);
-        intersection2.i2 = intersections.at(1);
+        return {
+            LineSegment(intersections.at(0), intersections.at(1))
+        };
     }
     else {
-        assert(false);
+        assert(false && "Cone should have between 0 and 2 intersections with ray.");
     }
-
-    return intersection2;
 }

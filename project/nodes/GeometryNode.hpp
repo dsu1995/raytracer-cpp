@@ -12,18 +12,18 @@ public:
         PhongMaterial* mat = nullptr
     );
 
-    void setMaterial(PhongMaterial* material);
+    Primitive* const m_primitive;
 
+
+protected:
     virtual Intersection intersect(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection
     );
 
-    virtual Intersection2 intersect2(
-        const glm::dvec3& rayOrigin,
-        const glm::dvec3& rayDirection
-    );
+//    virtual LineSegment intersect2(
+//        const glm::dvec3& rayOrigin,
+//        const glm::dvec3& rayDirection
+//    );
 
-    PhongMaterial* m_material;
-    Primitive* m_primitive;
 };

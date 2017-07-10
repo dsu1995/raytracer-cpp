@@ -124,7 +124,7 @@ dvec3 Project::renderPixel(double x, double y) const {
         colour = background(x, y, dvec3(rayDirection));
     }
     else {
-        PhongMaterial* material = intersection.node->m_material;
+        PhongMaterial* material = intersection.primitive->getMaterial();
         dvec3 intersectionEps = intersection.point + glm::normalize(intersection.normal) * EPS;
 
         colour = ambient * dvec3(material->m_kd);
@@ -143,7 +143,7 @@ dvec3 Project::rayColour(
     const Intersection& intersection,
     Light* light
 ) const {
-    PhongMaterial* material = intersection.node->m_material;
+    PhongMaterial* material = intersection.primitive->getMaterial();
 
     dvec3 k_d = material->m_kd;
     dvec3 l = glm::normalize(dvec3(light->position) - intersection.point);
