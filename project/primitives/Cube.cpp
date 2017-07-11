@@ -2,15 +2,22 @@
 #include <vector>
 #include <algorithm>
 #include <glm/ext.hpp>
+#include <cmath>
+
+// debug
+#include <iostream>
+
+using std::cerr;
+using std::endl;
 
 using glm::vec3;
 using glm::dvec3;
 
-Cube::Cube(const vec3& pos, const vec3& dims)
+Cube::Cube(const dvec3& pos, const dvec3& dims)
     : m_pos(pos), dims(dims) {}
 
-Cube::Cube(const vec3& pos, double size)
-    : Cube(pos, vec3(float(size))) {}
+Cube::Cube(const dvec3& pos, double size)
+    : Cube(pos, dvec3(size)) {}
 
 Cube::Cube()
     : Cube(vec3(0), 1) {}
@@ -23,7 +30,7 @@ struct BoxFace {
     char dim;
 };
 
-const double EPS = 0.0001;
+const double EPS = 0.0000001;
 
 std::vector<LineSegment> Cube::allIntersectPostTransform(
     const glm::dvec3& rayOrigin,
@@ -31,70 +38,135 @@ std::vector<LineSegment> Cube::allIntersectPostTransform(
 ) const {
     std::vector<Intersection> intersections;
 
-    dvec3 pos(m_pos);
-    std::vector<BoxFace> faces = {
-        {pos,                       pos + dvec3(dims.x, dims.y, 0), {0,  0,  -1}, 'z'},
-        {pos,                       pos + dvec3(dims.x, 0, dims.z), {0,  -1, 0}, 'y'},
-        {pos,                       pos + dvec3(0, dims.y, dims.z), {-1, 0,  0}, 'x'},
-        {pos + dvec3(dims.x, 0, 0), pos + dims,                     {1,  0,  0}, 'x'},
-        {pos + dvec3(0, dims.y, 0), pos + dims,                     {0,  1,  0}, 'y'},
-        {pos + dvec3(0, 0, dims.z), pos + dims,                     {0,  0,  1}, 'z'}
-    };
+    {
+        const glm::dvec3& e = rayOrigin;
+        const glm::dvec3& d = rayDirection;
 
-    for (const BoxFace& face: faces) {
-        // Backface culling breaks when the ray starts inside the cube
-//        if (glm::dot(face.normal, direction) >= 0) {
-//            continue;
-//        }
-        double wecA = glm::dot(rayOrigin - face.point1, face.normal);
-        double wecB = glm::dot(rayOrigin + rayDirection - face.point1, face.normal);
-        double t = wecA / (wecA - wecB);
-        if (t < 0) {
-            continue;
-        }
-        dvec3 intersectionPoint = rayOrigin + t * rayDirection;
+        double x_min = m_pos.x;
+        double x_max = m_pos.x + dims.x;
 
-        if (
-            face.dim != 'x' &&
-            !(face.point1.x <= intersectionPoint.x && intersectionPoint.x <= face.point2.x)
-        ) {
-            continue;
+        double y_min = m_pos.y;
+        double y_max = m_pos.y + dims.y;
+
+        double z_min = m_pos.z;
+        double z_max = m_pos.z + dims.z;
+
+        { // left face
+            double t = (x_min - e.x) / d.x;
+            if (t >= 0) {
+                dvec3 p = e + t * d;
+                if ((y_min <= p.y && p.y <= y_max) &&
+                    (z_min <= p.z && p.z <= z_max)) {
+                    intersections.push_back(
+                        Intersection(p, dvec3(-1, 0, 0), this)
+                    );
+                }
+            }
         }
 
-        if (
-            face.dim != 'y' &&
-            !(face.point1.y <= intersectionPoint.y && intersectionPoint.y <= face.point2.y)
-        ) {
-            continue;
+        { // right face
+            double t = (x_max - e.x) / d.x;
+            if (t >= 0) {
+                dvec3 p = e + t * d;
+                if ((y_min <= p.y && p.y <= y_max) &&
+                    (z_min <= p.z && p.z <= z_max)) {
+                    intersections.push_back(
+                        Intersection(p, dvec3(1, 0, 0), this)
+                    );
+                }
+            }
         }
 
-        if (
-            face.dim != 'z' &&
-            !(face.point1.z <= intersectionPoint.z && intersectionPoint.z <= face.point2.z)
-        ) {
-            continue;
+        { // bottom face
+            double t = (y_min - e.y) / d.y;
+            if (t >= 0) {
+                dvec3 p = e + t * d;
+                if ((x_min <= p.x && p.x <= x_max) &&
+                    (z_min <= p.z && p.z <= z_max)) {
+                    intersections.push_back(
+                        Intersection(p, dvec3(0, -1, 0), this)
+                    );
+                }
+            }
         }
 
-        Intersection intersection(intersectionPoint, face.normal, this);
-        intersections.push_back(intersection);
+        { // top face
+            double t = (y_max - e.y) / d.y;
+            if (t >= 0) {
+                dvec3 p = e + t * d;
+                if ((x_min <= p.x && p.x <= x_max) &&
+                    (z_min <= p.z && p.z <= z_max)) {
+                    intersections.push_back(
+                        Intersection(p, dvec3(0, 1, 0), this)
+                    );
+                }
+            }
+        }
+
+        { // front face
+            double t = (z_min - e.z) / d.z;
+            if (t >= 0) {
+                dvec3 p = e + t * d;
+                if ((x_min <= p.x && p.x <= x_max) &&
+                    (y_min <= p.y && p.y <= y_max)) {
+                    intersections.push_back(
+                        Intersection(p, dvec3(0, 0, -1), this)
+                    );
+                }
+            }
+        }
+
+        { // back face
+            double t = (z_max - e.z) / d.z;
+            if (t >= 0) {
+                dvec3 p = e + t * d;
+                if ((x_min <= p.x && p.x <= x_max) &&
+                    (y_min <= p.y && p.y <= y_max)) {
+                    intersections.push_back(
+                        Intersection(p, dvec3(0, 0, 1), this)
+                    );
+                }
+            }
+        }
+    }
+
+    std::sort(
+        intersections.begin(), intersections.end(),
+        [&rayOrigin](const Intersection& a, const Intersection& b) {
+            return glm::distance2(rayOrigin, a.point) <
+                   glm::distance2(rayOrigin, b.point);
+        }
+    );
+
+    // remove 2 intersections from 1 point
+    // due to floating point errors
+    if (intersections.size() > 2) {
+        for (size_t i = 1; i < intersections.size();) {
+            double dist = glm::distance(intersections.at(i).point, intersections.at(i - 1).point);
+
+            if (fabs(dist) < EPS) {
+                intersections.erase(intersections.begin() + i);
+            }
+            else {
+                i++;
+            }
+        }
     }
 
     if (intersections.size() == 0 || intersections.size() == 1) {
         return {};
     }
     else if (intersections.size() == 2) {
-        std::sort(
-            intersections.begin(), intersections.end(),
-            [&rayOrigin](const Intersection& a, const Intersection& b) {
-                return glm::distance2(rayOrigin, a.point) <
-                       glm::distance2(rayOrigin, b.point);
-            }
-        );
         return {
             LineSegment(intersections.at(0), intersections.at(1))
         };
     }
     else {
+        cerr << glm::to_string(rayOrigin) << endl;
+        cerr << glm::to_string(rayDirection) << endl;
+        for (const Intersection& i: intersections) {
+            cerr << glm::to_string(i.point) << endl;
+        }
         assert(false && "Cube should have between 0 and 2 intersections with ray.");
     }
 }

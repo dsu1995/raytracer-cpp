@@ -325,7 +325,7 @@ int gr_nh_box_cmd(lua_State* L)
 
   const char* name = luaL_checkstring(L, 1);
 
-  glm::vec3 pos;
+  glm::dvec3 pos;
   get_tuple(L, 2, &pos[0], 3);
 
   double size = luaL_checknumber(L, 3);

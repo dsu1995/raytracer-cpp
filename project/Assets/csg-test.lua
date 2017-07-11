@@ -7,14 +7,22 @@ mat4 = gr.material({0.7, 0.6, 1.0}, {0.5, 0.4, 0.8}, 25)
 
 scene_root = gr.node('root')
 scene_root:scale(100, 100, 100)
+--scene_root:rotate('Y', 120)
 
+-- the floor
+grass = gr.material({0.1, 0.7, 0.1}, {0.0, 0.0, 0.0}, 0)
+plane = gr.sphere( 'plane')
+scene_root:add_child(plane)
+plane:set_material(grass)
+plane:scale(100, 100, 100)
+plane:translate(0, 0, -110)
 
 c1 = gr.cylinder('cylinder1')
 c1:set_material(mat1)
 c1:rotate('X', 90)
+c1:scale(0.8, 0.8, 0.8)
 --s1:rotate('Y', 45)
 --s1:rotate('Z', 45)
-c1:scale(0.8, 0.8, 0.8)
 c1:translate(0, -0, 0)
 
 
@@ -27,10 +35,10 @@ sphere:translate(0, 0, 0)
 --union:rotate('Z', 90)
 
 inter = gr.intersection('inter', c1, sphere)
-scene_root:add_child(inter)
+--scene_root:add_child(inter)
 inter:rotate('X', 250)
 inter:rotate('Z', 300)
-inter:translate(0, 2, 0)
+--inter:translate(0, 2, 0)
 
 
 c2 = gr.cylinder('cylinder2')
@@ -43,15 +51,30 @@ c3:set_material(mat3)
 c3:rotate('Y', 90)
 c3:translate(2, 0, 0)
 
-union2 = gr.union('union', c2, c3)
---scene_root:add_child(union2)
+union2 = gr.union('union2', c2, c3)
 
 sphere2 = gr.sphere('sphere2')
 sphere2:set_material(mat4)
 sphere2:scale(2, 2, 2)
 
 inter2 = gr.intersection('inter2', union2, sphere2)
-scene_root:add_child(inter2)
+--scene_root:add_child(inter2)
+inter2:rotate('Z', -90)
+--inter2:rotate('X', 30)
+--inter2:translate(-1, 1, -1)
+
+cube = gr.cube('cube')
+cube:set_material(mat2)
+cube:translate(-0.5, -0.5, -0.5)
+cube:scale(1.5, 1.5, 1.5)
+
+sphere3 = gr.sphere('sphere3')
+sphere3:set_material(mat1)
+sphere3:scale(0.9, 0.9, 0.9)
+
+union3 = gr.union('union3', cube, sphere3)
+scene_root:add_child(union3)
+--union3:rotate('Y', -45)
 
 
 white_light = gr.light({-100.0, 150.0, 400.0}, {0.9, 0.9, 0.9}, {1, 0, 0})

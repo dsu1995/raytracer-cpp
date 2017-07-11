@@ -4,9 +4,9 @@
 
 class Cube : public Primitive {
 public:
-    Cube(const glm::vec3& pos, double size);
+    Cube(const glm::dvec3& pos, double size);
 
-    Cube(const glm::vec3& pos, const glm::vec3& dims);
+    Cube(const glm::dvec3& pos, const glm::dvec3& dims);
 
     Cube();
 
