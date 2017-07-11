@@ -10,12 +10,12 @@ scene_root:scale(100, 100, 100)
 --scene_root:rotate('Y', 120)
 
 -- the floor
-grass = gr.material({0.1, 0.7, 0.1}, {0.0, 0.0, 0.0}, 0)
-plane = gr.sphere( 'plane')
-scene_root:add_child(plane)
-plane:set_material(grass)
-plane:scale(100, 100, 100)
-plane:translate(0, 0, -110)
+--grass = gr.material({0.1, 0.7, 0.1}, {0.0, 0.0, 0.0}, 0)
+--plane = gr.sphere( 'plane')
+--scene_root:add_child(plane)
+--plane:set_material(grass)
+--plane:scale(100, 100, 100)
+--plane:translate(0, 0, -110)
 
 c1 = gr.cylinder('cylinder1')
 c1:set_material(mat1)
@@ -69,17 +69,21 @@ cube:translate(-0.5, -0.5, -0.5)
 cube:scale(1.5, 1.5, 1.5)
 
 sphere3 = gr.sphere('sphere3')
-sphere3:set_material(mat1)
+sphere3:set_material(mat3)
 sphere3:scale(0.9, 0.9, 0.9)
 
-union3 = gr.union('union3', cube, sphere3)
+union3 = gr.difference('union3', cube, sphere3)
 scene_root:add_child(union3)
---union3:rotate('Y', -45)
-
+union3:rotate('Y', -30)
+union3:rotate('X', 45)
 
 white_light = gr.light({-100.0, 150.0, 400.0}, {0.9, 0.9, 0.9}, {1, 0, 0})
 orange_light = gr.light({400.0, 100.0, 150.0}, {0.7, 0.0, 0.7}, {1, 0, 0})
 
 gr.render(scene_root, 'csg-test.png', 500, 500,
     {0, 0, 800}, {0, 0, -1}, {0, 1, 0}, 50,
-    {0.3, 0.3, 0.3}, {white_light, orange_light})
+    {0.3, 0.3, 0.3}, {
+        white_light
+        ,
+          orange_light
+    })
