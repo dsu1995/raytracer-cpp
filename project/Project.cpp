@@ -17,8 +17,6 @@ const double NEAR_PLANE_DISTANCE = 1;
 
 const double EPS = 0.0001;
 
-const bool SUPERSAMPLE_ON = false;
-
 Project::Project(
     // What to render
     SceneNode* root,
@@ -27,14 +25,15 @@ Project::Project(
     Image& image,
 
     // Viewing parameters
-    const glm::vec3& eye,
-    const glm::vec3& view,
-    const glm::vec3& up,
+    const glm::dvec3& eye,
+    const glm::dvec3& view,
+    const glm::dvec3& up,
     double fovy,
 
     // Lighting parameters
-    const glm::vec3& ambient,
-    const std::list<Light*>& lights
+    const glm::dvec3& ambient,
+    const std::list<Light*>& lights,
+    bool supersample
 ) : root(root),
     scene(root),
     image(image),
@@ -44,6 +43,7 @@ Project::Project(
     fovy(fovy),
     ambient(ambient),
     lights(lights),
+    supersample(supersample),
     imageWidth(image.width()),
     imageHeight(image.height()),
     rayOrigin(eye, 1)
@@ -54,7 +54,7 @@ Project::Project(
     const double h = 2 * NEAR_PLANE_DISTANCE * tan(glm::radians(fovy) / 2);
     const dmat4 S2 = glm::scale(dvec3(-h / imageHeight, -h / imageHeight, 1));
     // Step 3
-    const dvec3 w = glm::normalize(dvec3(view));
+    const dvec3 w = glm::normalize(view);
     const dvec3 u = glm::normalize(glm::cross(this->up, w));
     const dvec3 v = glm::cross(w, u);
     const dmat4 R3(
@@ -82,7 +82,7 @@ void Project::render() {
         for (uint x = 0; x < imageWidth; x++) {
             dvec3 colour(0, 0, 0);
 
-            if (SUPERSAMPLE_ON) {
+            if (supersample) {
                 // super sample 9 times per pixel
                 double delta = 1.0 / 3;
                 for (int i = -1; i <= 1; i++) {
@@ -119,23 +119,23 @@ dvec3 Project::renderPixel(double x, double y) const {
 
     Intersection intersection = scene.trace(dvec3(rayOrigin), dvec3(rayDirection));
 
-    dvec3 colour;
     if (!intersection.intersected) {
-        colour = background(x, y, dvec3(rayDirection));
+        return background(x, y, dvec3(rayDirection));
     }
     else {
         PhongMaterial* material = intersection.primitive->getMaterial();
         dvec3 intersectionEps = intersection.point +
             glm::normalize(intersection.normal) * glm::length(intersection.point) * EPS;
 
-        colour = ambient * dvec3(material->m_kd);
+        dvec3 colour = ambient * material->m_kd;
         for (Light* light: lights) {
             if (!scene.existsObjectBetween(intersectionEps, light->position)) {
                 colour += rayColour(dvec3(rayOrigin), dvec3(rayDirection), intersection, light);
             }
         }
+
+        return colour;
     }
-    return colour;
 }
 
 dvec3 Project::rayColour(
@@ -146,15 +146,15 @@ dvec3 Project::rayColour(
 ) const {
     PhongMaterial* material = intersection.primitive->getMaterial();
 
-    dvec3 k_d = material->m_kd;
-    dvec3 l = glm::normalize(dvec3(light->position) - intersection.point);
-    dvec3 n = glm::normalize(dvec3(intersection.normal));
-    dvec3 k_s(material->m_ks);
+    const dvec3& k_d = material->m_kd;
+    dvec3 l = glm::normalize(light->position - intersection.point);
+    dvec3 n = glm::normalize(intersection.normal);
+    const dvec3& k_s = material->m_ks;
     dvec3 r = glm::normalize(-l + 2 * glm::dot(l, n) * n);
     dvec3 v = glm::normalize(-direction);
     double p = material->m_shininess;
-    dvec3 I = light->colour;
-    double dist = glm::distance(dvec3(light->position), intersection.point);
+    const dvec3& I = light->colour;
+    double dist = glm::distance(light->position, intersection.point);
 
     dvec3 L_in = I / (light->falloff[0] + light->falloff[1] * dist + light->falloff[2] * dist * dist);
     dvec3 L_out = (

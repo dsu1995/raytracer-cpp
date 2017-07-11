@@ -79,7 +79,7 @@ Intersection Transformable::transformIntersectionBack(
     Intersection intersection
 ) const {
     if (intersection.intersected) {
-        intersection.point = dvec3(dmat4(transform) * glm::vec4(intersection.point, 1));
+        intersection.point = dvec3(transform * dvec4(intersection.point, 1));
 
         dmat3 normalTransform(invTransform);
         normalTransform = glm::transpose(normalTransform);

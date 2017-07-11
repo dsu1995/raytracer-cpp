@@ -21,14 +21,15 @@ public:
         Image& image,
 
         // Viewing parameters
-        const glm::vec3& eye,
-        const glm::vec3& view,
-        const glm::vec3& up,
+        const glm::dvec3& eye,
+        const glm::dvec3& view,
+        const glm::dvec3& up,
         double fovy,
 
         // Lighting parameters
-        const glm::vec3& ambient,
-        const std::list<Light*>& lights
+        const glm::dvec3& ambient,
+        const std::list<Light*>& lights,
+        bool supersample
     );
 
     void render();
@@ -57,14 +58,15 @@ private:
 
     Image& image;
 
-    const glm::dvec3 eye;
-    const glm::dvec3 view;
-    const glm::dvec3 up;
+    const glm::dvec3& eye;
+    const glm::dvec3& view;
+    const glm::dvec3& up;
 
     const double fovy;
-    const glm::dvec3 ambient;
+    const glm::dvec3& ambient;
 
     const std::list<Light*>& lights;
+    const bool supersample;
 
     const size_t imageWidth;
     const size_t imageHeight;

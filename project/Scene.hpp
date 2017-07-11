@@ -23,12 +23,6 @@ public:
 
 private:
     SceneNode* const root;
-//
-//    Intersection traceRecursive(
-//        SceneNode* node,
-//        const glm::dvec3& rayOrigin,
-//        const glm::dvec3& rayDirection
-//    ) const;
 };
 
 
