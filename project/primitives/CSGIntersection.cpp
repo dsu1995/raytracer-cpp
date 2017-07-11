@@ -27,22 +27,60 @@ std::vector<LineSegment> CSGIntersection::allIntersectPostTransform(
         double b_near_dist = glm::distance2(rayOrigin, b.near.point);
         double b_far_dist = glm::distance2(rayOrigin, b.far.point);
 
-        // disjoint
-        if (a_far_dist < b_near_dist || b_far_dist < a_near_dist) {
-
+        /*
+         * a      ----
+         * b ----
+         */
+        if (b_far_dist <= a_near_dist) {
+            j++;
         }
-        // not disjoint
-        else {
-            Intersection near = (a_near_dist < b_near_dist) ? b.near : a.near;
-            Intersection far = (a_far_dist < b_far_dist) ? a.near : b.near;
-            output.push_back(LineSegment(near, far));
-        }
+        /*
+         * a    ----
+         * b  ----
+         */
+        else if (b_near_dist <= a_near_dist &&
+                 a_near_dist <= b_far_dist &&
+                 b_far_dist <= a_far_dist) {
 
-        if (a_far_dist < b_far_dist) {
+            output.push_back(LineSegment(a.near, b.far));
+            j++;
+        }
+        /*
+         * a    ----
+         * b  --------
+         */
+        else if (b_near_dist <= a_near_dist && a_far_dist <= b_far_dist) {
+            output.push_back(a);
+            i++;
+        }
+        /*
+         * a    ----
+         * b     --
+         */
+        else if (a_near_dist <= b_near_dist && b_far_dist <= a_far_dist) {
+            output.push_back(b);
+            j++;
+        }
+        /*
+         * a    ----
+         * b      ----
+         */
+        else if (a_near_dist <= b_near_dist &&
+                 b_near_dist <= a_far_dist &&
+                 a_far_dist <= b_far_dist) {
+
+            output.push_back(LineSegment(b.near, a.far));
+            i++;
+        }
+        /*
+         * a  ----
+         * b        ----
+         */
+        else if (a_far_dist <= b_near_dist) {
             i++;
         }
         else {
-            j++;
+            assert(false);
         }
     }
 
