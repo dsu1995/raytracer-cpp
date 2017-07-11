@@ -1,24 +1,22 @@
-#include "CSGIntersection.hpp"
+#include "CSGDifference.hpp"
 
 #include <glm/ext.hpp>
 
-
-CSGIntersection::CSGIntersection(GeometryNode* left, GeometryNode* right)
+CSGDifference::CSGDifference(GeometryNode* left, GeometryNode* right)
     : CSGOperator(left, right) {}
 
-
-std::vector<LineSegment> CSGIntersection::allIntersectPostTransform(
+std::vector<LineSegment> CSGDifference::getCSGSegmentsPostTransform(
     const glm::dvec3& rayOrigin, const glm::dvec3& rayDirection
 ) const {
-    std::vector<LineSegment> leftSegments = left->allIntersect(rayOrigin, rayDirection);
-    std::vector<LineSegment> rightSegments = right->allIntersect(rayOrigin, rayDirection);
+    std::vector<LineSegment> leftSegments = left->getCSGSegments(rayOrigin, rayDirection);
+    std::vector<LineSegment> rightSegments = right->getCSGSegments(rayOrigin, rayDirection);
 
     std::vector<LineSegment> output;
 
     size_t i = 0;
     size_t j = 0;
     while (i < leftSegments.size() && j < rightSegments.size()) {
-        const LineSegment& a = leftSegments.at(i);
+        LineSegment& a = leftSegments.at(i);
         const LineSegment& b = rightSegments.at(j);
 
         double a_near_dist = glm::distance2(rayOrigin, a.near.point);
@@ -26,6 +24,7 @@ std::vector<LineSegment> CSGIntersection::allIntersectPostTransform(
 
         double b_near_dist = glm::distance2(rayOrigin, b.near.point);
         double b_far_dist = glm::distance2(rayOrigin, b.far.point);
+
 
         /*
          * a      ----
@@ -39,10 +38,11 @@ std::vector<LineSegment> CSGIntersection::allIntersectPostTransform(
          * b  ----
          */
         else if (b_near_dist <= a_near_dist &&
-                 a_near_dist <= b_far_dist &&
-                 b_far_dist <= a_far_dist) {
+            a_near_dist <= b_far_dist &&
+            b_far_dist <= a_far_dist) {
 
-            output.push_back(LineSegment(a.near, b.far));
+            a.near = b.far;
+            a.near.normal *= -1; // flip normal!!!
             j++;
         }
         /*
@@ -50,7 +50,6 @@ std::vector<LineSegment> CSGIntersection::allIntersectPostTransform(
          * b  --------
          */
         else if (b_near_dist <= a_near_dist && a_far_dist <= b_far_dist) {
-            output.push_back(a);
             i++;
         }
         /*
@@ -58,7 +57,11 @@ std::vector<LineSegment> CSGIntersection::allIntersectPostTransform(
          * b     --
          */
         else if (a_near_dist <= b_near_dist && b_far_dist <= a_far_dist) {
-            output.push_back(b);
+            output.push_back(LineSegment(a.near, b.near));
+            output.back().far.normal *= -1; // flip normal!!!
+
+            a.near = b.far;
+            a.near.normal *= -1; // flip normal!!!
             j++;
         }
         /*
@@ -66,10 +69,11 @@ std::vector<LineSegment> CSGIntersection::allIntersectPostTransform(
          * b      ----
          */
         else if (a_near_dist <= b_near_dist &&
-                 b_near_dist <= a_far_dist &&
-                 a_far_dist <= b_far_dist) {
+            b_near_dist <= a_far_dist &&
+            a_far_dist <= b_far_dist) {
 
-            output.push_back(LineSegment(b.near, a.far));
+            output.push_back(LineSegment(a.near, b.near));
+            output.back().far.normal *= -1; // flip normal!!!
             i++;
         }
         /*
@@ -77,6 +81,7 @@ std::vector<LineSegment> CSGIntersection::allIntersectPostTransform(
          * b        ----
          */
         else if (a_far_dist <= b_near_dist) {
+            output.push_back(a);
             i++;
         }
         else {
@@ -84,5 +89,15 @@ std::vector<LineSegment> CSGIntersection::allIntersectPostTransform(
         }
     }
 
+    for ( ; i < leftSegments.size(); i++) {
+        const LineSegment& a = leftSegments.at(i);
+        output.push_back(a);
+    }
+
     return output;
 }
+
+bool CSGDifference::isInsideTransformed(const glm::dvec3& point) const {
+    return left->isInside(point) && !right->isInside(point);
+}
+

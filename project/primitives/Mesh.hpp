@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 
 #include "Primitive.hpp"
-#include "Cube.hpp"
+#include "solid/Cube.hpp"
 
 struct Triangle {
     size_t v1;
@@ -29,16 +29,21 @@ public:
 
     const std::vector<Triangle>& faces() const;
 
-    virtual Intersection closestIntersect(
+    virtual Intersection getClosestIntersection(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection
     ) const override;
 
-    std::vector<LineSegment> allIntersectPostTransform(
+    virtual std::vector<LineSegment> getCSGSegments(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection
     ) const override {
         assert(false && "Mesh cannot be used in CSG!");
+    }
+
+protected:
+    bool isInsideTransformed(const glm::dvec3& point) const override {
+        assert(false && "Mesh does not support isInside!");
     }
 
 private:

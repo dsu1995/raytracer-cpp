@@ -4,12 +4,12 @@
 CSGUnion::CSGUnion(GeometryNode* left, GeometryNode* right)
     : CSGOperator(left, right) {}
 
-std::vector<LineSegment> CSGUnion::allIntersectPostTransform(
+std::vector<LineSegment> CSGUnion::getCSGSegmentsPostTransform(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection
 ) const {
-    std::vector<LineSegment> leftSegments = left->allIntersect(rayOrigin, rayDirection);
-    std::vector<LineSegment> rightSegments = right->allIntersect(rayOrigin, rayDirection);
+    std::vector<LineSegment> leftSegments = left->getCSGSegments(rayOrigin, rayDirection);
+    std::vector<LineSegment> rightSegments = right->getCSGSegments(rayOrigin, rayDirection);
 
     std::vector<LineSegment> output;
 
@@ -93,4 +93,8 @@ std::vector<LineSegment> CSGUnion::allIntersectPostTransform(
     }
 
     return output;
+}
+
+bool CSGUnion::isInsideTransformed(const glm::dvec3& point) const {
+    return left->isInside(point) || right->isInside(point);
 }

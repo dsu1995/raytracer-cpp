@@ -77,7 +77,7 @@ const std::vector<glm::vec3>& Mesh::vertices() const {
     return m_vertices;
 }
 
-Intersection Mesh::closestIntersect(
+Intersection Mesh::getClosestIntersection(
     const dvec3& oldOrigin,
     const dvec3& oldDirection
 ) const {
@@ -86,7 +86,7 @@ Intersection Mesh::closestIntersect(
     const glm::dvec3& rayDirection = transformedRay.rayDirection;
 
     Cube boundingBox(point1, point2 - point1);
-    if (!boundingBox.isInside(rayOrigin) && !boundingBox.closestIntersect(rayOrigin, rayDirection).intersected) {
+    if (!boundingBox.getClosestIntersection(rayOrigin, rayDirection).intersected) {
         return {};
     }
 

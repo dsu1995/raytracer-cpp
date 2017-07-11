@@ -4,22 +4,22 @@
 #include <algorithm>
 #include <glm/ext.hpp>
 
-#include "../polyroots.hpp"
+#include "../../polyroots.hpp"
 
 using glm::dvec3;
+
+const double z_min = -1;
+const double z_max = 1;
 
 /**
  * https://www.cl.cam.ac.uk/teaching/1999/AGraphHCI/SMAG/node2.html#SECTION00023200000000000000
  *
  * Models a cylinder centered at (0,0,0), with radius = 1, z_max = 1, z_min = -1
  */
-std::vector<LineSegment> Cylinder::allIntersectPostTransform(
+std::vector<Intersection> Cylinder::getIntersectionsPostTransform(
     const dvec3& rayOrigin,
     const dvec3& rayDirection
 ) const {
-    const double z_min = -1;
-    const double z_max = 1;
-
     double xd = rayDirection.x;
     double yd = rayDirection.y;
     double zd = rayDirection.z;
@@ -73,22 +73,13 @@ std::vector<LineSegment> Cylinder::allIntersectPostTransform(
         }
     }
 
-    if (intersections.size() == 0 || intersections.size() == 1) {
-        return {};
-    }
-    else if (intersections.size() == 2) {
-        std::sort(
-            intersections.begin(), intersections.end(),
-            [&rayOrigin](const Intersection& a, const Intersection& b) {
-                return glm::distance2(rayOrigin, a.point) <
-                       glm::distance2(rayOrigin, b.point);
-            }
-        );
-        return {
-            LineSegment(intersections.at(0), intersections.at(1))
-        };
-    }
-    else {
-        assert(false && "Cylinder should have between 0 and 2 intersections with ray.");
-    }
+    return intersections;
+}
+
+
+bool Cylinder::isInsideTransformed(const glm::dvec3& point) const {
+    return (
+        z_min <= point.z && point.z <= z_max &&
+        glm::length2(point.xy()) <= 1
+    );
 }

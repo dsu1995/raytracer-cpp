@@ -12,7 +12,7 @@ scene_root:scale(100, 100, 100)
 ---------------------------------------------------
 -- the floor
 grass = gr.material({0.1, 0.7, 0.1}, {0.0, 0.0, 0.0}, 0)
-plane = gr.sphere( 'plane')
+plane = gr.sphere('plane')
 scene_root:add_child(plane)
 plane:set_material(grass)
 plane:scale(100, 100, 100)
@@ -59,7 +59,7 @@ sphere2:set_material(mat4)
 sphere2:scale(2, 2, 2)
 
 inter2 = gr.intersection('inter2', union2, sphere2)
---scene_root:add_child(inter2)
+scene_root:add_child(inter2)
 inter2:rotate('Z', -90)
 --inter2:rotate('X', 30)
 --inter2:translate(-1, 1, -1)
@@ -92,6 +92,7 @@ cube2:scale(1.5, 1.5, 1.5)
 
 sphere4 = gr.sphere('sphere4')
 sphere4:set_material(mat3)
+--scene_root:add_child('sphere4')
 
 inter3 = gr.intersection('inter3', cube2, sphere4)
 --scene_root:add_child(inter3)

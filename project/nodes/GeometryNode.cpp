@@ -22,7 +22,7 @@ Intersection GeometryNode::intersect(
     const dvec3& newOrigin = transformedRay.rayOrigin;
     const dvec3& newDirection = transformedRay.rayDirection;
 
-    Intersection closest = m_primitive->closestIntersect(newOrigin, newDirection);
+    Intersection closest = m_primitive->getClosestIntersection(newOrigin, newDirection);
 
     for (SceneNode* child: children) {
         Intersection intersection = child->intersect(newOrigin, newDirection);

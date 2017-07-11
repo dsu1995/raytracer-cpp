@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../nodes/GeometryNode.hpp"
-#include "Mesh.hpp"
+#include "../../nodes/GeometryNode.hpp"
+#include "../Mesh.hpp"
 
 class CSGOperator : public Primitive {
 public:
@@ -15,8 +15,24 @@ public:
         right->setTransform(rightNode->getTransform(), rightNode->getInvTransform());
     }
 
+    virtual Intersection getClosestIntersection(
+        const glm::dvec3& rayOrigin,
+        const glm::dvec3& rayDirection
+    ) const override;
+
+    virtual std::vector<LineSegment> getCSGSegments(
+        const glm::dvec3& rayOrigin,
+        const glm::dvec3& rayDirection
+    ) const override;
 
 protected:
+    virtual bool isInsideTransformed(const glm::dvec3& point) const override = 0;
+
+    virtual std::vector<LineSegment> getCSGSegmentsPostTransform(
+        const glm::dvec3& rayOrigin,
+        const glm::dvec3& rayDirection
+    ) const = 0;
+
     Primitive* left;
     Primitive* right;
 };

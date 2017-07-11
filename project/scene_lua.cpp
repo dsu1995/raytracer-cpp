@@ -53,12 +53,12 @@
 #include "primitives/Primitive.hpp"
 #include "PhongMaterial.hpp"
 #include "Project.hpp"
-#include "primitives/Sphere.hpp"
-#include "primitives/Cylinder.hpp"
-#include "primitives/Cone.hpp"
-#include "primitives/CSGUnion.hpp"
-#include "primitives/CSGIntersection.hpp"
-#include "primitives/CSGDifference.hpp"
+#include "primitives/solid/Sphere.hpp"
+#include "primitives/solid/Cylinder.hpp"
+#include "primitives/solid/Cone.hpp"
+#include "primitives/csg/CSGUnion.hpp"
+#include "primitives/csg/CSGIntersection.hpp"
+#include "primitives/csg/CSGDifference.hpp"
 
 typedef std::map<std::string,Mesh*> MeshMap;
 static MeshMap mesh_map;
@@ -331,7 +331,7 @@ int gr_nh_sphere_cmd(lua_State* L)
 
   const char* name = luaL_checkstring(L, 1);
 
-  glm::vec3 pos;
+  glm::dvec3 pos;
   get_tuple(L, 2, &pos[0], 3);
 
   double radius = luaL_checknumber(L, 3);

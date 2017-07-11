@@ -1,13 +1,15 @@
 #define GLM_SWIZZLE
-
 #include "Cone.hpp"
 
 #include <glm/ext.hpp>
 #include <vector>
 #include <algorithm>
-#include "../polyroots.hpp"
+#include "../../polyroots.hpp"
 
 using glm::dvec3;
+
+const double z_min = 0;
+const double z_max = 1;
 
 /**
  * Ray-cone intersection:
@@ -18,14 +20,10 @@ using glm::dvec3;
  *
  * Models an inverted cone with its tip at (0,0,0), with base radius = 1, and height 1
  */
-
-std::vector<LineSegment> Cone::allIntersectPostTransform(
+std::vector<Intersection> Cone::getIntersectionsPostTransform(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection
 ) const {
-    const double z_min = 0;
-    const double z_max = 1;
-
     double xd = rayDirection.x;
     double yd = rayDirection.y;
     double zd = rayDirection.z;
@@ -67,22 +65,12 @@ std::vector<LineSegment> Cone::allIntersectPostTransform(
         }
     }
 
-    if (intersections.size() == 0 || intersections.size() == 1) {
-        return {};
-    }
-    else if (intersections.size() == 2) {
-        std::sort(
-            intersections.begin(), intersections.end(),
-            [&rayOrigin](const Intersection& a, const Intersection& b) {
-                return glm::distance2(rayOrigin, a.point) <
-                       glm::distance2(rayOrigin, b.point);
-            }
-        );
-        return {
-            LineSegment(intersections.at(0), intersections.at(1))
-        };
-    }
-    else {
-        assert(false && "Cone should have between 0 and 2 intersections with ray.");
-    }
+    return intersections;
+}
+
+bool Cone::isInsideTransformed(const glm::dvec3& point) const {
+    return (
+        z_min <= point.z && point.z <= z_max &&
+        glm::length2(point.xy()) <= point.z * point.z
+    );
 }
