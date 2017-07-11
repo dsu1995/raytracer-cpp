@@ -57,6 +57,7 @@
 #include "primitives/Cylinder.hpp"
 #include "primitives/Cone.hpp"
 #include "primitives/CSGUnion.hpp"
+#include "primitives/CSGIntersection.hpp"
 
 typedef std::map<std::string,Mesh*> MeshMap;
 static MeshMap mesh_map;
@@ -143,6 +144,35 @@ int gr_union_cmd(lua_State* L) {
     lua_setmetatable(L, -2);
 
     return 1;
+}
+
+// Create a GeometryNode containing CSGIntersection
+extern "C"
+int gr_intersection_cmd(lua_State* L) {
+  GRLUA_DEBUG_CALL;
+
+  const char* name = luaL_checkstring(L, 1);
+
+  gr_node_ud* leftdata = (gr_node_ud*)luaL_checkudata(L, 2, "gr.node");
+  luaL_argcheck(L, leftdata != 0, 1, "Node expected");
+  GeometryNode* const left = dynamic_cast<GeometryNode*>(leftdata->node);
+  luaL_argcheck(L, left != 0, 1, "Geometry node expected");
+
+  gr_node_ud* rightdata = (gr_node_ud*)luaL_checkudata(L, 3, "gr.node");
+  luaL_argcheck(L, rightdata != 0, 1, "Node expected");
+  GeometryNode* const right = dynamic_cast<GeometryNode*>(rightdata->node);
+  luaL_argcheck(L, right != 0, 1, "Geometry node expected");
+
+  gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+  data->node = new GeometryNode(
+      name,
+      new CSGIntersection(left, right)
+  );
+
+  luaL_getmetatable(L, "gr.node");
+  lua_setmetatable(L, -2);
+
+  return 1;
 }
 
 // Create a node
@@ -596,6 +626,7 @@ static const luaL_Reg grlib_functions[] = {
   {"cylinder", gr_cylinder_cmd},
   {"cone", gr_cone_cmd},
   {"union", gr_union_cmd},
+  {"intersection", gr_intersection_cmd},
   {0, 0}
 };
 

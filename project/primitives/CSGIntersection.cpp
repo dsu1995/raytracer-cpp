@@ -1,43 +1,50 @@
-//#include "CSGIntersection.hpp"
-//
-//#include <glm/ext.hpp>
-//
-//#include "Mesh.hpp"
-//
-//CSGIntersection::CSGIntersection(GeometryNode* left, GeometryNode* right)
-//    : left(left), right(right) {
-//    assert(dynamic_cast<Mesh*>(left) == nullptr && "CSG doesn't support meshes");
-//    assert(dynamic_cast<Mesh*>(right) == nullptr && "CSG doesn't support meshes");
-//}
-//
-//LineSegment CSGIntersection::intersect2(
-//    const glm::dvec3& rayOrigin,
-//    const glm::dvec3& rayDirection
-//) const {
-//    LineSegment leftIntersection = left->intersect2(rayOrigin, rayDirection);
-//    LineSegment rightIntersection = right->intersect2(rayOrigin, rayDirection);
-//
-//    if (!leftIntersection.near.intersected || !rightIntersection.near.intersected) {
-//        return {Intersection(), Intersection()};
-//    }
-//
-//    double leftFar = glm::distance2(rayOrigin, leftIntersection.far.point);
-//    double rightNear = glm::distance2(rayOrigin, rightIntersection.near.point);
-//    if (leftFar < rightNear) {
-//        return {Intersection(), Intersection()};
-//    }
-//
-//    double rightFar = glm::distance2(rayOrigin, rightIntersection.far.point);
-//    double leftNear = glm::distance2(rayOrigin, leftIntersection.near.point);
-//    if (rightFar < leftNear) {
-//        return {Intersection(), Intersection()};
-//    }
-//
-//    if (leftNear < rightNear && rightNear < leftFar) {
-//        return {rightIntersection.near, leftIntersection.far};
-//    }
-//    else {
-//        return {leftIntersection.near, rightIntersection.far};
-//    }
-//}
-//
+#include "CSGIntersection.hpp"
+
+#include <glm/ext.hpp>
+
+
+CSGIntersection::CSGIntersection(GeometryNode* left, GeometryNode* right)
+    : CSGOperator(left, right) {}
+
+
+std::vector<LineSegment> CSGIntersection::allIntersectPostTransform(
+    const glm::dvec3& rayOrigin, const glm::dvec3& rayDirection
+) const {
+    std::vector<LineSegment> leftSegments = left->allIntersect(rayOrigin, rayDirection);
+    std::vector<LineSegment> rightSegments = right->allIntersect(rayOrigin, rayDirection);
+
+    std::vector<LineSegment> output;
+
+    size_t i = 0;
+    size_t j = 0;
+    while (i < leftSegments.size() && j < rightSegments.size()) {
+        const LineSegment& a = leftSegments.at(i);
+        const LineSegment& b = rightSegments.at(j);
+
+        double a_near_dist = glm::distance2(rayOrigin, a.near.point);
+        double a_far_dist = glm::distance2(rayOrigin, a.far.point);
+
+        double b_near_dist = glm::distance2(rayOrigin, b.near.point);
+        double b_far_dist = glm::distance2(rayOrigin, b.far.point);
+
+        // disjoint
+        if (a_far_dist < b_near_dist || b_far_dist < a_near_dist) {
+
+        }
+        // not disjoint
+        else {
+            Intersection near = (a_near_dist < b_near_dist) ? b.near : a.near;
+            Intersection far = (a_far_dist < b_far_dist) ? a.near : b.near;
+            output.push_back(LineSegment(near, far));
+        }
+
+        if (a_far_dist < b_far_dist) {
+            i++;
+        }
+        else {
+            j++;
+        }
+    }
+
+    return output;
+}
