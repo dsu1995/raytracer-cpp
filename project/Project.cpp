@@ -17,6 +17,8 @@ const double NEAR_PLANE_DISTANCE = 1;
 
 const double EPS = 0.0001;
 
+const uint RECURSION_DEPTH = 3;
+
 Project::Project(
     // What to render
     SceneNode* root,
@@ -45,8 +47,7 @@ Project::Project(
     lights(lights),
     supersample(supersample),
     imageWidth(image.width()),
-    imageHeight(image.height()),
-    rayOrigin(eye, 1)
+    imageHeight(image.height())
 {
     // Step 1
     const dmat4 T1 = glm::translate(dvec3(imageWidth / -2.0, imageHeight / -2.0, NEAR_PLANE_DISTANCE));
@@ -115,28 +116,53 @@ void Project::render() {
 dvec3 Project::renderPixel(double x, double y) const {
     const dvec4 screenCoordPixel(x, y, 0, 1);
     const dvec4 worldCoordPixel = MVW * screenCoordPixel;
-    const dvec4 rayDirection = worldCoordPixel - rayOrigin;
+    const dvec3 rayDirection = dvec3(worldCoordPixel) - eye;
 
-    Intersection intersection = scene.trace(dvec3(rayOrigin), dvec3(rayDirection));
+    return traceRecursive(eye, rayDirection, RECURSION_DEPTH);
+}
+
+glm::dvec3 Project::traceRecursive(
+    const glm::dvec3& rayOrigin,
+    const glm::dvec3& rayDirection,
+    uint recursionDepth
+) const {
+    Intersection intersection = scene.trace(rayOrigin, rayDirection);
 
     if (!intersection.intersected) {
-        return background(x, y, dvec3(rayDirection));
+        return background(rayOrigin, rayDirection);
     }
     else {
         PhongMaterial* material = intersection.primitive->getMaterial();
-        dvec3 intersectionEps = intersection.point +
-            glm::normalize(intersection.normal) * glm::length(intersection.point) * EPS;
+        dvec3 normal = glm::normalize(intersection.normal);
 
-        dvec3 colour = ambient * material->m_kd;
-        for (Light* light: lights) {
-            if (!scene.existsObjectBetween(intersectionEps, light->position)) {
-                colour += rayColour(dvec3(rayOrigin), dvec3(rayDirection), intersection, light);
+        // TODO glm::length(intersection.point) is a heuristic, might not work
+        dvec3 intersectionEps =
+            intersection.point + normal * glm::length(intersection.point) * EPS;
+
+        double reflectivity = (recursionDepth == 1) ? 0 : material->reflectivity;
+
+        dvec3 colour(0, 0, 0);
+        if (reflectivity > 0) {
+            dvec3 reflectedRay = glm::reflect(rayDirection, normal);
+            dvec3 reflectedColour = traceRecursive(intersectionEps, reflectedRay, recursionDepth - 1);
+            colour += reflectedColour * reflectivity;
+        }
+
+        if (reflectivity < 1) {
+            dvec3 ownColour = ambient * material->m_kd;
+            for (Light* light: lights) {
+                if (!scene.existsObjectBetween(intersectionEps, light->position)) {
+                    ownColour += rayColour(rayOrigin, rayDirection, intersection, light);
+                }
             }
+
+            colour += ownColour * (1 - reflectivity);
         }
 
         return colour;
     }
 }
+
 
 dvec3 Project::rayColour(
     const dvec3& origin,
@@ -164,15 +190,12 @@ dvec3 Project::rayColour(
     return L_out;
 }
 
-
 glm::dvec3 Project::background(
-    double x,
-    double y,
+    const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection
 ) const {
-    x /= imageWidth;
-    y /= imageHeight;
-    return {x, x * y, y};
+    return dvec3(0, 0, 1);
+//    return glm::normalize(glm::normalize(rayOrigin) + glm::normalize(rayDirection));
 }
 
 void Project::print() const {

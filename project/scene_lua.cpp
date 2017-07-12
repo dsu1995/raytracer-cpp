@@ -483,10 +483,14 @@ int gr_material_cmd(lua_State* L) {
     get_tuple(L, 2, ks, 3);
 
     double shininess = luaL_checknumber(L, 3);
+    double reflectivity = luaL_checknumber(L, 4); // defaults to 0 if not exists!
 
-    data->material = new PhongMaterial(glm::dvec3(kd[0], kd[1], kd[2]),
-                                       glm::dvec3(ks[0], ks[1], ks[2]),
-                                       shininess);
+    data->material = new PhongMaterial(
+        glm::dvec3(kd[0], kd[1], kd[2]),
+        glm::dvec3(ks[0], ks[1], ks[2]),
+        shininess,
+        reflectivity
+    );
 
     luaL_newmetatable(L, "gr.material");
     lua_setmetatable(L, -2);

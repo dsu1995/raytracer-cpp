@@ -37,6 +37,12 @@ public:
 private:
     glm::dvec3 renderPixel(double x, double y) const;
 
+    glm::dvec3 traceRecursive(
+        const glm::dvec3& rayOrigin,
+        const glm::dvec3& rayDirection,
+        uint recursionDepth
+    ) const;
+
     glm::dvec3 rayColour(
         const glm::dvec3& origin,
         const glm::dvec3& direction,
@@ -45,8 +51,7 @@ private:
     ) const;
 
     glm::dvec3 background(
-        double x,
-        double y,
+        const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection
     ) const;
 
@@ -70,8 +75,6 @@ private:
 
     const size_t imageWidth;
     const size_t imageHeight;
-
-    const glm::dvec4 rayOrigin;
 
     glm::dmat4 MVW;
 };
