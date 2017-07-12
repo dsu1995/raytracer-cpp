@@ -17,7 +17,9 @@ const double NEAR_PLANE_DISTANCE = 1;
 
 const double EPS = 0.0001;
 
-const uint RECURSION_DEPTH = 3;
+const uint RECURSION_DEPTH = 8;
+
+const double AIR_INDEX_OF_REFRACTION = 1.000293;
 
 Project::Project(
     // What to render
@@ -121,6 +123,21 @@ dvec3 Project::renderPixel(double x, double y) const {
     return traceRecursive(eye, rayDirection, RECURSION_DEPTH);
 }
 
+bool willTotalInternalReflect(
+    double n_i,
+    double n_t,
+    const dvec3& rayDirection,
+    const dvec3& normal
+) {
+    dvec3 v = glm::normalize(rayDirection);
+    dvec3 N = glm::normalize(normal);
+
+    double v_dot_N = glm::dot(v, N);
+    double underSqrt = 1 - std::pow(n_i / n_t, 2) * (1 - std::pow(v_dot_N, 2));
+
+    return underSqrt < 0.0;
+}
+
 glm::dvec3 Project::traceRecursive(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection,
@@ -128,41 +145,106 @@ glm::dvec3 Project::traceRecursive(
 ) const {
     Intersection intersection = scene.trace(rayOrigin, rayDirection);
 
+    dvec3 outwardNormal = glm::normalize(intersection.normal);
+    dvec3 inwardNormal = -outwardNormal;
+
     if (!intersection.intersected) {
         return background(rayOrigin, rayDirection);
     }
     else {
         PhongMaterial* material = intersection.primitive->getMaterial();
-        dvec3 normal = glm::normalize(intersection.normal);
 
         // TODO glm::length(intersection.point) is a heuristic, might not work
-        dvec3 intersectionEps =
-            intersection.point + normal * glm::length(intersection.point) * EPS;
+        dvec3 outwardIntersection =
+            intersection.point + outwardNormal * glm::length(intersection.point) * EPS;
+        dvec3 inwardIntersection =
+            intersection.point + inwardNormal * glm::length(intersection.point) * EPS;
 
-        double reflectivity = (recursionDepth == 1) ? 0 : material->reflectivity;
+        double reflectivity = (recursionDepth == 0) ? 0 : material->reflectivity;
 
         dvec3 colour(0, 0, 0);
         if (reflectivity > 0) {
-            dvec3 reflectedRay = glm::reflect(rayDirection, normal);
-            dvec3 reflectedColour = traceRecursive(intersectionEps, reflectedRay, recursionDepth - 1);
+            dvec3 reflectedRay = glm::reflect(rayDirection, outwardNormal);
+            dvec3 reflectedColour = traceRecursive(outwardIntersection, reflectedRay, recursionDepth - 1);
             colour += reflectedColour * reflectivity;
         }
 
         if (reflectivity < 1) {
-            dvec3 ownColour = ambient * material->m_kd;
-            for (Light* light: lights) {
-                if (!scene.existsObjectBetween(intersectionEps, light->position)) {
-                    ownColour += rayColour(rayOrigin, rayDirection, intersection, light);
+            double transparency = (recursionDepth == 0) ? 0 : material->transparency;
+
+            dvec3 transmittedColour(0, 0, 0);
+            if (transparency > 0) {
+                double n_i = AIR_INDEX_OF_REFRACTION;
+                double n_t = material->refractiveIndex;
+
+                dvec3 refractedColour;
+                if (willTotalInternalReflect(n_i, n_t, rayDirection, outwardNormal)) {
+                    dvec3 reflectedRay = glm::reflect(rayDirection, outwardNormal);
+                    refractedColour += traceRecursive(outwardIntersection, reflectedRay, recursionDepth - 1);
                 }
+                else {
+                    dvec3 refractedRay = glm::refract(rayDirection, outwardNormal, n_i / n_t);
+                    refractedColour += refractRecursive(inwardIntersection, refractedRay, recursionDepth - 1);
+                }
+
+                transmittedColour += refractedColour * transparency;
             }
 
-            colour += ownColour * (1 - reflectivity);
+            if (transparency < 1) {
+                dvec3 ownColour = ambient * material->m_kd;
+                for (Light* light: lights) {
+                    if (!scene.existsObjectBetween(outwardIntersection, light->position)) {
+                        ownColour += rayColour(rayOrigin, rayDirection, intersection, light);
+                    }
+                }
+
+                transmittedColour += ownColour * (1 - transparency);
+            }
+
+            colour += transmittedColour * (1 - reflectivity);
         }
 
         return colour;
     }
 }
 
+glm::dvec3 Project::refractRecursive(
+    const glm::dvec3& rayOrigin,
+    const glm::dvec3& rayDirection,
+    uint recursionDepth
+) const {
+    Intersection intersection = scene.trace(rayOrigin, rayDirection);
+
+    const dvec3& outwardNormal = intersection.normal;
+    dvec3 inwardNormal = -outwardNormal;
+
+    if (!intersection.intersected) {
+        assert(false && "Refracted ray does not exit object???");
+    }
+
+    if (recursionDepth == 0) {
+        return dvec3(0);
+    }
+
+    PhongMaterial* material = intersection.primitive->getMaterial();
+    double n_i = material->refractiveIndex;
+    double n_t = AIR_INDEX_OF_REFRACTION;
+
+    if (willTotalInternalReflect(n_i, n_t, rayDirection, inwardNormal)) {
+        dvec3 intersectionEps =
+            intersection.point + inwardNormal * glm::length(intersection.point) * EPS;
+
+        dvec3 reflectedRay = glm::reflect(rayDirection, inwardNormal);
+        return refractRecursive(intersectionEps, reflectedRay, recursionDepth - 1);
+    }
+    else {
+        dvec3 refractedRay = glm::refract(rayDirection, inwardNormal, n_i / n_t);
+        dvec3 intersectionEps =
+            intersection.point + outwardNormal * glm::length(intersection.point) * EPS;
+
+        return traceRecursive(intersectionEps, refractedRay, recursionDepth - 1);
+    }
+}
 
 dvec3 Project::rayColour(
     const dvec3& origin,
@@ -194,7 +276,7 @@ glm::dvec3 Project::background(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection
 ) const {
-    return dvec3(0, 0, 1);
+    return dvec3(1, 1, 1);
 //    return glm::normalize(glm::normalize(rayOrigin) + glm::normalize(rayDirection));
 }
 

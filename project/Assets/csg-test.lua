@@ -7,16 +7,16 @@ mat4 = gr.material({0.7, 0.6, 1.0}, {0.5, 0.4, 0.8}, 25)
 
 scene_root = gr.node('root')
 scene_root:scale(100, 100, 100)
---scene_root:rotate('Y', 120)
+scene_root:rotate('Y', 120)
 
 ---------------------------------------------------
 -- the floor
-grass = gr.material({0.1, 0.7, 0.1}, {0.0, 0.0, 0.0}, 0)
+grass = gr.material({0.1, 0.7, 0.1}, {0.0, 0.0, 0.0}, 0, 0.5)
 plane = gr.sphere('plane')
 scene_root:add_child(plane)
 plane:set_material(grass)
-plane:scale(100, 100, 100)
-plane:translate(0, 0, -110)
+plane:scale(10, 10, 10)
+plane:translate(0, 0, -12)
 --------------------------------------------------
 c1 = gr.cylinder('cylinder1')
 c1:set_material(mat1)
@@ -131,6 +131,23 @@ diff:rotate('X', 45)
 
 --------------------------------
 
+--cube3 = gr.cube('cube3')
+--scene_root:add_child(cube3)
+--cube3:set_material(grass)
+--cube3:translate(-0.5, -0.5, -0.5)
+--cube3:scale(1, 10, 5)
+--cube3:translate(4, 0, -2)
+
+--------------------------------
+--
+--white = gr.material({1, 1, 1}, {0.0, 0.0, 0.0}, 0)
+--
+--cube4 = gr.cube('cube4')
+--scene_root:add_child(cube4)
+--cube4:set_material(white)
+--cube4:translate(-0.5, -0.5, -0.5)
+--cube4:scale(100, 100, 1)
+--cube4:translate(0, 0, 10)
 
 
 

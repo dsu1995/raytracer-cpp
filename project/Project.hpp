@@ -43,6 +43,12 @@ private:
         uint recursionDepth
     ) const;
 
+    glm::dvec3 refractRecursive(
+        const glm::dvec3& rayOrigin,
+        const glm::dvec3& rayDirection,
+        uint recursionDepth
+    ) const;
+
     glm::dvec3 rayColour(
         const glm::dvec3& origin,
         const glm::dvec3& direction,

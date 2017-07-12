@@ -490,11 +490,23 @@ int gr_material_cmd(lua_State* L) {
         reflectivity = 0.0;
     }
 
+    double transparency = lua_tonumberx(L, 5, &isNum);
+    if (!isNum) {
+        transparency = 0.0;
+    }
+
+    double refractiveIndex = lua_tonumberx(L, 6, &isNum);
+    if (!isNum) {
+        refractiveIndex = 1.0;
+    }
+
     data->material = new PhongMaterial(
         glm::dvec3(kd[0], kd[1], kd[2]),
         glm::dvec3(ks[0], ks[1], ks[2]),
         shininess,
-        reflectivity
+        reflectivity,
+        transparency,
+        refractiveIndex
     );
 
     luaL_newmetatable(L, "gr.material");

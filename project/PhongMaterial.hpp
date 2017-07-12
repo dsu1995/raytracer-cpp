@@ -8,7 +8,9 @@ public:
         const glm::dvec3& kd,
         const glm::dvec3& ks,
         double shininess,
-        double reflectivity
+        double reflectivity,
+        double transparency,
+        double refractiveIndex
     );
 
     virtual ~PhongMaterial();
@@ -18,4 +20,6 @@ public:
 
     const double m_shininess;
     const double reflectivity;
+    const double transparency;
+    const double refractiveIndex;
 };
