@@ -8,15 +8,18 @@ Intersection::Intersection()
     : intersected(false),
       point(),
       normal(),
+      objCenter(),
       primitive(nullptr) {}
 
 Intersection::Intersection(
     const dvec3& point,
     const dvec3& normal,
+    const dvec3& objCenter,
     const Primitive* node
 ) : intersected(true),
     point(point),
     normal(normal),
+    objCenter(objCenter),
     primitive(node) {}
 
 

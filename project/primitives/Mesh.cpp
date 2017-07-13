@@ -33,7 +33,7 @@ Intersection Mesh::rayTriangleIntersect(
     if (beta >= 0 && gamma >= 0 && beta + gamma <= 1 && t >= 0) {
         dvec3 intersection = rayOrigin + t * rayDirection;
         dvec3 normal = glm::cross(p1 - p0, p2 - p1); // TODO check normal direction
-        return {intersection, normal, this};
+        return {intersection, normal, boundingBox->objCenter(), this};
     }
     else {
         return {};
@@ -42,9 +42,7 @@ Intersection Mesh::rayTriangleIntersect(
 
 Mesh::Mesh(const std::string& fname)
     : m_vertices(),
-      m_faces(),
-      point1(std::numeric_limits<float>::max()),
-      point2(std::numeric_limits<float>::min()) {
+      m_faces() {
     std::string code;
     double vx, vy, vz;
     size_t s1, s2, s3;
@@ -61,12 +59,17 @@ Mesh::Mesh(const std::string& fname)
         }
     }
 
+    glm::vec3 point1(std::numeric_limits<float>::max());
+    glm::vec3 point2(std::numeric_limits<float>::min());
+
     for (const glm::vec3& vertex: m_vertices) {
         for (uint i = 0; i < 3; i++) {
             point1[i] = std::min(point1[i], vertex[i]);
             point2[i] = std::max(point2[i], vertex[i]);
         }
     }
+
+    boundingBox = new Cube(point1, point2 - point1);
 }
 
 const std::vector<Triangle>& Mesh::faces() const {
@@ -85,8 +88,7 @@ Intersection Mesh::getClosestIntersection(
     const glm::dvec3& rayOrigin = transformedRay.rayOrigin;
     const glm::dvec3& rayDirection = transformedRay.rayDirection;
 
-    Cube boundingBox(point1, point2 - point1);
-    if (!boundingBox.getClosestIntersection(rayOrigin, rayDirection).intersected) {
+    if (!boundingBox->getClosestIntersection(rayOrigin, rayDirection).intersected) {
         return {};
     }
 
@@ -106,6 +108,9 @@ Intersection Mesh::getClosestIntersection(
     return transformIntersectionBack(closest);
 }
 
+Mesh::~Mesh() {
+    delete boundingBox;
+}
 
 std::ostream& operator<<(std::ostream& out, const Mesh& mesh) {
     out << "mesh {";

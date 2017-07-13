@@ -8,6 +8,7 @@ struct Intersection {
     bool intersected;
     glm::dvec3 point;
     glm::dvec3 normal;
+    glm::dvec3 objCenter;
     const Primitive* primitive;
 
     Intersection();
@@ -15,6 +16,7 @@ struct Intersection {
     Intersection(
         const glm::dvec3& point,
         const glm::dvec3& normal,
+        const glm::dvec3& objCenter,
         const Primitive* node
     );
 

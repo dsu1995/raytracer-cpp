@@ -15,7 +15,7 @@ using std::endl;
 
 const double NEAR_PLANE_DISTANCE = 1;
 
-const double EPS = 0.0001;
+const double EPS = 0.0000001;
 
 const uint RECURSION_DEPTH = 8;
 
@@ -156,15 +156,15 @@ glm::dvec3 Project::traceRecursive(
 
         // TODO glm::length(intersection.point) is a heuristic, might not work
         dvec3 outwardIntersection =
-            intersection.point + outwardNormal * glm::length(intersection.point) * EPS;
+            intersection.point + outwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
         dvec3 inwardIntersection =
-            intersection.point + inwardNormal * glm::length(intersection.point) * EPS;
+            intersection.point + inwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
 
         double reflectivity = (recursionDepth == 0) ? 0 : material->reflectivity;
 
         dvec3 colour(0, 0, 0);
         if (reflectivity > 0) {
-            dvec3 reflectedRay = glm::reflect(rayDirection, outwardNormal);
+            dvec3 reflectedRay = glm::reflect(glm::normalize(rayDirection), outwardNormal);
             dvec3 reflectedColour = traceRecursive(outwardIntersection, reflectedRay, recursionDepth - 1);
             colour += reflectedColour * reflectivity;
         }
@@ -179,11 +179,11 @@ glm::dvec3 Project::traceRecursive(
 
                 dvec3 refractedColour;
                 if (willTotalInternalReflect(n_i, n_t, rayDirection, outwardNormal)) {
-                    dvec3 reflectedRay = glm::reflect(rayDirection, outwardNormal);
+                    dvec3 reflectedRay = glm::reflect(glm::normalize(rayDirection), outwardNormal);
                     refractedColour += traceRecursive(outwardIntersection, reflectedRay, recursionDepth - 1);
                 }
                 else {
-                    dvec3 refractedRay = glm::refract(rayDirection, outwardNormal, n_i / n_t);
+                    dvec3 refractedRay = glm::refract(glm::normalize(rayDirection), outwardNormal, n_i / n_t);
                     refractedColour += refractRecursive(inwardIntersection, refractedRay, recursionDepth - 1);
                 }
 
@@ -215,11 +215,12 @@ glm::dvec3 Project::refractRecursive(
 ) const {
     Intersection intersection = scene.trace(rayOrigin, rayDirection);
 
-    const dvec3& outwardNormal = intersection.normal;
+    dvec3 outwardNormal = glm::normalize(intersection.normal);
     dvec3 inwardNormal = -outwardNormal;
 
     if (!intersection.intersected) {
-        assert(false && "Refracted ray does not exit object???");
+//        assert(false && "Refracted ray does not exit object???");
+        return background(rayOrigin, rayDirection);
     }
 
     if (recursionDepth == 0) {
@@ -231,18 +232,18 @@ glm::dvec3 Project::refractRecursive(
     double n_t = AIR_INDEX_OF_REFRACTION;
 
     if (willTotalInternalReflect(n_i, n_t, rayDirection, inwardNormal)) {
-        dvec3 intersectionEps =
-            intersection.point + inwardNormal * glm::length(intersection.point) * EPS;
+        dvec3 inwardIntersection =
+            intersection.point + inwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
 
-        dvec3 reflectedRay = glm::reflect(rayDirection, inwardNormal);
-        return refractRecursive(intersectionEps, reflectedRay, recursionDepth - 1);
+        dvec3 reflectedRay = glm::reflect(glm::normalize(rayDirection), inwardNormal);
+        return refractRecursive(inwardIntersection, reflectedRay, recursionDepth - 1);
     }
     else {
-        dvec3 refractedRay = glm::refract(rayDirection, inwardNormal, n_i / n_t);
-        dvec3 intersectionEps =
-            intersection.point + outwardNormal * glm::length(intersection.point) * EPS;
+        dvec3 refractedRay = glm::refract(glm::normalize(rayDirection), inwardNormal, n_i / n_t);
+        dvec3 outwardIntersection =
+            intersection.point + outwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
 
-        return traceRecursive(intersectionEps, refractedRay, recursionDepth - 1);
+        return traceRecursive(outwardIntersection, refractedRay, recursionDepth - 1);
     }
 }
 

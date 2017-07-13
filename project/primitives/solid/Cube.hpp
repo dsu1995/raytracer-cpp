@@ -13,6 +13,8 @@ public:
     const glm::vec3 m_pos;
     const glm::dvec3 dims;
 
+    glm::dvec3 objCenter() const;
+
 protected:
     std::vector<Intersection>
     getIntersectionsPostTransform(const glm::dvec3& rayOrigin, const glm::dvec3& rayDirection) const override;

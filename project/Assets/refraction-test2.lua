@@ -30,11 +30,39 @@ b1:set_material(mat4)
 --b1:translate(0.5, 0.5, 0.5)
 --b1:scale(100, 100, 100)
 --b1:translate(-600, -55, -200)
-
-lens = gr.nh_sphere('lens', {-600, 25, -200}, 50)
+----------------------------------------------------------
+lens = gr.nh_sphere('lens', {-600, 25, -200}, 25)
 scene_root:add_child(lens)
-lens:set_material(mat4)
+lens:set_material(mat3)
+-------------------------------------------------
+cylinder = gr.cylinder('cylinder')
+--scene_root:add_child(cylinder)
+cylinder:set_material(mat4)
+cylinder:rotate('Y', -45)
+cylinder:rotate('Z', 45)
+cylinder:scale(25, 25, 25)
+cylinder:translate(-650, 0, -150)
+----------------------------------------------------------
+cone = gr.cone('cone')
+--scene_root:add_child(cone)
+cone:set_material(mat4)
+cone:scale(25, 25, 50)
+cone:rotate('Y', -90)
+cone:translate(-650, 0, -150)
+------------------------------------------------
+cls1 = gr.nh_sphere('cls1', {-0.5, 0, 0}, 0.75)
+cls1:set_material(mat4)
 
+cls2 = gr.nh_sphere('cls2', {0.5, 0, 0}, 0.75)
+cls2:set_material(mat4)
+
+inter1 = gr.intersection('inter1', cls1, cls2)
+scene_root:add_child(inter1)
+inter1:scale(50, 50, 50)
+--inter1:rotate('Y', 90)
+inter1:translate(-650, 0, -150)
+
+-------------------------------------------------
 
 s4 = gr.nh_sphere('s4', {-100, 25, -300}, 50)
 scene_root:add_child(s4)
@@ -53,6 +81,6 @@ scene_root:add_child(steldodec)
 white_light = gr.light({-100.0, 150.0, 400.0}, {0.9, 0.9, 0.9}, {1, 0, 0})
 orange_light = gr.light({400.0, 100.0, 150.0}, {0.7, 0.0, 0.7}, {1, 0, 0})
 
-gr.render(scene_root, 'nonhier.png', 500, 500,
-	{-800, 0, -150}, {1, 0, 0}, {0, 1, 0}, 50,
-	{0.3, 0.3, 0.3}, {white_light, orange_light}, false)
+gr.render(scene_root, 'refraction-test2.png', 500, 500,
+    {-800, 0, -150}, {1, 0, 0}, {0, 1, 0}, 50,
+    {0.3, 0.3, 0.3}, {white_light, orange_light}, false)

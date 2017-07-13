@@ -76,10 +76,11 @@ Ray Transformable::transformRay(
 }
 
 Intersection Transformable::transformIntersectionBack(
-    Intersection intersection
+    Intersection intersection // pass by copy
 ) const {
     if (intersection.intersected) {
         intersection.point = dvec3(transform * dvec4(intersection.point, 1));
+        intersection.objCenter = dvec3(transform * dvec4(intersection.objCenter, 1));
 
         dmat3 normalTransform(invTransform);
         normalTransform = glm::transpose(normalTransform);

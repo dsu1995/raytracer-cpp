@@ -23,8 +23,6 @@ Cube::Cube()
     : Cube(vec3(0), 1) {}
 
 
-const double EPS = 0.0000001;
-
 std::vector<Intersection> Cube::getIntersectionsPostTransform(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection
@@ -50,7 +48,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((y_min <= p.y && p.y <= y_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(-1, 0, 0), this)
+                    Intersection(p, dvec3(-1, 0, 0), objCenter(), this)
                 );
             }
         }
@@ -63,7 +61,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((y_min <= p.y && p.y <= y_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(1, 0, 0), this)
+                    Intersection(p, dvec3(1, 0, 0), objCenter(), this)
                 );
             }
         }
@@ -76,7 +74,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((x_min <= p.x && p.x <= x_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(0, -1, 0), this)
+                    Intersection(p, dvec3(0, -1, 0), objCenter(), this)
                 );
             }
         }
@@ -89,7 +87,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((x_min <= p.x && p.x <= x_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(0, 1, 0), this)
+                    Intersection(p, dvec3(0, 1, 0), objCenter(), this)
                 );
             }
         }
@@ -102,7 +100,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((x_min <= p.x && p.x <= x_max) &&
                 (y_min <= p.y && p.y <= y_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(0, 0, -1), this)
+                    Intersection(p, dvec3(0, 0, -1), objCenter(), this)
                 );
             }
         }
@@ -115,7 +113,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((x_min <= p.x && p.x <= x_max) &&
                 (y_min <= p.y && p.y <= y_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(0, 0, 1), this)
+                    Intersection(p, dvec3(0, 0, 1), objCenter(), this)
                 );
             }
         }
@@ -130,4 +128,8 @@ bool Cube::isInsideTransformed(const glm::dvec3& point) const {
         m_pos.y < point.y && point.y < (m_pos.y + dims.y) &&
         m_pos.z < point.z && point.z < (m_pos.z + dims.z)
     );
+}
+
+glm::dvec3 Cube::objCenter() const {
+    return m_pos + dims / 2;
 }

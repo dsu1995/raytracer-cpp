@@ -11,6 +11,8 @@ using glm::dvec3;
 const double z_min = 0;
 const double z_max = 1;
 
+const glm::dvec3 objCenter(0, 0, 0.5);
+
 /**
  * Ray-cone intersection:
  * https://www.cl.cam.ac.uk/teaching/1999/AGraphHCI/SMAG/node2.html#SECTION00023200000000000000
@@ -46,7 +48,7 @@ std::vector<Intersection> Cone::getIntersectionsPostTransform(
                 dvec3 intersectionPoint = rayOrigin + t * rayDirection;
                 if (z_min <= intersectionPoint.z && intersectionPoint.z < z_max) {
                     dvec3 normal = intersectionPoint * dvec3(2, 2, -2);
-                    Intersection intersection(intersectionPoint, normal, this);
+                    Intersection intersection(intersectionPoint, normal, objCenter, this);
                     intersections.push_back(intersection);
                 }
             }
@@ -59,7 +61,7 @@ std::vector<Intersection> Cone::getIntersectionsPostTransform(
             dvec3 intersectionPoint = rayOrigin + t * rayDirection;
             if (glm::length2(intersectionPoint.xy()) <= 1) {
                 dvec3 normal(0, 0, 1);
-                Intersection intersection(intersectionPoint, normal, this);
+                Intersection intersection(intersectionPoint, normal, objCenter, this);
                 intersections.push_back(intersection);
             }
         }

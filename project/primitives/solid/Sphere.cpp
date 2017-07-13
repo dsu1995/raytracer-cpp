@@ -33,7 +33,7 @@ Sphere::getIntersectionsPostTransform(
         if (t >= 0) {
             dvec3 intersectionPoint = rayOrigin + t * rayDirection;
             dvec3 normal = intersectionPoint - c;
-            Intersection intersection(intersectionPoint, normal, this);
+            Intersection intersection(intersectionPoint, normal, m_pos, this);
             intersections.push_back(intersection);
         }
     }

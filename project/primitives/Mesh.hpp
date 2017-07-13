@@ -25,6 +25,8 @@ class Mesh : public Primitive {
 public:
     Mesh(const std::string& fname);
 
+    virtual ~Mesh();
+
     const std::vector<glm::vec3>& vertices() const;
 
     const std::vector<Triangle>& faces() const;
@@ -50,8 +52,7 @@ private:
     std::vector<glm::vec3> m_vertices;
     std::vector<Triangle> m_faces;
 
-    glm::vec3 point1;
-    glm::vec3 point2;
+    Cube* boundingBox;
 
     friend std::ostream& operator<<(std::ostream& out, const Mesh& mesh);
 
