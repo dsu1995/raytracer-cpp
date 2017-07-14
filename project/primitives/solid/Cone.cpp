@@ -45,10 +45,18 @@ std::vector<Intersection> Cone::getIntersectionsPostTransform(
         for (size_t i = 0; i < numRoots; i++) {
             double t = roots[i];
             if (t >= 0) {
-                dvec3 intersectionPoint = rayOrigin + t * rayDirection;
-                if (z_min <= intersectionPoint.z && intersectionPoint.z < z_max) {
-                    dvec3 normal = intersectionPoint * dvec3(2, 2, -2);
-                    Intersection intersection(intersectionPoint, normal, objCenter, *material);
+                dvec3 p = rayOrigin + t * rayDirection;
+                if (z_min <= p.z && p.z < z_max) {
+                    PhongMaterial newMaterial = *material;
+                    if (texture != nullptr) {
+                        newMaterial.m_kd = texture->getPixel(
+                            0.5 - atan2(p.y, p.x) / (2 * M_PI),
+                            p.z
+                        );
+                    }
+
+                    dvec3 normal = p * dvec3(2, 2, -2);
+                    Intersection intersection(p, normal, objCenter, newMaterial);
                     intersections.push_back(intersection);
                 }
             }
@@ -58,10 +66,15 @@ std::vector<Intersection> Cone::getIntersectionsPostTransform(
     { // intersection with top
         double t = (z_max - ze) / zd;
         if (t >= 0) {
-            dvec3 intersectionPoint = rayOrigin + t * rayDirection;
-            if (glm::length2(intersectionPoint.xy()) <= 1) {
+            dvec3 p = rayOrigin + t * rayDirection;
+            if (glm::length2(p.xy()) <= 1) {
+                PhongMaterial newMaterial = *material;
+                if (texture != nullptr) {
+                    newMaterial.m_kd = texture->getPixel((p.x + 1) / 2, (p.y + 1) / 2);
+                }
+
                 dvec3 normal(0, 0, 1);
-                Intersection intersection(intersectionPoint, normal, objCenter, *material);
+                Intersection intersection(p, normal, objCenter, newMaterial);
                 intersections.push_back(intersection);
             }
         }

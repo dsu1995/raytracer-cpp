@@ -37,13 +37,22 @@ wall:rotate('X', -45)
 --earth:translate('')
 
 pillar = gr.cylinder('pillar')
-scene_root:add_child(pillar)
+--scene_root:add_child(pillar)
 pillar:set_material(mat1)
 pillar:set_texture(marble_tex)
 pillar:scale(200, 200, 200)
 pillar:rotate('X', 90)
 pillar:rotate('Y', 270)
 pillar:rotate('X', -45)
+
+cone = gr.cone('cone')
+scene_root:add_child(cone)
+cone:set_material(mat1)
+cone:set_texture(marble_tex)
+cone:scale(200, 200, 400)
+cone:rotate('X', 90)
+cone:translate(0, 200, 0)
+cone:rotate('X', -45)
 
 
 
