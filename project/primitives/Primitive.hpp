@@ -6,6 +6,8 @@
 #include "../Intersection.hpp"
 #include "../PhongMaterial.hpp"
 #include "../Transformable.hpp"
+#include "../NormalMap.hpp"
+#include "../Texture.hpp"
 
 class Primitive : public Transformable {
 public:
@@ -16,6 +18,8 @@ public:
     void setMaterial(PhongMaterial* material);
 
     void setTexture(Texture* texture);
+
+    void setNormalMap(NormalMap* normalMap);
 
     virtual Intersection getClosestIntersection(
         const glm::dvec3& rayOrigin,
@@ -29,10 +33,10 @@ public:
 
     virtual bool isInside(const glm::dvec3& point) const;
 
-    PhongMaterial* material;
-
 protected:
     virtual bool isInsideTransformed(const glm::dvec3& point) const = 0;
 
+    PhongMaterial* material;
     Texture* texture;
+    NormalMap* normalMap;
 };

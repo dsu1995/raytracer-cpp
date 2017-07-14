@@ -1,7 +1,6 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "Texture.hpp"
 
 struct PhongMaterial {
     PhongMaterial()

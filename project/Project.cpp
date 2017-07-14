@@ -277,7 +277,7 @@ glm::dvec3 Project::background(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection
 ) const {
-    return dvec3(1, 1, 1);
+    return dvec3(0);
 //    return glm::normalize(glm::normalize(rayOrigin) + glm::normalize(rayDirection));
 }
 

@@ -5,15 +5,15 @@
 #include <glm/glm.hpp>
 
 
-class Texture {
+class NormalMap {
 public:
-    Texture(
+    NormalMap(
         const char* fileName,
         double xratio = 1,
         double yratio = 1
     );
 
-    const glm::dvec3& getPixel(double x, double y) const;
+    const glm::dvec3& getNormalOffset(double x, double y) const;
 
 private:
     double xratio;

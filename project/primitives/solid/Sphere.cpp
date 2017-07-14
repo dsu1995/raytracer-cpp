@@ -31,9 +31,8 @@ Sphere::getIntersectionsPostTransform(
     for (size_t i = 0; i < numRoots; i++) {
         double t = roots[i];
         if (t >= 0) {
-            dvec3 intersectionPoint = rayOrigin + t * rayDirection;
-            dvec3 normal = intersectionPoint - c;
-            Intersection intersection(intersectionPoint, normal, m_pos, getMaterial(intersectionPoint));
+            dvec3 p = rayOrigin + t * rayDirection;
+            Intersection intersection(p, getNormal(p), m_pos, getMaterial(p));
             intersections.push_back(intersection);
         }
     }
@@ -61,5 +60,26 @@ PhongMaterial Sphere::getMaterial(const glm::dvec3& point) const {
         newMaterial.m_kd = texture->getPixel(u, v);
 
         return newMaterial;
+    }
+}
+
+const dvec3 up(0, 1, 0);
+
+glm::dvec3 Sphere::getNormal(const glm::dvec3& point) const {
+    if (normalMap == nullptr) {
+        return point - m_pos;
+    }
+    else {
+        dvec3 d = glm::normalize(m_pos - point);
+
+        double u = 0.5 - atan2(d.z, d.x) / (2 * M_PI);
+        double v = 0.5 + asin(d.y) / M_PI;
+
+        dvec3 normalOffset = normalMap->getNormalOffset(u, v);
+
+        dvec3 uhat = glm::normalize(glm::cross(d, up));
+        dvec3 vhat = glm::cross(uhat, d);
+
+        return normalOffset.x * uhat + normalOffset.y * vhat + normalOffset.z * (-d);
     }
 }

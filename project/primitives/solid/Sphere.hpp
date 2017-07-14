@@ -17,6 +17,9 @@ protected:
 
     bool isInsideTransformed(const glm::dvec3& point) const override;
 
+private:
     PhongMaterial getMaterial(const glm::dvec3& point) const;
+
+    glm::dvec3 getNormal(const glm::dvec3& point) const;
 };
 

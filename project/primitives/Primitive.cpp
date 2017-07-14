@@ -2,7 +2,8 @@
 
 Primitive::Primitive()
     : material(nullptr),
-      texture(nullptr) {}
+      texture(nullptr),
+      normalMap(nullptr) {}
 
 Primitive::~Primitive() {}
 
@@ -22,7 +23,6 @@ void Primitive::setMaterial(PhongMaterial* material) {
 }
 
 
-
 bool Primitive::isInside(const glm::dvec3& point) const {
     Ray ray = transformRay(point, glm::dvec3());
     const glm::dvec3& newPoint = ray.rayOrigin;
@@ -32,4 +32,8 @@ bool Primitive::isInside(const glm::dvec3& point) const {
 
 void Primitive::setTexture(Texture* texture) {
     this->texture = texture;
+}
+
+void Primitive::setNormalMap(NormalMap* normalMap) {
+    this->normalMap = normalMap;
 }
