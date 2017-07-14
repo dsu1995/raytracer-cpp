@@ -60,12 +60,6 @@ PhongMaterial Sphere::getMaterial(const glm::dvec3& point) const {
         double v = 0.5 + asin(d.y) / M_PI;
         newMaterial.m_kd = texture->getPixel(u, v);
 
-//        dvec3 vector = point - m_pos;
-//
-//        double theta = acos(vector.z / m_radius); // [0, PI]
-//        double phi = atan2(vector.y, vector.x); // [-PI, PI]
-//
-//        newMaterial.m_kd = texture->getPixel(theta / M_PI, phi / (2 * M_PI) + 0.5);
         return newMaterial;
     }
 }

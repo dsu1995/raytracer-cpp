@@ -27,7 +27,7 @@ public:
 
     virtual ~Mesh();
 
-    const std::vector<glm::vec3>& vertices() const;
+    const std::vector<glm::dvec3>& vertices() const;
 
     const std::vector<Triangle>& faces() const;
 
@@ -49,7 +49,7 @@ protected:
     }
 
 private:
-    std::vector<glm::vec3> m_vertices;
+    std::vector<glm::dvec3> m_vertices;
     std::vector<Triangle> m_faces;
 
     Cube* boundingBox;

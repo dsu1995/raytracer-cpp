@@ -53,7 +53,7 @@ Mesh::Mesh(const std::string& fname)
     while (ifs >> code) {
         if (code == "v") {
             ifs >> vx >> vy >> vz;
-            m_vertices.push_back(glm::vec3(vx, vy, vz));
+            m_vertices.push_back(glm::dvec3(vx, vy, vz));
         }
         else if (code == "f") {
             ifs >> s1 >> s2 >> s3;
@@ -61,10 +61,10 @@ Mesh::Mesh(const std::string& fname)
         }
     }
 
-    glm::vec3 point1(std::numeric_limits<float>::max());
-    glm::vec3 point2(std::numeric_limits<float>::min());
+    glm::dvec3 point1(std::numeric_limits<float>::max());
+    glm::dvec3 point2(std::numeric_limits<float>::min());
 
-    for (const glm::vec3& vertex: m_vertices) {
+    for (const glm::dvec3& vertex: m_vertices) {
         for (uint i = 0; i < 3; i++) {
             point1[i] = std::min(point1[i], vertex[i]);
             point2[i] = std::max(point2[i], vertex[i]);
@@ -79,7 +79,7 @@ const std::vector<Triangle>& Mesh::faces() const {
     return m_faces;
 }
 
-const std::vector<glm::vec3>& Mesh::vertices() const {
+const std::vector<glm::dvec3>& Mesh::vertices() const {
     return m_vertices;
 }
 

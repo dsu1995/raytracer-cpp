@@ -10,7 +10,7 @@ public:
 
     Cube();
 
-    const glm::vec3 m_pos;
+    const glm::dvec3 m_pos;
     const glm::dvec3 dims;
 
     glm::dvec3 objCenter() const;

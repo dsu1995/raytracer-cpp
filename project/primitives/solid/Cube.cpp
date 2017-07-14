@@ -10,7 +10,6 @@
 using std::cerr;
 using std::endl;
 
-using glm::vec3;
 using glm::dvec3;
 
 Cube::Cube(const dvec3& pos, const dvec3& dims)
@@ -20,7 +19,7 @@ Cube::Cube(const dvec3& pos, double size)
     : Cube(pos, dvec3(size)) {}
 
 Cube::Cube()
-    : Cube(vec3(0), 1) {}
+    : Cube(dvec3(0), 1) {}
 
 
 std::vector<Intersection> Cube::getIntersectionsPostTransform(
@@ -47,8 +46,14 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             dvec3 p = e + t * d;
             if ((y_min <= p.y && p.y <= y_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
+                PhongMaterial newMaterial = *material;
+                if (texture != nullptr) {
+                    dvec3 d2 = p - m_pos;
+                    newMaterial.m_kd = texture->getPixel(d2.z / dims.z, 1 - d2.y / dims.y);
+                }
+
                 intersections.push_back(
-                    Intersection(p, dvec3(-1, 0, 0), objCenter(), *material)
+                    Intersection(p, dvec3(-1, 0, 0), objCenter(), newMaterial)
                 );
             }
         }
@@ -60,8 +65,14 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             dvec3 p = e + t * d;
             if ((y_min <= p.y && p.y <= y_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
+                PhongMaterial newMaterial = *material;
+                if (texture != nullptr) {
+                    dvec3 d2 = p - m_pos;
+                    newMaterial.m_kd = texture->getPixel(1 - d2.z / dims.z, 1 - d2.y / dims.y);
+                }
+
                 intersections.push_back(
-                    Intersection(p, dvec3(1, 0, 0), objCenter(), *material)
+                    Intersection(p, dvec3(1, 0, 0), objCenter(), newMaterial)
                 );
             }
         }
@@ -73,8 +84,14 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             dvec3 p = e + t * d;
             if ((x_min <= p.x && p.x <= x_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
+                PhongMaterial newMaterial = *material;
+                if (texture != nullptr) {
+                    dvec3 d2 = p - m_pos;
+                    newMaterial.m_kd = texture->getPixel(d2.x / dims.x, d2.z / dims.z);
+                }
+
                 intersections.push_back(
-                    Intersection(p, dvec3(0, -1, 0), objCenter(), *material)
+                    Intersection(p, dvec3(0, -1, 0), objCenter(), newMaterial)
                 );
             }
         }
@@ -86,8 +103,14 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             dvec3 p = e + t * d;
             if ((x_min <= p.x && p.x <= x_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
+                PhongMaterial newMaterial = *material;
+                if (texture != nullptr) {
+                    dvec3 d2 = p - m_pos;
+                    newMaterial.m_kd = texture->getPixel(d2.x / dims.x, d2.z / dims.z);
+                }
+
                 intersections.push_back(
-                    Intersection(p, dvec3(0, 1, 0), objCenter(), *material)
+                    Intersection(p, dvec3(0, 1, 0), objCenter(), newMaterial)
                 );
             }
         }
@@ -99,8 +122,14 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             dvec3 p = e + t * d;
             if ((x_min <= p.x && p.x <= x_max) &&
                 (y_min <= p.y && p.y <= y_max)) {
+                PhongMaterial newMaterial = *material;
+                if (texture != nullptr) {
+                    dvec3 d2 = p - m_pos;
+                    newMaterial.m_kd = texture->getPixel(1 - d2.x / dims.x, 1 - d2.y / dims.y);
+                }
+
                 intersections.push_back(
-                    Intersection(p, dvec3(0, 0, -1), objCenter(), *material)
+                    Intersection(p, dvec3(0, 0, -1), objCenter(), newMaterial)
                 );
             }
         }
@@ -112,8 +141,14 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             dvec3 p = e + t * d;
             if ((x_min <= p.x && p.x <= x_max) &&
                 (y_min <= p.y && p.y <= y_max)) {
+                PhongMaterial newMaterial = *material;
+                if (texture != nullptr) {
+                    dvec3 d2 = p - m_pos;
+                    newMaterial.m_kd = texture->getPixel(d2.x / dims.x, 1 - d2.y / dims.y);
+                }
+
                 intersections.push_back(
-                    Intersection(p, dvec3(0, 0, 1), objCenter(), *material)
+                    Intersection(p, dvec3(0, 0, 1), objCenter(), newMaterial)
                 );
             }
         }
@@ -131,5 +166,5 @@ bool Cube::isInsideTransformed(const glm::dvec3& point) const {
 }
 
 glm::dvec3 Cube::objCenter() const {
-    return m_pos + dims / 2;
+    return m_pos + dims / 2.0;
 }

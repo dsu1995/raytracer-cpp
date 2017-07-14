@@ -8,11 +8,12 @@ mat4 = gr.material({0.7, 0.6, 1.0}, {0.5, 0.4, 0.8}, 25, 0, 0.75, 1.9)
 
 earth_tex = gr.texture('textures/earth.png')
 moon_tex = gr.texture('textures/moon.png')
+marble_tex = gr.texture('textures/marble.png')
 
 scene_root = gr.node('root')
 
 s1 = gr.nh_sphere('s1', {0, 0, 0}, 200)
-scene_root:add_child(s1)
+--scene_root:add_child(s1)
 s1:set_material(mat1)
 s1:set_texture(earth_tex)
 --s1:rotate('Y', 45)
@@ -20,11 +21,20 @@ s1:set_texture(earth_tex)
 s1:translate(-125, 0, 0)
 
 moon = gr.sphere('moon')
-scene_root:add_child(moon)
+--scene_root:add_child(moon)
 moon:set_material(mat1)
 moon:set_texture(moon_tex)
 moon:scale(100, 100, 100)
 moon:translate(200, 0, 0)
+
+
+wall = gr.nh_box('wall', {-0.5, -0.5, -0.5}, 1)
+scene_root:add_child(wall)
+wall:set_material(mat1)
+wall:set_texture(marble_tex)
+wall:scale(400, 400, 400)
+wall:rotate('X', -45)
+--earth:translate('')
 
 
 
