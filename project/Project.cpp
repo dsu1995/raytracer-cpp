@@ -152,7 +152,7 @@ glm::dvec3 Project::traceRecursive(
         return background(rayOrigin, rayDirection);
     }
     else {
-        PhongMaterial* material = intersection.primitive->getMaterial();
+        PhongMaterial material = intersection.material;
 
         // TODO glm::length(intersection.point) is a heuristic, might not work
         dvec3 outwardIntersection =
@@ -160,7 +160,7 @@ glm::dvec3 Project::traceRecursive(
         dvec3 inwardIntersection =
             intersection.point + inwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
 
-        double reflectivity = (recursionDepth == 0) ? 0 : material->reflectivity;
+        double reflectivity = (recursionDepth == 0) ? 0 : material.reflectivity;
 
         dvec3 colour(0, 0, 0);
         if (reflectivity > 0) {
@@ -170,12 +170,12 @@ glm::dvec3 Project::traceRecursive(
         }
 
         if (reflectivity < 1) {
-            double transparency = (recursionDepth == 0) ? 0 : material->transparency;
+            double transparency = (recursionDepth == 0) ? 0 : material.transparency;
 
             dvec3 transmittedColour(0, 0, 0);
             if (transparency > 0) {
                 double n_i = AIR_INDEX_OF_REFRACTION;
-                double n_t = material->refractiveIndex;
+                double n_t = material.refractiveIndex;
 
                 dvec3 refractedColour;
                 if (willTotalInternalReflect(n_i, n_t, rayDirection, outwardNormal)) {
@@ -191,7 +191,7 @@ glm::dvec3 Project::traceRecursive(
             }
 
             if (transparency < 1) {
-                dvec3 ownColour = ambient * material->m_kd;
+                dvec3 ownColour = ambient * material.m_kd;
                 for (Light* light: lights) {
                     if (!scene.existsObjectBetween(outwardIntersection, light->position)) {
                         ownColour += rayColour(rayOrigin, rayDirection, intersection, light);
@@ -227,8 +227,8 @@ glm::dvec3 Project::refractRecursive(
         return dvec3(0);
     }
 
-    PhongMaterial* material = intersection.primitive->getMaterial();
-    double n_i = material->refractiveIndex;
+    PhongMaterial material = intersection.material;
+    double n_i = material.refractiveIndex;
     double n_t = AIR_INDEX_OF_REFRACTION;
 
     if (willTotalInternalReflect(n_i, n_t, rayDirection, inwardNormal)) {
@@ -253,15 +253,15 @@ dvec3 Project::rayColour(
     const Intersection& intersection,
     Light* light
 ) const {
-    PhongMaterial* material = intersection.primitive->getMaterial();
+    PhongMaterial material = intersection.material;
 
-    const dvec3& k_d = material->m_kd;
+    const dvec3& k_d = material.m_kd;
     dvec3 l = glm::normalize(light->position - intersection.point);
     dvec3 n = glm::normalize(intersection.normal);
-    const dvec3& k_s = material->m_ks;
+    const dvec3& k_s = material.m_ks;
     dvec3 r = glm::normalize(-l + 2 * glm::dot(l, n) * n);
     dvec3 v = glm::normalize(-direction);
-    double p = material->m_shininess;
+    double p = material.m_shininess;
     const dvec3& I = light->colour;
     double dist = glm::distance(light->position, intersection.point);
 

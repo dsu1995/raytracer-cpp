@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "PhongMaterial.hpp"
 
 class Primitive;
 
@@ -9,7 +10,7 @@ struct Intersection {
     glm::dvec3 point;
     glm::dvec3 normal;
     glm::dvec3 objCenter;
-    const Primitive* primitive;
+    PhongMaterial material;
 
     Intersection();
 
@@ -17,7 +18,7 @@ struct Intersection {
         const glm::dvec3& point,
         const glm::dvec3& normal,
         const glm::dvec3& objCenter,
-        const Primitive* node
+        const PhongMaterial& node
     );
 
     static const Intersection& min(

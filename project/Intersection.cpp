@@ -9,18 +9,18 @@ Intersection::Intersection()
       point(),
       normal(),
       objCenter(),
-      primitive(nullptr) {}
+      material(PhongMaterial()) {}
 
 Intersection::Intersection(
     const dvec3& point,
     const dvec3& normal,
     const dvec3& objCenter,
-    const Primitive* node
+    const PhongMaterial& material
 ) : intersected(true),
     point(point),
     normal(normal),
     objCenter(objCenter),
-    primitive(node) {}
+    material(material) {}
 
 
 const Intersection& Intersection::min(

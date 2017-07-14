@@ -48,7 +48,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((y_min <= p.y && p.y <= y_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(-1, 0, 0), objCenter(), this)
+                    Intersection(p, dvec3(-1, 0, 0), objCenter(), *material)
                 );
             }
         }
@@ -61,7 +61,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((y_min <= p.y && p.y <= y_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(1, 0, 0), objCenter(), this)
+                    Intersection(p, dvec3(1, 0, 0), objCenter(), *material)
                 );
             }
         }
@@ -74,7 +74,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((x_min <= p.x && p.x <= x_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(0, -1, 0), objCenter(), this)
+                    Intersection(p, dvec3(0, -1, 0), objCenter(), *material)
                 );
             }
         }
@@ -87,7 +87,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((x_min <= p.x && p.x <= x_max) &&
                 (z_min <= p.z && p.z <= z_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(0, 1, 0), objCenter(), this)
+                    Intersection(p, dvec3(0, 1, 0), objCenter(), *material)
                 );
             }
         }
@@ -100,7 +100,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((x_min <= p.x && p.x <= x_max) &&
                 (y_min <= p.y && p.y <= y_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(0, 0, -1), objCenter(), this)
+                    Intersection(p, dvec3(0, 0, -1), objCenter(), *material)
                 );
             }
         }
@@ -113,7 +113,7 @@ std::vector<Intersection> Cube::getIntersectionsPostTransform(
             if ((x_min <= p.x && p.x <= x_max) &&
                 (y_min <= p.y && p.y <= y_max)) {
                 intersections.push_back(
-                    Intersection(p, dvec3(0, 0, 1), objCenter(), this)
+                    Intersection(p, dvec3(0, 0, 1), objCenter(), *material)
                 );
             }
         }

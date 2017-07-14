@@ -44,7 +44,7 @@ std::vector<Intersection> Cylinder::getIntersectionsPostTransform(
                 dvec3 intersectionPoint = rayOrigin + t * rayDirection;
                 if (z_min < intersectionPoint.z && intersectionPoint.z < z_max) {
                     dvec3 normal(intersectionPoint.xy(), 0);
-                    Intersection intersection(intersectionPoint, normal, objCenter, this);
+                    Intersection intersection(intersectionPoint, normal, objCenter, *material);
                     intersections.push_back(intersection);
                 }
             }
@@ -57,7 +57,7 @@ std::vector<Intersection> Cylinder::getIntersectionsPostTransform(
             dvec3 intersectionPoint = rayOrigin + t * rayDirection;
             if (glm::length2(intersectionPoint.xy()) <= 1) {
                 dvec3 normal(0, 0, 1);
-                Intersection intersection(intersectionPoint, normal, objCenter, this);
+                Intersection intersection(intersectionPoint, normal, objCenter, *material);
                 intersections.push_back(intersection);
             }
         }
@@ -69,7 +69,7 @@ std::vector<Intersection> Cylinder::getIntersectionsPostTransform(
             dvec3 intersectionPoint = rayOrigin + t * rayDirection;
             if (glm::length2(intersectionPoint.xy()) <= 1) {
                 dvec3 normal(0, 0, -1);
-                Intersection intersection(intersectionPoint, normal, objCenter, this);
+                Intersection intersection(intersectionPoint, normal, objCenter, *material);
                 intersections.push_back(intersection);
             }
         }

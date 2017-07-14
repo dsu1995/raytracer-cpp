@@ -1,7 +1,8 @@
 #include "Primitive.hpp"
 
 Primitive::Primitive()
-    : material(nullptr) {}
+    : material(nullptr),
+      texture(nullptr) {}
 
 Primitive::~Primitive() {}
 
@@ -20,13 +21,15 @@ void Primitive::setMaterial(PhongMaterial* material) {
     this->material = material;
 }
 
-PhongMaterial* Primitive::getMaterial() const {
-    return material;
-}
+
 
 bool Primitive::isInside(const glm::dvec3& point) const {
     Ray ray = transformRay(point, glm::dvec3());
     const glm::dvec3& newPoint = ray.rayOrigin;
 
     return isInsideTransformed(newPoint);
+}
+
+void Primitive::setTexture(Texture* texture) {
+    this->texture = texture;
 }

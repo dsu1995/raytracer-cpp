@@ -1,9 +1,12 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "Texture.hpp"
 
-class PhongMaterial {
-public:
+struct PhongMaterial {
+    PhongMaterial()
+        : m_kd(), m_ks() {}
+
     PhongMaterial(
         const glm::dvec3& kd,
         const glm::dvec3& ks,
@@ -11,15 +14,30 @@ public:
         double reflectivity,
         double transparency,
         double refractiveIndex
-    );
+    ) : m_kd(kd),
+        m_ks(ks),
+        m_shininess(shininess),
+        reflectivity(reflectivity),
+        transparency(transparency),
+        refractiveIndex(refractiveIndex) {
 
-    virtual ~PhongMaterial();
+        assert(
+            0.0 <= reflectivity && reflectivity <= 1.0 &&
+            "Reflectivity must be between 0 and 1!"
+        );
 
-    const glm::dvec3 m_kd;
-    const glm::dvec3 m_ks;
+        assert(
+            0.0 <= transparency && transparency <= 1.0 &&
+            "Transparency must be between 0 and 1!"
+        );
+    }
 
-    const double m_shininess;
-    const double reflectivity;
-    const double transparency;
-    const double refractiveIndex;
+    glm::dvec3 m_ks;
+    glm::dvec3 m_kd;
+
+    double m_shininess;
+
+    double reflectivity;
+    double transparency;
+    double refractiveIndex;
 };

@@ -26,7 +26,7 @@ s5 = gr.nh_sphere('s5', {0, 100, -250}, 25)
 scene_root:add_child(s5)
 s5:set_material(mat1)
 
-mickey = gr.mesh('mickey', 'mickey.obj')
+mickey = gr.mesh('mickey', 'meshes/mickey.obj')
 scene_root:add_child(mickey)
 mickey:set_material(mat3)
 mickey:scale(250, 250, 250)
@@ -34,7 +34,7 @@ mickey:rotate('x', -90)
 mickey:rotate('y', -90)
 mickey:translate(-200, -200, 0)
 
-steldodec = gr.mesh( 'dodec', 'smstdodeca.obj' )
+steldodec = gr.mesh( 'dodec', 'meshes/smstdodeca.obj' )
 steldodec:set_material(mat3)
 scene_root:add_child(steldodec)
 

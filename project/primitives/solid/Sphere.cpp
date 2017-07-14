@@ -33,7 +33,7 @@ Sphere::getIntersectionsPostTransform(
         if (t >= 0) {
             dvec3 intersectionPoint = rayOrigin + t * rayDirection;
             dvec3 normal = intersectionPoint - c;
-            Intersection intersection(intersectionPoint, normal, m_pos, this);
+            Intersection intersection(intersectionPoint, normal, m_pos, getMaterial(intersectionPoint));
             intersections.push_back(intersection);
         }
     }
@@ -44,4 +44,28 @@ Sphere::getIntersectionsPostTransform(
 
 bool Sphere::isInsideTransformed(const glm::dvec3& point) const {
     return glm::distance2(m_pos, point) <= m_radius * m_radius;
+}
+
+PhongMaterial Sphere::getMaterial(const glm::dvec3& point) const {
+    if (texture == nullptr) {
+        return *material;
+    }
+    else {
+        PhongMaterial newMaterial = *material;
+
+        // https://en.wikipedia.org/wiki/UV_mapping#Finding_UV_on_a_sphere
+        dvec3 d = glm::normalize(m_pos - point);
+
+        double u = 0.5 - atan2(d.z, d.x) / (2 * M_PI);
+        double v = 0.5 + asin(d.y) / M_PI;
+        newMaterial.m_kd = texture->getPixel(u, v);
+
+//        dvec3 vector = point - m_pos;
+//
+//        double theta = acos(vector.z / m_radius); // [0, PI]
+//        double phi = atan2(vector.y, vector.x); // [-PI, PI]
+//
+//        newMaterial.m_kd = texture->getPixel(theta / M_PI, phi / (2 * M_PI) + 0.5);
+        return newMaterial;
+    }
 }

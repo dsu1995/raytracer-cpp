@@ -9,6 +9,8 @@
 using glm::dvec3;
 using glm::dmat3;
 
+PhongMaterial dummyMaterial;
+
 
 Intersection Mesh::rayTriangleIntersect(
     const dvec3& p0,
@@ -33,7 +35,7 @@ Intersection Mesh::rayTriangleIntersect(
     if (beta >= 0 && gamma >= 0 && beta + gamma <= 1 && t >= 0) {
         dvec3 intersection = rayOrigin + t * rayDirection;
         dvec3 normal = glm::cross(p1 - p0, p2 - p1); // TODO check normal direction
-        return {intersection, normal, boundingBox->objCenter(), this};
+        return {intersection, normal, boundingBox->objCenter(), *material};
     }
     else {
         return {};
@@ -70,6 +72,7 @@ Mesh::Mesh(const std::string& fname)
     }
 
     boundingBox = new Cube(point1, point2 - point1);
+    boundingBox->setMaterial(&dummyMaterial);
 }
 
 const std::vector<Triangle>& Mesh::faces() const {

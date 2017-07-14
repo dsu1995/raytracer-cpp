@@ -15,7 +15,7 @@ public:
 
     void setMaterial(PhongMaterial* material);
 
-    PhongMaterial* getMaterial() const;
+    void setTexture(Texture* texture);
 
     virtual Intersection getClosestIntersection(
         const glm::dvec3& rayOrigin,
@@ -29,9 +29,10 @@ public:
 
     virtual bool isInside(const glm::dvec3& point) const;
 
+    PhongMaterial* material;
+
 protected:
     virtual bool isInsideTransformed(const glm::dvec3& point) const = 0;
 
-private:
-    PhongMaterial* material;
+    Texture* texture;
 };

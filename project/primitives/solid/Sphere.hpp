@@ -16,5 +16,7 @@ protected:
     getIntersectionsPostTransform(const glm::dvec3& rayOrigin, const glm::dvec3& rayDirection) const override;
 
     bool isInsideTransformed(const glm::dvec3& point) const override;
+
+    PhongMaterial getMaterial(const glm::dvec3& point) const;
 };
 
