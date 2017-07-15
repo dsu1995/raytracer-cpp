@@ -13,7 +13,7 @@ public:
         double yratio = 1
     );
 
-    const glm::dvec3& getPixel(double x, double y) const;
+    glm::dvec3 getPixel(double x, double y) const;
 
 private:
     double xratio;

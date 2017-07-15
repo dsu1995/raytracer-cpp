@@ -13,6 +13,9 @@ const double z_max = 1;
 
 const glm::dvec3 objCenter(0, 0, 0.5);
 
+const dvec3 up(0, 0, 1);
+
+
 /**
  * Ray-cone intersection:
  * https://www.cl.cam.ac.uk/teaching/1999/AGraphHCI/SMAG/node2.html#SECTION00023200000000000000
@@ -56,6 +59,19 @@ std::vector<Intersection> Cone::getIntersectionsPostTransform(
                     }
 
                     dvec3 normal = p * dvec3(2, 2, -2);
+                    if (normalMap != nullptr) {
+                        dvec3 what = glm::normalize(normal);
+                        dvec3 uhat = glm::cross(up, what);
+                        dvec3 vhat = glm::cross(what, uhat);
+
+                        dvec3 normalOffset = normalMap->getNormalOffset(
+                            0.5 - atan2(p.y, p.x) / (2 * M_PI),
+                            p.z
+                        );
+
+                        normal = normalOffset.x * uhat + normalOffset.y * vhat + normalOffset.z * what;
+                    }
+
                     Intersection intersection(p, normal, objCenter, newMaterial);
                     intersections.push_back(intersection);
                 }
@@ -69,11 +85,16 @@ std::vector<Intersection> Cone::getIntersectionsPostTransform(
             dvec3 p = rayOrigin + t * rayDirection;
             if (glm::length2(p.xy()) <= 1) {
                 PhongMaterial newMaterial = *material;
+
                 if (texture != nullptr) {
-                    newMaterial.m_kd = texture->getPixel((p.x + 1) / 2, (p.y + 1) / 2);
+                    newMaterial.m_kd = texture->getPixel(1 - (p.x + 1) / 2, (p.y + 1) / 2);
                 }
 
                 dvec3 normal(0, 0, 1);
+                if (normalMap != nullptr) {
+                    normal = normalMap->getNormalOffset(1 - (p.x + 1) / 2, (p.y + 1) / 2);
+                }
+
                 Intersection intersection(p, normal, objCenter, newMaterial);
                 intersections.push_back(intersection);
             }

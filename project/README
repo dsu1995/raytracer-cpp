@@ -9,3 +9,9 @@ Objectives
 8. Implement soft shadows
 9. Implement a grid-based data structure for accelerating the detection of ray-model intersections
 10. Construct a final scene to be displayed.
+
+
+Asset sources:
+- https://computergraphicsguide.blogspot.ca/2015/08/wavefront-obj-file-format-and-normal.html
+- http://www.celestiamotherlode.net
+- https://github.com/mcveat/scala-raytracer/tree/master/textures

@@ -77,7 +77,7 @@ glm::dvec3 Sphere::getNormal(const glm::dvec3& point) const {
 
         dvec3 normalOffset = normalMap->getNormalOffset(u, v);
 
-        dvec3 uhat = glm::normalize(glm::cross(d, up));
+        dvec3 uhat = glm::cross(d, up);
         dvec3 vhat = glm::cross(uhat, d);
 
         return normalOffset.x * uhat + normalOffset.y * vhat + normalOffset.z * (-d);

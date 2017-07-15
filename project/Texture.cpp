@@ -4,6 +4,7 @@
 
 using std::cerr;
 using std::endl;
+using glm::dvec3;
 
 Texture::Texture(
     const char* fileName,
@@ -31,16 +32,27 @@ Texture::Texture(
 }
 
 
-const glm::dvec3& Texture::getPixel(double x, double y) const {
+dvec3 Texture::getPixel(double x, double y) const {
     assert(0.0 <= x && x <= 1.0 && 0.0 <= y && y <= 1.0);
 
     x = x * xratio - floor(x * xratio);
     y = y * yratio - floor(y * yratio);
 
-    uint x2 = uint(x * (width - 1));
-    uint y2 = uint(y * (height - 1));
+    uint xfloor = uint(floor(x * (width - 1)));
+    uint xceil = uint(ceil(x * (width - 1)));
 
-    uint offset = y2 * width + x2;
+    uint yfloor = uint(floor(y * (height - 1)));
+    uint yceil = uint(ceil(y * (height - 1)));
 
-    return pixels.at(offset);
+    dvec3 p00 = pixels.at(yfloor * width + xfloor);
+    dvec3 p01 = pixels.at(yceil * width + xfloor);
+    dvec3 p10 = pixels.at(yfloor * width + xceil);
+    dvec3 p11 = pixels.at(yceil * width + xceil);
+
+    dvec3 bottom = p00 + (p10 - p00) * x;
+    dvec3 top = p01 + (p11 - p01) * x;
+
+    // it seems bilinear interpolation makes the image look worse
+//    return bottom + (top - bottom) * y;
+    return p00;
 }

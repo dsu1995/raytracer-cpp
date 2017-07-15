@@ -9,13 +9,15 @@ class NormalMap {
 public:
     NormalMap(
         const char* fileName,
+        double exaggeration = 1,
         double xratio = 1,
         double yratio = 1
     );
 
-    const glm::dvec3& getNormalOffset(double x, double y) const;
+    glm::dvec3 getNormalOffset(double x, double y) const;
 
 private:
+    double exaggeration;
     double xratio;
     double yratio;
 

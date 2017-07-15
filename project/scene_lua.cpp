@@ -514,17 +514,22 @@ int gr_normal_map_cmd(lua_State* L) {
 
     const char* filename = luaL_checkstring(L, 1);
     int isNum;
-    double xratio = lua_tonumberx(L, 2, &isNum);
+    double exaggeration = lua_tonumberx(L, 2, &isNum);
+    if (!isNum) {
+        exaggeration = 1.0;
+    }
+
+    double xratio = lua_tonumberx(L, 3, &isNum);
     if (!isNum) {
         xratio = 1.0;
     }
 
-    double yratio = lua_tonumberx(L, 3, &isNum);
+    double yratio = lua_tonumberx(L, 4, &isNum);
     if (!isNum) {
         yratio = 1.0;
     }
 
-    data->normalMap = new NormalMap(filename, xratio, yratio);
+    data->normalMap = new NormalMap(filename, exaggeration, xratio, yratio);
 
     luaL_newmetatable(L, "gr.normal_map");
     lua_setmetatable(L, -2);
