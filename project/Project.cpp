@@ -19,6 +19,8 @@ const double NEAR_PLANE_DISTANCE = 1;
 const double EPS = 0.0000001;
 
 const uint RECURSION_DEPTH = 8;
+const uint DISTRIBUTED_BRANCHING_FACTOR = 4;
+const uint DISTRIBUTED_DROPOFF_FACTOR = 2;
 
 const double AIR_INDEX_OF_REFRACTION = 1.000293;
 
@@ -64,7 +66,8 @@ Project::Project(
     // Lighting parameters
     const glm::dvec3& ambient,
     const std::list<Light*>& lights,
-    bool supersample
+    bool supersample,
+    uint distributedSamples
 ) : root(root),
     scene(root),
     image(image),
@@ -75,6 +78,7 @@ Project::Project(
     ambient(ambient),
     lights(lights),
     supersample(supersample),
+    initDistributedSamples(distributedSamples),
     imageWidth(image.width()),
     imageHeight(image.height())
 {
@@ -147,7 +151,7 @@ dvec3 Project::renderPixel(double x, double y) const {
     const dvec4 worldCoordPixel = MVW * screenCoordPixel;
     const dvec3 rayDirection = dvec3(worldCoordPixel) - eye;
 
-    return traceRecursive(eye, rayDirection, RECURSION_DEPTH);
+    return traceRecursive(eye, rayDirection, RECURSION_DEPTH, DISTRIBUTED_BRANCHING_FACTOR);
 }
 
 bool willTotalInternalReflect(
@@ -168,7 +172,8 @@ bool willTotalInternalReflect(
 glm::dvec3 Project::traceRecursive(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection,
-    uint recursionDepth
+    uint recursionDepth,
+    uint distributedSamples
 ) const {
     Intersection intersection = scene.trace(rayOrigin, rayDirection);
 
@@ -193,12 +198,28 @@ glm::dvec3 Project::traceRecursive(
         if (reflectivity > 0) {
             dvec3 reflectedRay = glm::reflect(glm::normalize(rayDirection), outwardNormal);
 
+            dvec3 reflectedColour;
             // glossiness
             if (intersection.material.glossiness > 0) {
-                reflectedRay = perturb(reflectedRay, intersection.material.glossiness);
+                for (uint i = 0; i < distributedSamples; i++) {
+                    dvec3 perturbedReflectedRay = perturb(reflectedRay, intersection.material.glossiness);
+                    reflectedColour += traceRecursive(
+                        outwardIntersection,
+                        perturbedReflectedRay,
+                        recursionDepth - 1,
+                        std::max<uint>(1, distributedSamples / DISTRIBUTED_DROPOFF_FACTOR)
+                    ) / distributedSamples;
+                }
+            }
+            else {
+                reflectedColour = traceRecursive(
+                    outwardIntersection,
+                    reflectedRay,
+                    recursionDepth - 1,
+                    std::max<uint>(1, distributedSamples / DISTRIBUTED_DROPOFF_FACTOR)
+                );
             }
 
-            dvec3 reflectedColour = traceRecursive(outwardIntersection, reflectedRay, recursionDepth - 1);
             colour += reflectedColour * reflectivity;
         }
 
@@ -216,20 +237,48 @@ glm::dvec3 Project::traceRecursive(
 
                     // glossiness
                     if (intersection.material.glossiness > 0) {
-                        reflectedRay = perturb(reflectedRay, intersection.material.glossiness);
+                        for (uint i = 0; i < distributedSamples; i++) {
+                            dvec3 perturbedReflectedRay = perturb(reflectedRay, intersection.material.glossiness);
+                            refractedColour += traceRecursive(
+                                outwardIntersection,
+                                perturbedReflectedRay,
+                                recursionDepth - 1,
+                                std::max<uint>(1, distributedSamples / DISTRIBUTED_DROPOFF_FACTOR)
+                            ) / distributedSamples;
+                        }
                     }
-
-                    refractedColour += traceRecursive(outwardIntersection, reflectedRay, recursionDepth - 1);
+                    else {
+                        refractedColour += traceRecursive(
+                            outwardIntersection,
+                            reflectedRay,
+                            recursionDepth - 1,
+                            std::max<uint>(1, distributedSamples / DISTRIBUTED_DROPOFF_FACTOR)
+                        );
+                    }
                 }
                 else {
                     dvec3 refractedRay = glm::refract(glm::normalize(rayDirection), outwardNormal, n_i / n_t);
 
                     // glossiness
                     if (intersection.material.glossiness > 0) {
-                        refractedRay = perturb(refractedRay, intersection.material.glossiness);
+                        for (uint i = 0; i < distributedSamples; i++) {
+                            dvec3 perturbedRefractedRay = perturb(refractedRay, intersection.material.glossiness);
+                            refractedColour += refractRecursive(
+                                inwardIntersection,
+                                perturbedRefractedRay,
+                                recursionDepth - 1,
+                                std::max<uint>(1, distributedSamples / DISTRIBUTED_DROPOFF_FACTOR)
+                            ) / distributedSamples;
+                        }
                     }
-
-                    refractedColour += refractRecursive(inwardIntersection, refractedRay, recursionDepth - 1);
+                    else {
+                        refractedColour += refractRecursive(
+                            inwardIntersection,
+                            refractedRay,
+                            recursionDepth - 1,
+                            std::max<uint>(1, distributedSamples / DISTRIBUTED_DROPOFF_FACTOR)
+                        );
+                    }
                 }
 
                 transmittedColour += refractedColour * transparency;
@@ -238,15 +287,25 @@ glm::dvec3 Project::traceRecursive(
             if (transparency < 1) {
                 dvec3 ownColour = ambient * material.m_kd;
                 for (Light* light: lights) {
-                    std::uniform_real_distribution<double> distr(-light->radius, light->radius);
-                    dvec3 lightPosition = light->position + dvec3(
-                        distr(randomEngine),
-                        distr(randomEngine),
-                        distr(randomEngine)
-                    );
+                    dvec3 lightColour = rayColour(rayOrigin, rayDirection, intersection, light);
+                    if (light->radius == 0.0) {
+                        ownColour += lightColour;
+                    }
+                    else {
+                        // soft shadows
+                        lightColour /= initDistributedSamples;
+                        std::uniform_real_distribution<double> distr(-light->radius, light->radius);
+                        for (uint i = 0; i < initDistributedSamples; i++) {
+                            dvec3 lightPosition = light->position + dvec3(
+                                distr(randomEngine),
+                                distr(randomEngine),
+                                distr(randomEngine)
+                            );
 
-                    if (!scene.existsObjectBetween(outwardIntersection, lightPosition)) {
-                        ownColour += rayColour(rayOrigin, rayDirection, intersection, light);
+                            if (!scene.existsObjectBetween(outwardIntersection, lightPosition)) {
+                                ownColour += lightColour;
+                            }
+                        }
                     }
                 }
 
@@ -263,7 +322,8 @@ glm::dvec3 Project::traceRecursive(
 glm::dvec3 Project::refractRecursive(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection,
-    uint recursionDepth
+    uint recursionDepth,
+    uint distributedSamples
 ) const {
     Intersection intersection = scene.trace(rayOrigin, rayDirection);
 
@@ -291,23 +351,54 @@ glm::dvec3 Project::refractRecursive(
 
         // glossiness
         if (intersection.material.glossiness > 0) {
-            reflectedRay = perturb(reflectedRay, intersection.material.glossiness);
+            dvec3 accumulator;
+            for (uint i = 0; i < distributedSamples; i++) {
+                dvec3 perturbedReflectedRay = perturb(reflectedRay, intersection.material.glossiness);
+                accumulator += refractRecursive(
+                    inwardIntersection,
+                    perturbedReflectedRay,
+                    recursionDepth - 1,
+                    std::max<uint>(1, distributedSamples / DISTRIBUTED_DROPOFF_FACTOR)
+                ) / distributedSamples;
+            }
+            return accumulator;
         }
-
-        return refractRecursive(inwardIntersection, reflectedRay, recursionDepth - 1);
+        else {
+            return refractRecursive(
+                inwardIntersection,
+                reflectedRay,
+                recursionDepth - 1,
+                std::max<uint>(1, distributedSamples / DISTRIBUTED_DROPOFF_FACTOR)
+            );
+        }
     }
     else {
         dvec3 refractedRay = glm::refract(glm::normalize(rayDirection), inwardNormal, n_i / n_t);
-
-        // glossiness
-        if (intersection.material.glossiness > 0) {
-            refractedRay = perturb(refractedRay, intersection.material.glossiness);
-        }
-
         dvec3 outwardIntersection =
             intersection.point + outwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
 
-        return traceRecursive(outwardIntersection, refractedRay, recursionDepth - 1);
+        // glossiness
+        if (intersection.material.glossiness > 0) {
+            dvec3 accumulator;
+            for (uint i = 0; i < distributedSamples; i++) {
+                dvec3 perturbedRefractedRay = perturb(refractedRay, intersection.material.glossiness);
+                accumulator += traceRecursive(
+                    outwardIntersection,
+                    perturbedRefractedRay,
+                    recursionDepth - 1,
+                    std::max<uint>(1, distributedSamples / DISTRIBUTED_DROPOFF_FACTOR)
+                ) / distributedSamples;
+            }
+            return accumulator;
+        }
+        else {
+            return traceRecursive(
+                outwardIntersection,
+                refractedRay,
+                recursionDepth - 1,
+                std::max<uint>(1, distributedSamples / DISTRIBUTED_DROPOFF_FACTOR)
+            );
+        }
     }
 }
 

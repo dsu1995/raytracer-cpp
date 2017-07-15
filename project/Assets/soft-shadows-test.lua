@@ -19,7 +19,7 @@ lens:set_material(mat4)
 --lens:set_normal(earth_normal)
 lens:rotate('Y', 70)
 lens:rotate('X', 45)
---lens:scale(2, 2, 2)
+lens:scale(2, 2, 2)
 lens:translate(0, 0, 5)
 
 back_wall = gr.nh_box('back_wall', {-0.5, -0.5, -0.5}, 1)
@@ -31,8 +31,8 @@ back_wall:translate(0, 0, -5)
 
 
 
-white_light = gr.light({4, 4, 15}, {0.9, 0.9, 0.9}, {1, 0, 0})
+white_light = gr.light({4, 4, 15}, {0.9, 0.9, 0.9}, {1, 0, 0}, 0.2)
 
-gr.render(scene_root, 'refraction-test-simple2.png', 500, 500,
+gr.render(scene_root, 'soft-shadows-test.png', 500, 500,
     {0, 0, 10}, {0, 0, -1}, {0, 1, 0}, 50,
-    {0.3, 0.3, 0.3}, {white_light}, true)
+    {0.3, 0.3, 0.3}, {white_light}, false, 50)

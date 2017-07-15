@@ -29,7 +29,8 @@ public:
         // Lighting parameters
         const glm::dvec3& ambient,
         const std::list<Light*>& lights,
-        bool supersample
+        bool supersample,
+        uint distributedSamples
     );
 
     void render();
@@ -40,13 +41,15 @@ private:
     glm::dvec3 traceRecursive(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection,
-        uint recursionDepth
+        uint recursionDepth,
+        uint distributedSamples
     ) const;
 
     glm::dvec3 refractRecursive(
         const glm::dvec3& rayOrigin,
         const glm::dvec3& rayDirection,
-        uint recursionDepth
+        uint recursionDepth,
+        uint distributedSamples
     ) const;
 
     glm::dvec3 rayColour(
@@ -78,6 +81,8 @@ private:
 
     const std::list<Light*>& lights;
     const bool supersample;
+
+    const uint initDistributedSamples;
 
     const size_t imageWidth;
     const size_t imageHeight;

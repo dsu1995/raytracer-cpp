@@ -476,8 +476,14 @@ int gr_render_cmd(lua_State* L) {
 
     bool supersample_on = bool(lua_toboolean(L, 11));
 
+    int isNum;
+    uint distributedSamples = uint(lua_tonumberx(L, 12, &isNum));
+    if (!isNum) {
+        distributedSamples = 1;
+    }
+
     Image im(width, height);
-    Project project(root->node, im, eye, view, up, fov, ambient, lights, supersample_on);
+    Project project(root->node, im, eye, view, up, fov, ambient, lights, supersample_on, distributedSamples);
     project.render();
     im.savePng(filename);
 
