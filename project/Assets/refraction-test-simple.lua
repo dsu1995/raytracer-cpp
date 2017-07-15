@@ -1,9 +1,9 @@
 -- A simple scene with some miscellaneous geometry.
 
-mat1 = gr.material({0.7, 1.0, 0.7}, {0.5, 0.7, 0.5}, 25, 0)
-mat2 = gr.material({0.5, 0.5, 0.5}, {0.5, 0.7, 0.5}, 25, 0)
-mat3 = gr.material({1.0, 0.6, 0.1}, {0.5, 0.7, 0.5}, 25, 0)
-mat4 = gr.material({0.7, 0.6, 1.0}, {0.5, 0.4, 0.8}, 25, 0, 0.75, 1.9)
+mat1 = gr.material({0.7, 1.0, 0.7}, {0.5, 0.7, 0.5}, 25, 0, 0)
+mat2 = gr.material({0.5, 0.5, 0.5}, {0.5, 0.7, 0.5}, 25, 0, 0)
+mat3 = gr.material({1.0, 0.6, 0.1}, {0.5, 0.7, 0.5}, 25, 0, 0)
+mat4 = gr.material({0.7, 0.6, 1.0}, {0.5, 0.4, 0.8}, 25, 3, 0, 0.75, 1.9)
 
 scene_root = gr.node('root')
 
@@ -31,9 +31,9 @@ b1:set_material(mat4)
 --b1:scale(100, 100, 100)
 --b1:translate(-600, -55, -200)
 ----------------------------------------------------------
-lens = gr.nh_sphere('lens', {-600, 25, -200}, 25)
-scene_root:add_child(lens)
-lens:set_material(mat3)
+asdf = gr.nh_sphere('asdf', {-600, 25, -200}, 25)
+scene_root:add_child(asdf)
+asdf:set_material(mat3)
 -------------------------------------------------
 cylinder = gr.cylinder('cylinder')
 --scene_root:add_child(cylinder)
@@ -50,17 +50,12 @@ cone:scale(25, 25, 50)
 cone:rotate('Y', -90)
 cone:translate(-650, 0, -150)
 ------------------------------------------------
-cls1 = gr.nh_sphere('cls1', {-0.5, 0, 0}, 0.75)
-cls1:set_material(mat4)
+lens = gr.nh_sphere('lens', {0, 0, 0}, 0.75)
+lens:set_material(mat4)
+scene_root:add_child(lens)
 
-cls2 = gr.nh_sphere('cls2', {0.5, 0, 0}, 0.75)
-cls2:set_material(mat4)
-
-inter1 = gr.intersection('inter1', cls1, cls2)
-scene_root:add_child(inter1)
-inter1:scale(50, 50, 50)
---inter1:rotate('Y', 90)
-inter1:translate(-650, 0, -150)
+lens:scale(50, 50, 50)
+lens:translate(-650, 0, -150)
 
 -------------------------------------------------
 
@@ -81,6 +76,6 @@ scene_root:add_child(steldodec)
 white_light = gr.light({-100.0, 150.0, 400.0}, {0.9, 0.9, 0.9}, {1, 0, 0})
 orange_light = gr.light({400.0, 100.0, 150.0}, {0.7, 0.0, 0.7}, {1, 0, 0})
 
-gr.render(scene_root, 'refraction-test2.png', 500, 500,
+gr.render(scene_root, 'refraction-test-simple.png', 500, 500,
     {-800, 0, -150}, {1, 0, 0}, {0, 1, 0}, 50,
-    {0.3, 0.3, 0.3}, {white_light, orange_light}, false)
+    {0.3, 0.3, 0.3}, {white_light, orange_light}, true)

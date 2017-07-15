@@ -552,17 +552,22 @@ int gr_material_cmd(lua_State* L) {
     double shininess = luaL_checknumber(L, 3);
 
     int isNum;
-    double reflectivity = lua_tonumberx(L, 4, &isNum);
+    double glossiness = lua_tonumberx(L, 4, &isNum);
+    if (!isNum) {
+        glossiness = 0.0;
+    }
+
+    double reflectivity = lua_tonumberx(L, 5, &isNum);
     if (!isNum) {
         reflectivity = 0.0;
     }
 
-    double transparency = lua_tonumberx(L, 5, &isNum);
+    double transparency = lua_tonumberx(L, 6, &isNum);
     if (!isNum) {
         transparency = 0.0;
     }
 
-    double refractiveIndex = lua_tonumberx(L, 6, &isNum);
+    double refractiveIndex = lua_tonumberx(L, 7, &isNum);
     if (!isNum) {
         refractiveIndex = 1.0;
     }
@@ -571,6 +576,7 @@ int gr_material_cmd(lua_State* L) {
         glm::dvec3(kd[0], kd[1], kd[2]),
         glm::dvec3(ks[0], ks[1], ks[2]),
         shininess,
+        glossiness,
         reflectivity,
         transparency,
         refractiveIndex

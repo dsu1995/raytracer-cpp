@@ -1,9 +1,9 @@
 -- A simple scene with some miscellaneous geometry.
 
-mat1 = gr.material({0.7, 1.0, 0.7}, {0.5, 0.7, 0.5}, 25, 0)
-mat2 = gr.material({0.5, 0.5, 0.5}, {0.5, 0.7, 0.5}, 25, 0)
-mat3 = gr.material({1.0, 0.6, 0.1}, {0.5, 0.7, 0.5}, 25, 0)
-mat4 = gr.material({0.7, 0.6, 1.0}, {0.5, 0.4, 0.8}, 25, 0.9)
+mat1 = gr.material({0.7, 1.0, 0.7}, {0.5, 0.7, 0.5}, 25, 0, 0)
+mat2 = gr.material({0.5, 0.5, 0.5}, {0.5, 0.7, 0.5}, 25, 0, 0)
+mat3 = gr.material({1.0, 0.6, 0.1}, {0.5, 0.7, 0.5}, 25, 0, 0)
+mat4 = gr.material({0.7, 0.6, 1.0}, {0.5, 0.4, 0.8}, 25, 3, 0.9)
 grass = gr.material({0.1, 0.7, 0.1}, {0.0, 0.0, 0.0}, 25)
 
 
@@ -87,4 +87,4 @@ orange_light = gr.light({4.0, 1.0, 1.5}, {0.7, 0.0, 0.7}, {1.5, 0, 0})
 
 gr.render(scene_root, 'reflection-test-simple.png', 500, 500,
     {-8, 0, -1.5}, {-1, 0, 0}, {0, 1, 0}, 50,
-    {0.3, 0.3, 0.3}, {white_light, orange_light}, false)
+    {0.3, 0.3, 0.3}, {white_light, orange_light}, true)

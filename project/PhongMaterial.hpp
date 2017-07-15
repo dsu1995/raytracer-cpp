@@ -10,12 +10,14 @@ struct PhongMaterial {
         const glm::dvec3& kd,
         const glm::dvec3& ks,
         double shininess,
+        double glossiness,
         double reflectivity,
         double transparency,
         double refractiveIndex
     ) : m_kd(kd),
         m_ks(ks),
         m_shininess(shininess),
+        glossiness(glossiness),
         reflectivity(reflectivity),
         transparency(transparency),
         refractiveIndex(refractiveIndex) {
@@ -36,7 +38,10 @@ struct PhongMaterial {
 
     double m_shininess;
 
+    double glossiness;
+
     double reflectivity;
+
     double transparency;
     double refractiveIndex;
 };

@@ -11,7 +11,7 @@ scene_root:rotate('Y', 120)
 
 ---------------------------------------------------
 -- the floor
-grass = gr.material({0.1, 0.7, 0.1}, {0.0, 0.0, 0.0}, 0, 0.5)
+grass = gr.material({0.1, 0.7, 0.1}, {0.0, 0.0, 0.0}, 0, 0, 0.5)
 plane = gr.sphere('plane')
 scene_root:add_child(plane)
 plane:set_material(grass)

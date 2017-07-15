@@ -2,6 +2,7 @@
 #include <cmath>
 #include <atomic>
 #include <sstream>
+#include <random>
 
 #include "Project.hpp"
 
@@ -20,6 +21,32 @@ const double EPS = 0.0000001;
 const uint RECURSION_DEPTH = 8;
 
 const double AIR_INDEX_OF_REFRACTION = 1.000293;
+
+thread_local std::default_random_engine randomEngine;
+
+
+dvec3 perturb(const dvec3& v, double maxDeltaDegs) {
+    dvec3 vhat = glm::normalize(v);
+    double theta = acos(vhat.z);
+    double phi = atan2(vhat.y, vhat.x);
+
+    std::uniform_real_distribution<double> rand(
+        -glm::radians(maxDeltaDegs),
+        glm::radians(maxDeltaDegs)
+    );
+    double deltaTheta = rand(randomEngine);
+    double deltaPhi = rand(randomEngine);
+
+    theta += deltaTheta;
+    phi += deltaPhi;
+
+    return dvec3(
+        sin(theta) * cos(phi),
+        sin(theta) * sin(phi),
+        cos(theta)
+    );
+}
+
 
 Project::Project(
     // What to render
@@ -145,6 +172,11 @@ glm::dvec3 Project::traceRecursive(
 ) const {
     Intersection intersection = scene.trace(rayOrigin, rayDirection);
 
+    // glossiness
+    if (intersection.material.glossiness > 0) {
+        intersection.normal = perturb(intersection.normal, intersection.material.glossiness);
+    }
+
     dvec3 outwardNormal = glm::normalize(intersection.normal);
     dvec3 inwardNormal = -outwardNormal;
 
@@ -214,6 +246,11 @@ glm::dvec3 Project::refractRecursive(
     uint recursionDepth
 ) const {
     Intersection intersection = scene.trace(rayOrigin, rayDirection);
+
+    // glossiness
+    if (intersection.material.glossiness > 0) {
+        intersection.normal = perturb(intersection.normal, intersection.material.glossiness);
+    }
 
     dvec3 outwardNormal = glm::normalize(intersection.normal);
     dvec3 inwardNormal = -outwardNormal;
