@@ -411,16 +411,22 @@ int gr_light_cmd(lua_State* L) {
     data->light = 0;
 
 
-    Light l;
+    glm::dvec3 position;
+    get_tuple(L, 1, &position[0], 3);
 
-    double col[3];
-    get_tuple(L, 1, &l.position[0], 3);
-    get_tuple(L, 2, col, 3);
-    get_tuple(L, 3, l.falloff, 3);
+    glm::dvec3 colour;
+    get_tuple(L, 2, &colour[0], 3);
 
-    l.colour = glm::dvec3(col[0], col[1], col[2]);
+    glm::dvec3 falloff;
+    get_tuple(L, 3, &falloff[0], 3);
 
-    data->light = new Light(l);
+    int isNum;
+    double radius = lua_tonumberx(L, 4, &isNum);
+    if (!isNum) {
+        radius = 0.0;
+    }
+
+    data->light = new Light(colour, position, falloff, radius);
 
     luaL_newmetatable(L, "gr.light");
     lua_setmetatable(L, -2);

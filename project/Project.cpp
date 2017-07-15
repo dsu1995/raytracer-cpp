@@ -30,12 +30,12 @@ dvec3 perturb(const dvec3& v, double maxDeltaDegs) {
     double theta = acos(vhat.z);
     double phi = atan2(vhat.y, vhat.x);
 
-    std::uniform_real_distribution<double> rand(
+    std::uniform_real_distribution<double> distr(
         -glm::radians(maxDeltaDegs),
         glm::radians(maxDeltaDegs)
     );
-    double deltaTheta = rand(randomEngine);
-    double deltaPhi = rand(randomEngine);
+    double deltaTheta = distr(randomEngine);
+    double deltaPhi = distr(randomEngine);
 
     theta += deltaTheta;
     phi += deltaPhi;
@@ -172,11 +172,6 @@ glm::dvec3 Project::traceRecursive(
 ) const {
     Intersection intersection = scene.trace(rayOrigin, rayDirection);
 
-    // glossiness
-    if (intersection.material.glossiness > 0) {
-        intersection.normal = perturb(intersection.normal, intersection.material.glossiness);
-    }
-
     dvec3 outwardNormal = glm::normalize(intersection.normal);
     dvec3 inwardNormal = -outwardNormal;
 
@@ -197,6 +192,12 @@ glm::dvec3 Project::traceRecursive(
         dvec3 colour(0, 0, 0);
         if (reflectivity > 0) {
             dvec3 reflectedRay = glm::reflect(glm::normalize(rayDirection), outwardNormal);
+
+            // glossiness
+            if (intersection.material.glossiness > 0) {
+                reflectedRay = perturb(reflectedRay, intersection.material.glossiness);
+            }
+
             dvec3 reflectedColour = traceRecursive(outwardIntersection, reflectedRay, recursionDepth - 1);
             colour += reflectedColour * reflectivity;
         }
@@ -212,10 +213,22 @@ glm::dvec3 Project::traceRecursive(
                 dvec3 refractedColour;
                 if (willTotalInternalReflect(n_i, n_t, rayDirection, outwardNormal)) {
                     dvec3 reflectedRay = glm::reflect(glm::normalize(rayDirection), outwardNormal);
+
+                    // glossiness
+                    if (intersection.material.glossiness > 0) {
+                        reflectedRay = perturb(reflectedRay, intersection.material.glossiness);
+                    }
+
                     refractedColour += traceRecursive(outwardIntersection, reflectedRay, recursionDepth - 1);
                 }
                 else {
                     dvec3 refractedRay = glm::refract(glm::normalize(rayDirection), outwardNormal, n_i / n_t);
+
+                    // glossiness
+                    if (intersection.material.glossiness > 0) {
+                        refractedRay = perturb(refractedRay, intersection.material.glossiness);
+                    }
+
                     refractedColour += refractRecursive(inwardIntersection, refractedRay, recursionDepth - 1);
                 }
 
@@ -225,7 +238,14 @@ glm::dvec3 Project::traceRecursive(
             if (transparency < 1) {
                 dvec3 ownColour = ambient * material.m_kd;
                 for (Light* light: lights) {
-                    if (!scene.existsObjectBetween(outwardIntersection, light->position)) {
+                    std::uniform_real_distribution<double> distr(-light->radius, light->radius);
+                    dvec3 lightPosition = light->position + dvec3(
+                        distr(randomEngine),
+                        distr(randomEngine),
+                        distr(randomEngine)
+                    );
+
+                    if (!scene.existsObjectBetween(outwardIntersection, lightPosition)) {
                         ownColour += rayColour(rayOrigin, rayDirection, intersection, light);
                     }
                 }
@@ -246,11 +266,6 @@ glm::dvec3 Project::refractRecursive(
     uint recursionDepth
 ) const {
     Intersection intersection = scene.trace(rayOrigin, rayDirection);
-
-    // glossiness
-    if (intersection.material.glossiness > 0) {
-        intersection.normal = perturb(intersection.normal, intersection.material.glossiness);
-    }
 
     dvec3 outwardNormal = glm::normalize(intersection.normal);
     dvec3 inwardNormal = -outwardNormal;
@@ -273,10 +288,22 @@ glm::dvec3 Project::refractRecursive(
             intersection.point + inwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
 
         dvec3 reflectedRay = glm::reflect(glm::normalize(rayDirection), inwardNormal);
+
+        // glossiness
+        if (intersection.material.glossiness > 0) {
+            reflectedRay = perturb(reflectedRay, intersection.material.glossiness);
+        }
+
         return refractRecursive(inwardIntersection, reflectedRay, recursionDepth - 1);
     }
     else {
         dvec3 refractedRay = glm::refract(glm::normalize(rayDirection), inwardNormal, n_i / n_t);
+
+        // glossiness
+        if (intersection.material.glossiness > 0) {
+            refractedRay = perturb(refractedRay, intersection.material.glossiness);
+        }
+
         dvec3 outwardIntersection =
             intersection.point + outwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
 
@@ -302,7 +329,7 @@ dvec3 Project::rayColour(
     const dvec3& I = light->colour;
     double dist = glm::distance(light->position, intersection.point);
 
-    dvec3 L_in = I / (light->falloff[0] + light->falloff[1] * dist + light->falloff[2] * dist * dist);
+    dvec3 L_in = I / glm::dot(light->falloff, dvec3(1, dist, dist * dist));
     dvec3 L_out = (
         k_d * std::max(0.0, glm::dot(l, n)) + k_s * pow(std::max(0.0, glm::dot(r, v)), p)
     ) * L_in;
