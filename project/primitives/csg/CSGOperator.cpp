@@ -40,3 +40,21 @@ std::vector<LineSegment> CSGOperator::getCSGSegments(
 
     return transformedSegments;
 }
+
+AABB CSGOperator::getAABB() const {
+    AABB leftAABB = left->getAABB();
+    AABB rightAABB = right->getAABB();
+
+    glm::dvec3 p1(
+        std::min(leftAABB.p1.x, rightAABB.p1.x),
+        std::min(leftAABB.p1.y, rightAABB.p1.y),
+        std::min(leftAABB.p1.z, rightAABB.p1.z)
+    );
+    glm::dvec3 p2(
+        std::max(leftAABB.p1.x, rightAABB.p1.x),
+        std::max(leftAABB.p1.y, rightAABB.p1.y),
+        std::max(leftAABB.p1.z, rightAABB.p1.z)
+    );
+
+    return AABB(p1, p2, getTransform());
+}

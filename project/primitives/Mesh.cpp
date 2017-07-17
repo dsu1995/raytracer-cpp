@@ -61,8 +61,8 @@ Mesh::Mesh(const std::string& fname)
         }
     }
 
-    glm::dvec3 point1(std::numeric_limits<float>::max());
-    glm::dvec3 point2(std::numeric_limits<float>::min());
+    glm::dvec3 point1(std::numeric_limits<double>::max());
+    glm::dvec3 point2(std::numeric_limits<double>::min());
 
     for (const glm::dvec3& vertex: m_vertices) {
         for (uint i = 0; i < 3; i++) {
@@ -133,5 +133,13 @@ std::ostream& operator<<(std::ostream& out, const Mesh& mesh) {
   */
     out << "}";
     return out;
+}
+
+AABB Mesh::getAABB() const {
+    return AABB(
+        boundingBox->m_pos,
+        boundingBox->m_pos + boundingBox->dims,
+        getTransform()
+    );
 }
 

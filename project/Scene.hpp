@@ -22,7 +22,11 @@ public:
     ) const;
 
 private:
+    void flatten(SceneNode* node, glm::dmat4 T);
+
     SceneNode* const root;
+
+    std::vector<Primitive*> flattenedPrimitives;
 };
 
 

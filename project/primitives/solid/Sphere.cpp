@@ -83,3 +83,11 @@ glm::dvec3 Sphere::getNormal(const glm::dvec3& point) const {
         return normalOffset.x * uhat + normalOffset.y * vhat + normalOffset.z * (-d);
     }
 }
+
+AABB Sphere::getAABB() const {
+    return AABB(
+        m_pos - dvec3(m_radius),
+        m_pos + dvec3(m_radius),
+        getTransform()
+    );
+}

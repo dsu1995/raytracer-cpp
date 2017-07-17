@@ -229,3 +229,11 @@ bool Cube::isInsideTransformed(const glm::dvec3& point) const {
 glm::dvec3 Cube::objCenter() const {
     return m_pos + dims / 2.0;
 }
+
+AABB Cube::getAABB() const {
+    return AABB(
+        m_pos,
+        dims,
+        getTransform()
+    );
+}

@@ -110,3 +110,11 @@ bool Cone::isInsideTransformed(const glm::dvec3& point) const {
         glm::length2(point.xy()) <= point.z * point.z
     );
 }
+
+AABB Cone::getAABB() const {
+    return AABB(
+        dvec3(-1, -1, 0),
+        dvec3(1, 1, 1),
+        getTransform()
+    );
+}

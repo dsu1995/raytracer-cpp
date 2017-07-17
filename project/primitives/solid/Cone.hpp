@@ -4,6 +4,9 @@
 #include "ConvexSolid.hpp"
 
 class Cone : public ConvexSolid {
+public:
+    virtual AABB getAABB() const override;
+
 protected:
     virtual std::vector<Intersection> getIntersectionsPostTransform(
         const glm::dvec3& rayOrigin,

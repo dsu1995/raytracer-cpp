@@ -43,6 +43,8 @@ public:
         assert(false && "Mesh cannot be used in CSG!");
     }
 
+    virtual AABB getAABB() const override;
+
 protected:
     bool isInsideTransformed(const glm::dvec3& point) const override {
         assert(false && "Mesh does not support isInside!");

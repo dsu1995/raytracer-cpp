@@ -14,6 +14,8 @@ public:
         const glm::dvec3& rayDirection
     ) const override;
 
+    virtual AABB getAABB() const = 0;
+
 protected:
     virtual std::vector<Intersection> getIntersectionsPostTransform(
         const glm::dvec3& rayOrigin,

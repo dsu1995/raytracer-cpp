@@ -3,10 +3,10 @@
 mat1 = gr.material({0.7, 1.0, 0.7}, {0.5, 0.7, 0.5}, 25, 0, 0)
 mat2 = gr.material({0.5, 0.5, 0.5}, {0.5, 0.7, 0.5}, 25, 0, 0)
 mat3 = gr.material({1.0, 0.6, 0.1}, {0.5, 0.7, 0.5}, 25, 0, 0)
-mat4 = gr.material({0.7, 0.6, 1.0}, {1, 1, 1}, 25, 1, 0, 0.75, 1.9)
+mat4 = gr.material({0.7, 0.6, 1.0}, {1, 1, 1}, 25, 0, 0, 0.75, 2.5)
 
 
-chessboard = gr.texture('textures/chessboard.png', 50, 100)
+chessboard = gr.texture('textures/earth.png', 50, 100)
 
 --earth_normal = gr.normal_map('normals/cobblestone.png', 1, 5, 1.333 * 5)
 earth_normal = gr.normal_map('normals/earth3.png')
@@ -33,6 +33,6 @@ back_wall:translate(0, 0, -5)
 
 white_light = gr.light({4, 4, 15}, {0.9, 0.9, 0.9}, {1, 0, 0})
 
-gr.render(scene_root, 'refraction-test-simple2.png', 500, 500,
+gr.render(scene_root, 'refraction-test-simple2.png', 1000, 1000,
     {0, 0, 10}, {0, 0, -1}, {0, 1, 0}, 50,
     {0.3, 0.3, 0.3}, {white_light}, true)

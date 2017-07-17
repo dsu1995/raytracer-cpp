@@ -131,3 +131,11 @@ bool Cylinder::isInsideTransformed(const glm::dvec3& point) const {
         glm::length2(point.xy()) <= 1
     );
 }
+
+AABB Cylinder::getAABB() const {
+    return AABB(
+        dvec3(-1, -1, -1),
+        dvec3(1, 1, 1),
+        getTransform()
+    );
+}

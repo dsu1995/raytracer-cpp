@@ -19,7 +19,7 @@ lens:set_material(mat4)
 --lens:set_normal(earth_normal)
 lens:rotate('Y', 70)
 lens:rotate('X', 45)
-lens:scale(2, 2, 2)
+--lens:scale(2, 2, 2)
 lens:translate(0, 0, 5)
 
 back_wall = gr.nh_box('back_wall', {-0.5, -0.5, -0.5}, 1)

@@ -289,7 +289,9 @@ glm::dvec3 Project::traceRecursive(
                 for (Light* light: lights) {
                     dvec3 lightColour = rayColour(rayOrigin, rayDirection, intersection, light);
                     if (light->radius == 0.0) {
-                        ownColour += lightColour;
+                        if (!scene.existsObjectBetween(outwardIntersection, light->position)) {
+                            ownColour += lightColour;
+                        }
                     }
                     else {
                         // soft shadows

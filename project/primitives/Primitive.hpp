@@ -8,6 +8,7 @@
 #include "../Transformable.hpp"
 #include "../NormalMap.hpp"
 #include "../Texture.hpp"
+#include "AABB.hpp"
 
 class Primitive : public Transformable {
 public:
@@ -32,6 +33,8 @@ public:
     ) const = 0;
 
     virtual bool isInside(const glm::dvec3& point) const;
+
+    virtual AABB getAABB() const = 0;
 
 protected:
     virtual bool isInsideTransformed(const glm::dvec3& point) const = 0;

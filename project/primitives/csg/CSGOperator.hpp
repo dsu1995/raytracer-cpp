@@ -25,6 +25,8 @@ public:
         const glm::dvec3& rayDirection
     ) const override;
 
+    virtual AABB getAABB() const override;
+
 protected:
     virtual bool isInsideTransformed(const glm::dvec3& point) const override = 0;
 
