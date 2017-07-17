@@ -4,6 +4,7 @@
 
 #include "nodes/SceneNode.hpp"
 #include "nodes/GeometryNode.hpp"
+#include "Grid.hpp"
 
 
 class Scene {
@@ -27,6 +28,8 @@ private:
     SceneNode* const root;
 
     std::vector<Primitive*> flattenedPrimitives;
+
+    Grid grid;
 };
 
 

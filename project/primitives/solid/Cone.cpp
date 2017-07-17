@@ -118,3 +118,7 @@ AABB Cone::getAABB() const {
         getTransform()
     );
 }
+
+Cone* Cone::clone() const {
+    return new Cone(*this);
+}

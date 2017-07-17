@@ -143,3 +143,7 @@ AABB Mesh::getAABB() const {
     );
 }
 
+Mesh* Mesh::clone() const {
+    return new Mesh(*this);
+}
+

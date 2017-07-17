@@ -45,6 +45,8 @@ public:
 
     virtual AABB getAABB() const override;
 
+    Mesh* clone() const override;
+
 protected:
     bool isInsideTransformed(const glm::dvec3& point) const override {
         assert(false && "Mesh does not support isInside!");

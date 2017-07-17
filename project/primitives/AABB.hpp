@@ -11,6 +11,8 @@ struct AABB {
 
     void transform(const glm::dmat4& T);
 
+    bool intersects(const AABB& other) const;
+
     glm::dvec3 p1;
     glm::dvec3 p2;
 };

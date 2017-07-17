@@ -16,3 +16,8 @@ Asset sources:
 - http://www.celestiamotherlode.net
 - https://github.com/mcveat/scala-raytracer/tree/master/textures
 - https://opengameart.org/content/50-free-textures-4-normalmaps
+
+References:
+- Grid Acceleration: 
+	- https://graphics.stanford.edu/courses/cs348b-05/lectures/lecture3/raytrace_ii.pdf
+	- http://www.cs.yorku.ca/~amana/research/grid.pdf

@@ -91,3 +91,7 @@ AABB Sphere::getAABB() const {
         getTransform()
     );
 }
+
+Sphere* Sphere::clone() const {
+    return new Sphere(*this);
+}

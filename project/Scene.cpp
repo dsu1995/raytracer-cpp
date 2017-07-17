@@ -11,19 +11,25 @@ const bool GRID_ENABLED = true;
 
 Scene::Scene(SceneNode* root)
     : root(root) {
-    flatten(root, dmat4());
-}
-
-Scene::~Scene() {}
-
-void Scene::flatten(SceneNode* node, dmat4 T) {
     if (!GRID_ENABLED) return;
 
+    flatten(root, dmat4());
+
+    grid = Grid(flattenedPrimitives);
+}
+
+Scene::~Scene() {
+    for (Primitive* primitive: flattenedPrimitives) {
+        delete primitive;
+    }
+}
+
+void Scene::flatten(SceneNode* node, dmat4 T) {
     T *= node->getTransform();
 
     GeometryNode* const gnode = dynamic_cast<GeometryNode*>(node);
     if (gnode != nullptr) {
-        Primitive* primitive = gnode->m_primitive;
+        Primitive* primitive = gnode->m_primitive->clone();
         dmat4 nodeT = T * primitive->getTransform();
         primitive->setTransform(nodeT, glm::inverse(nodeT));
         flattenedPrimitives.push_back(primitive);
@@ -43,15 +49,16 @@ Intersection Scene::trace(
         return root->intersect(rayOrigin, rayDirection);
     }
     else {
-        Intersection closest;
-        for (Primitive* primitive: flattenedPrimitives) {
-            closest = Intersection::min(
-                rayOrigin,
-                closest,
-                primitive->getClosestIntersection(rayOrigin, rayDirection)
-            );
-        }
-        return closest;
+        return grid.trace(rayOrigin, rayDirection);
+//        Intersection closest;
+//        for (Primitive* primitive: flattenedPrimitives) {
+//            closest = Intersection::min(
+//                rayOrigin,
+//                closest,
+//                primitive->getClosestIntersection(rayOrigin, rayDirection)
+//            );
+//        }
+//        return closest;
     }
 }
 

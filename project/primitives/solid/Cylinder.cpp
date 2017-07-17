@@ -139,3 +139,7 @@ AABB Cylinder::getAABB() const {
         getTransform()
     );
 }
+
+Cylinder* Cylinder::clone() const {
+    return new Cylinder(*this);
+}

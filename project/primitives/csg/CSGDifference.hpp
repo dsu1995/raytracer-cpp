@@ -12,6 +12,8 @@ public:
         const glm::dvec3& rayDirection
     ) const override;
 
+    virtual CSGDifference* clone() const override;
+
 protected:
     virtual bool isInsideTransformed(const glm::dvec3& point) const override;
 };

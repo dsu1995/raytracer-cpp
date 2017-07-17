@@ -16,6 +16,8 @@ public:
 
     virtual AABB getAABB() const = 0;
 
+    virtual ConvexSolid* clone() const = 0;
+
 protected:
     virtual std::vector<Intersection> getIntersectionsPostTransform(
         const glm::dvec3& rayOrigin,

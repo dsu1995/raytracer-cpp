@@ -101,3 +101,7 @@ bool CSGDifference::isInsideTransformed(const glm::dvec3& point) const {
     return left->isInside(point) && !right->isInside(point);
 }
 
+CSGDifference* CSGDifference::clone() const {
+    return new CSGDifference(*this);
+}
+

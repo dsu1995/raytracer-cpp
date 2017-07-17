@@ -98,3 +98,7 @@ std::vector<LineSegment> CSGUnion::getCSGSegmentsPostTransform(
 bool CSGUnion::isInsideTransformed(const glm::dvec3& point) const {
     return left->isInside(point) || right->isInside(point);
 }
+
+CSGUnion* CSGUnion::clone() const {
+    return new CSGUnion(*this);
+}

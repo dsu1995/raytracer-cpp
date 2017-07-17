@@ -233,7 +233,11 @@ glm::dvec3 Cube::objCenter() const {
 AABB Cube::getAABB() const {
     return AABB(
         m_pos,
-        dims,
+        m_pos + dims,
         getTransform()
     );
+}
+
+Cube* Cube::clone() const {
+    return new Cube(*this);
 }

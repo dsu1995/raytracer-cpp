@@ -38,3 +38,16 @@ void AABB::transform(const dmat4& T) {
     p1 = newP1;
     p2 = newP2;
 }
+
+bool AABB::intersects(const AABB& other) const {
+    if (other.p2.x < this->p1.x) return false;
+    if (this->p2.x < other.p1.x) return false;
+
+    if (other.p2.y < this->p1.y) return false;
+    if (this->p2.y < other.p1.y) return false;
+
+    if (other.p2.z < this->p1.z) return false;
+    if (this->p2.z < other.p1.z) return false;
+
+    return true;
+}

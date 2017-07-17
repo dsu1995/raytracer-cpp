@@ -36,6 +36,8 @@ public:
 
     virtual AABB getAABB() const = 0;
 
+    virtual Primitive* clone() const = 0;
+
 protected:
     virtual bool isInsideTransformed(const glm::dvec3& point) const = 0;
 

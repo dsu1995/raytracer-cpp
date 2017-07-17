@@ -27,6 +27,8 @@ public:
 
     virtual AABB getAABB() const override;
 
+    virtual CSGOperator* clone() const = 0;
+
 protected:
     virtual bool isInsideTransformed(const glm::dvec3& point) const override = 0;
 

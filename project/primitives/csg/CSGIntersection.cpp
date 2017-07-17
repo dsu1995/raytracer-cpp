@@ -90,3 +90,7 @@ std::vector<LineSegment> CSGIntersection::getCSGSegmentsPostTransform(
 bool CSGIntersection::isInsideTransformed(const glm::dvec3& point) const {
     return left->isInside(point) && right->isInside(point);
 }
+
+CSGIntersection* CSGIntersection::clone() const {
+    return new CSGIntersection(*this);
+}
