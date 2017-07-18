@@ -54,7 +54,7 @@ cylinder:set_material(mat1)
 cylinder:set_texture(mtn_dew_tex)
 cylinder:rotate('X', 90)
 cylinder:scale(0.7, 1, 0.7)
-cylinder:translate(0.5, -0.5, 2.5)
+cylinder:translate(0.5, -0.5, 3)
 
 cylinder_top = gr.cylinder('cylinder_top')
 root:add_child(cylinder_top)
@@ -62,7 +62,7 @@ cylinder_top:set_material(mat2)
 cylinder_top:set_texture(can_top_tex)
 cylinder_top:rotate('X', 90)
 cylinder_top:scale(0.68, 0.01, 0.68)
-cylinder_top:translate(0.5, 0.55, 2.5)
+cylinder_top:translate(0.5, 0.55, 3)
 ----------------------------------------
 -- sphere
 sphere = gr.sphere('sphere')
