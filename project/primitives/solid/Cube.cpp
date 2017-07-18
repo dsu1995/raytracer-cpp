@@ -1,14 +1,10 @@
 #include "Cube.hpp"
+
 #include <vector>
 #include <algorithm>
 #include <glm/ext.hpp>
 #include <cmath>
 
-// debug
-#include <iostream>
-
-using std::cerr;
-using std::endl;
 
 using glm::dvec3;
 

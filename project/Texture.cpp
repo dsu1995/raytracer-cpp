@@ -52,7 +52,7 @@ dvec3 Texture::getPixel(double x, double y) const {
     dvec3 bottom = p00 + (p10 - p00) * x;
     dvec3 top = p01 + (p11 - p01) * x;
 
-    // it seems bilinear interpolation makes the image look worse
+    // TODO it seems bilinear interpolation makes the image look worse
 //    return bottom + (top - bottom) * y;
     return p00;
 }

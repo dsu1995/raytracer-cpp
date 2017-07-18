@@ -1,5 +1,6 @@
-#include <glm/ext.hpp>
 #include "CSGUnion.hpp"
+
+#include <glm/ext.hpp>
 
 CSGUnion::CSGUnion(GeometryNode* left, GeometryNode* right)
     : CSGOperator(left, right) {}

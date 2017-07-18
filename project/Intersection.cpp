@@ -47,15 +47,8 @@ const Intersection& Intersection::min(
     }
 }
 
-LineSegment::LineSegment()
-    : near(), far() {}
-
 LineSegment::LineSegment(const Intersection& near, const Intersection& far)
     : near(near), far(far) {
     assert(near.intersected && far.intersected && "Line segment has one end unbounded");
 }
 
-
-bool LineSegment::isEmpty() const {
-    return !near.intersected;
-}

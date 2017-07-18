@@ -1,6 +1,5 @@
 #include <glm/ext.hpp>
 #include "Scene.hpp"
-#include "primitives/solid/Cube.hpp"
 
 using glm::dvec3;
 using glm::dmat3;
@@ -45,52 +44,13 @@ Intersection Scene::trace(
     const dvec3& rayOrigin,
     const dvec3& rayDirection
 ) const {
-    Intersection i = root->intersect(rayOrigin, rayDirection);
-    Intersection i2 = grid.trace(rayOrigin, rayDirection);
-
-    assert(i.intersected == i2.intersected && i.material.m_kd == i2.material.m_kd);
-    return i;
-
-//    if (i.intersected != i2.intersected || i.material.m_kd != i2.material.m_kd) {
-//        return grid.trace(rayOrigin, rayDirection);
-//    }
-//    else {
-//        return i;
-//    }
+    if (!GRID_ENABLED) {
+        return root->intersect(rayOrigin, rayDirection);
+    }
+    else {
+        return grid.trace(rayOrigin, rayDirection);
+    }
 }
-
-//PhongMaterial dummyMaterial3(dvec3(1, 0, 0), dvec3(1, 0, 0), 1, 0, 0, 0, 0);
-//
-//Intersection Scene::trace(
-//    const dvec3& rayOrigin,
-//    const dvec3& rayDirection
-//) const {
-//    if (!GRID_ENABLED) {
-//        return root->intersect(rayOrigin, rayDirection);
-//    }
-//    else {
-//        return grid.trace(rayOrigin, rayDirection);
-////        Intersection closest;
-////        for (Primitive* primitive: flattenedPrimitives) {
-////            AABB aabb = primitive->getAABB();
-////            Cube cube(aabb.p1, aabb.p2 - aabb.p1);
-////            cube.setMaterial(&dummyMaterial3);
-////
-////            Intersection intersection =
-////                primitive->getClosestIntersection(rayOrigin, rayDirection);
-////
-////            if (!intersection.intersected) {
-////                intersection = cube.getClosestIntersection(rayOrigin, rayDirection);
-////            }
-////            closest = Intersection::min(
-////                rayOrigin,
-////                closest,
-////                intersection
-////            );
-////        }
-////        return closest;
-//    }
-//}
 
 
 bool Scene::existsObjectBetween(

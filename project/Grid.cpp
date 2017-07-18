@@ -1,11 +1,8 @@
 #include "Grid.hpp"
+
+#include <unordered_set>
 #include "primitives/solid/Cube.hpp"
 
-// debug
-//#include <iostream>
-//#include <glm/ext.hpp>
-//using std::cout;
-//using std::endl;
 
 using glm::dvec3;
 
@@ -69,7 +66,6 @@ void Grid::initCells(const std::vector<Primitive*>& primitives) {
                 }
             }
         }
-//        cout << "Primitive inserted times: " << insertedCount << endl;
         assert(insertedCount > 0 && "Every primitive must be inserted!!!");
     }
 }
@@ -106,7 +102,9 @@ double solver(double init, double dir, double minVal, double maxVal) {
     }
 }
 
-PhongMaterial dummyMaterial2;
+namespace {
+    PhongMaterial dummyMaterial;
+}
 
 Intersection Grid::trace(glm::dvec3 rayOrigin, glm::dvec3 rayDirection) const {
     // rayOrigin inside grid
@@ -118,7 +116,7 @@ Intersection Grid::trace(glm::dvec3 rayOrigin, glm::dvec3 rayDirection) const {
     // rayOrigin not inside grid
     else {
         Cube cubeAABB(point1, point2 - point1);
-        cubeAABB.setMaterial(&dummyMaterial2);
+        cubeAABB.setMaterial(&dummyMaterial);
 
         const Intersection gridIntersection = cubeAABB.getClosestIntersection(rayOrigin, rayDirection);
         if (!gridIntersection.intersected) {
@@ -137,17 +135,10 @@ Intersection Grid::trace(glm::dvec3 rayOrigin, glm::dvec3 rayDirection) const {
     yPos = std::max(0, std::min(yPos, int(yCells - 1)));
     zPos = std::max(0, std::min(zPos, int(zCells - 1)));
 
-//    cout << endl;
-//    cout << "(x, y, z) = " << xPos << ", " << yPos << ", " << zPos << endl;
-
     // http://www.cs.yorku.ca/~amana/research/grid.pdf
     const int stepX = sgn(rayDirection.x);
     const int stepY = sgn(rayDirection.y);
     const int stepZ = sgn(rayDirection.z);
-
-//    cout << "rayDirection = " << rayDirection.x << ", " << rayDirection.y << ", " << rayDirection.z << endl;
-//    cout << "(stepX, stepY, stepZ) = " << stepX << ", " << stepY << ", " << stepZ << endl;
-
 
     const Cell& initCell = grid.at(xPos).at(yPos).at(zPos);
 
@@ -159,18 +150,21 @@ Intersection Grid::trace(glm::dvec3 rayOrigin, glm::dvec3 rayDirection) const {
     const double tDeltaY = fabs(cellSize / rayDirection.y);
     const double tDeltaZ = fabs(cellSize / rayDirection.z);
 
+    std::unordered_set<Primitive*> visited;
+
     Intersection closest;
     while (true) {
-//        cout << "(tMaxX, tMaxY, tMaxZ) = " << tMaxX << ", " << tMaxY << ", " << tMaxZ << endl;
-//        cout << "(x, y, z) = " << xPos << ", " << yPos << ", " << zPos << endl;
-
         const Cell& cell = grid.at(xPos).at(yPos).at(zPos);
         for (Primitive* primitive: cell.primitives) {
-            closest = Intersection::min(
-                rayOrigin,
-                closest,
-                primitive->getClosestIntersection(rayOrigin, rayDirection)
-            );
+            if (visited.count(primitive) == 0) {
+                closest = Intersection::min(
+                    rayOrigin,
+                    closest,
+                    primitive->getClosestIntersection(rayOrigin, rayDirection)
+                );
+
+                visited.insert(primitive);
+            }
         }
 
         if (tMaxX <= tMaxY && tMaxX <= tMaxZ) {

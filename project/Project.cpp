@@ -186,11 +186,11 @@ glm::dvec3 Project::traceRecursive(
     else {
         PhongMaterial material = intersection.material;
 
-        // TODO glm::length(intersection.point) is a heuristic, might not work
-        dvec3 outwardIntersection =
-            intersection.point + outwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
-        dvec3 inwardIntersection =
-            intersection.point + inwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
+        // TODO glm::distance(intersection.point, intersection.objCenter) is a heuristic
+        dvec3 outwardIntersection = intersection.point +
+            outwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
+        dvec3 inwardIntersection = intersection.point +
+            inwardNormal * glm::distance(intersection.point, intersection.objCenter) * EPS;
 
         double reflectivity = (recursionDepth == 0) ? 0 : material.reflectivity;
 
@@ -333,6 +333,7 @@ glm::dvec3 Project::refractRecursive(
     dvec3 inwardNormal = -outwardNormal;
 
     if (!intersection.intersected) {
+        // TODO what if ray somehow does not exit object???
 //        assert(false && "Refracted ray does not exit object???");
         return background(rayOrigin, rayDirection);
     }
@@ -430,12 +431,14 @@ dvec3 Project::rayColour(
     return L_out;
 }
 
+/**
+ * Black background
+ */
 glm::dvec3 Project::background(
     const glm::dvec3& rayOrigin,
     const glm::dvec3& rayDirection
 ) const {
     return dvec3(0);
-//    return glm::normalize(glm::normalize(rayOrigin) + glm::normalize(rayDirection));
 }
 
 void Project::print() const {

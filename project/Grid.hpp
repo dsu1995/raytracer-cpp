@@ -1,7 +1,7 @@
 #pragma once
 
-
 #include "primitives/Primitive.hpp"
+
 
 struct Cell : public AABB {
     Cell(
@@ -9,9 +9,9 @@ struct Cell : public AABB {
         const glm::dvec3& p2
     ) : AABB(p1, p2) {}
 
-
     std::vector<Primitive*> primitives;
 };
+
 
 class Grid {
 public:
@@ -36,7 +36,6 @@ private:
     uint xCells;
     uint yCells;
     uint zCells;
-
 };
 
 

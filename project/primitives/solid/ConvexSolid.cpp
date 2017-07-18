@@ -1,4 +1,5 @@
 #include "ConvexSolid.hpp"
+
 #include <algorithm>
 #include <glm/ext.hpp>
 

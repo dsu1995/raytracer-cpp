@@ -32,8 +32,5 @@ struct LineSegment {
     Intersection near;
     Intersection far;
 
-    LineSegment();
     LineSegment(const Intersection& near, const Intersection& far);
-
-    bool isEmpty() const;
 };

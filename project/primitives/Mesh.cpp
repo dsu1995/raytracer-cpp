@@ -9,7 +9,9 @@
 using glm::dvec3;
 using glm::dmat3;
 
-PhongMaterial dummyMaterial;
+namespace {
+    PhongMaterial dummyMaterial;
+}
 
 
 Intersection Mesh::rayTriangleIntersect(
