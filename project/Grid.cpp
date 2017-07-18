@@ -3,6 +3,7 @@
 #include <unordered_set>
 #include "primitives/solid/Cube.hpp"
 
+#include <iostream>
 
 using glm::dvec3;
 
@@ -10,6 +11,11 @@ Grid::Grid(const std::vector<Primitive*>& primitives)
     : point1(std::numeric_limits<double>::max()),
       point2(std::numeric_limits<double>::lowest()) {
     initCells(primitives);
+
+    std::cout << "CellSize: " << cellSize << std::endl;
+    std::cout << "xCells: " << xCells << std::endl;
+    std::cout << "yCells: " << yCells << std::endl;
+    std::cout << "zCells: " << zCells << std::endl;
 }
 
 void Grid::initCells(const std::vector<Primitive*>& primitives) {
@@ -22,13 +28,16 @@ void Grid::initCells(const std::vector<Primitive*>& primitives) {
         }
     }
 
-    cellSize = std::min(
-        point2.x - point1.x,
-        std::min(
-            point2.y - point1.y,
-            point2.z - point1.z
-        )
-    ) / primitives.size();
+    dvec3 dims = point2 - point1;
+    double minDimension = std::min(dims.x, std::min(dims.y, dims.z));
+    dvec3 dimRatios = dims / minDimension;
+
+    double cellsInMinSide = std::pow(
+        primitives.size() / (dimRatios.x * dimRatios.y * dimRatios.z),
+        1.0 / 3.0
+    );
+
+    cellSize = minDimension / cellsInMinSide;
 
     xCells = uint(ceil((point2.x - point1.x) / cellSize));
     yCells = uint(ceil((point2.y - point1.y) / cellSize));
