@@ -35,4 +35,8 @@ white_light = gr.light({4, 4, 15}, {0.9, 0.9, 0.9}, {1, 0, 0}, 0.2)
 
 gr.render(scene_root, 'soft-shadows-test.png', 500, 500,
     {0, 0, 10}, {0, 0, -1}, {0, 1, 0}, 50,
-    {0.3, 0.3, 0.3}, {white_light}, false, 50)
+    {0.3, 0.3, 0.3}, {white_light},
+    false,
+    50
+    , true
+)
