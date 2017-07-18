@@ -9,7 +9,7 @@
 
 class Scene {
 public:
-    Scene(SceneNode* root);
+    Scene(SceneNode* root, bool gridAcceleration);
     virtual ~Scene();
 
     bool existsObjectBetween(
@@ -26,6 +26,7 @@ private:
     void flatten(SceneNode* node, glm::dmat4 T);
 
     SceneNode* const root;
+    const bool gridAcceleration;
 
     std::vector<Primitive*> flattenedPrimitives;
 

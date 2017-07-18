@@ -30,7 +30,8 @@ public:
         const glm::dvec3& ambient,
         const std::list<Light*>& lights,
         bool supersample,
-        uint distributedSamples
+        uint distributedSamples,
+        bool gridAcceleration
     );
 
     void render();
@@ -83,6 +84,8 @@ private:
     const bool supersample;
 
     const uint initDistributedSamples;
+
+    const bool gridAcceleration;
 
     const size_t imageWidth;
     const size_t imageHeight;

@@ -455,8 +455,18 @@ int gr_render_cmd(lua_State* L) {
         distributedSamples = 1;
     }
 
+    bool gridAcceleration = bool(lua_toboolean(L, 13));
+
     Image im(width, height);
-    Project project(root->node, im, eye, view, up, fov, ambient, lights, supersample_on, distributedSamples);
+    Project project(
+        root->node,
+        im,
+        eye, view, up, fov,
+        ambient, lights,
+        supersample_on,
+        distributedSamples,
+        gridAcceleration
+    );
     project.render();
     im.savePng(filename);
 

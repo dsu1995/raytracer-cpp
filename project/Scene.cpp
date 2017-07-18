@@ -6,12 +6,11 @@ using glm::dmat3;
 using glm::dvec4;
 using glm::dmat4;
 
-const bool GRID_ENABLED = true;
 
-
-Scene::Scene(SceneNode* root)
-    : root(root) {
-    if (!GRID_ENABLED) return;
+Scene::Scene(SceneNode* root, bool gridAcceleration)
+    : root(root),
+      gridAcceleration(gridAcceleration) {
+    if (!gridAcceleration) return;
 
     flatten(root, dmat4());
 
@@ -44,7 +43,7 @@ Intersection Scene::trace(
     const dvec3& rayOrigin,
     const dvec3& rayDirection
 ) const {
-    if (!GRID_ENABLED) {
+    if (!gridAcceleration) {
         return root->intersect(rayOrigin, rayDirection);
     }
     else {

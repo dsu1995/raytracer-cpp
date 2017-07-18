@@ -67,9 +67,10 @@ Project::Project(
     const glm::dvec3& ambient,
     const std::list<Light*>& lights,
     bool supersample,
-    uint distributedSamples
+    uint distributedSamples,
+    bool gridAcceleration
 ) : root(root),
-    scene(root),
+    scene(root, gridAcceleration),
     image(image),
     eye(eye),
     view(view),
@@ -79,6 +80,7 @@ Project::Project(
     lights(lights),
     supersample(supersample),
     initDistributedSamples(distributedSamples),
+    gridAcceleration(gridAcceleration),
     imageWidth(image.width()),
     imageHeight(image.height())
 {
@@ -442,7 +444,7 @@ glm::dvec3 Project::background(
 }
 
 void Project::print() const {
-    std::cout << "Calling A4_Render(\n" <<
+    std::cout << "Calling Project(\n" <<
               "\t" << *root <<
               "\t" << "Image(width:" << image.width() << ", height:" << image.height() << ")\n"
                   "\t" << "eye:  " << glm::to_string(eye) << std::endl <<
@@ -456,5 +458,9 @@ void Project::print() const {
         std::cout << "\t\t" <<  *light << std::endl;
     }
     std::cout << "\t}" << std::endl;
+    std::cout << std::boolalpha;
+    std::cout << "\tSupersampling enabled: " << supersample << std::endl;
+    std::cout << "\tSoft Shadow Samples: " << initDistributedSamples << std::endl;
+    std::cout << "\tGrid Acceleration enabled: " << gridAcceleration << std::endl;
     std::cout <<")" << std::endl;
 }
