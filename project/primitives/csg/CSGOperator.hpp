@@ -13,6 +13,8 @@ public:
 
         left->setTransform(leftNode->getTransform(), leftNode->getInvTransform());
         right->setTransform(rightNode->getTransform(), rightNode->getInvTransform());
+        leftNode->setTransform(glm::dmat4(), glm::dmat4());
+        rightNode->setTransform(glm::dmat4(), glm::dmat4());
     }
 
     virtual Intersection getClosestIntersection(

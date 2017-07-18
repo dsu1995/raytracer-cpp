@@ -51,9 +51,9 @@ AABB CSGOperator::getAABB() const {
         std::min(leftAABB.p1.z, rightAABB.p1.z)
     );
     glm::dvec3 p2(
-        std::max(leftAABB.p1.x, rightAABB.p1.x),
-        std::max(leftAABB.p1.y, rightAABB.p1.y),
-        std::max(leftAABB.p1.z, rightAABB.p1.z)
+        std::max(leftAABB.p2.x, rightAABB.p2.x),
+        std::max(leftAABB.p2.y, rightAABB.p2.y),
+        std::max(leftAABB.p2.z, rightAABB.p2.z)
     );
 
     return AABB(p1, p2, getTransform());
