@@ -1,15 +1,22 @@
 #include "Grid.hpp"
 #include "primitives/solid/Cube.hpp"
 
+// debug
+//#include <iostream>
+//#include <glm/ext.hpp>
+//using std::cout;
+//using std::endl;
+
 using glm::dvec3;
 
 Grid::Grid(const std::vector<Primitive*>& primitives)
     : point1(std::numeric_limits<double>::max()),
-      point2(std::numeric_limits<double>::min()) {
+      point2(std::numeric_limits<double>::lowest()) {
     initCells(primitives);
 }
 
 void Grid::initCells(const std::vector<Primitive*>& primitives) {
+    // find bounding box for all primitives
     for (Primitive* primitive: primitives) {
         AABB aabb = primitive->getAABB();
         for (uint i = 0; i < 3; i++) {
@@ -51,18 +58,19 @@ void Grid::initCells(const std::vector<Primitive*>& primitives) {
     }
 
     for (Primitive* primitive: primitives) {
-        bool inserted = false;
+        int insertedCount = 0;
         for (auto& xs: grid) {
             for (auto& ys: xs) {
                 for (Cell& cell: ys) {
                     if (cell.intersects(primitive->getAABB())) {
                         cell.primitives.push_back(primitive);
-                        inserted = true;
+                        insertedCount++;
                     }
                 }
             }
         }
-        assert(inserted && "Every primitive must be inserted!!!");
+//        cout << "Primitive inserted times: " << insertedCount << endl;
+        assert(insertedCount > 0 && "Every primitive must be inserted!!!");
     }
 }
 
@@ -101,26 +109,25 @@ double solver(double init, double dir, double minVal, double maxVal) {
 PhongMaterial dummyMaterial2;
 
 Intersection Grid::trace(glm::dvec3 rayOrigin, glm::dvec3 rayDirection) const {
-    Cube cubeAABB(point1, point2 - point1);
-    cubeAABB.setMaterial(&dummyMaterial2);
-
-    Intersection gridIntersection = cubeAABB.getClosestIntersection(rayOrigin, rayDirection);
-    if (!gridIntersection.intersected) {
-        return Intersection();
-    }
-
     // rayOrigin inside grid
     if (point1.x <= rayOrigin.x && rayOrigin.x <= point2.x &&
         point1.y <= rayOrigin.y && rayOrigin.y <= point2.y &&
         point1.z <= rayOrigin.z && rayOrigin.z <= point2.z) {
-
+        ;
     }
     // rayOrigin not inside grid
     else {
+        Cube cubeAABB(point1, point2 - point1);
+        cubeAABB.setMaterial(&dummyMaterial2);
+
+        const Intersection gridIntersection = cubeAABB.getClosestIntersection(rayOrigin, rayDirection);
+        if (!gridIntersection.intersected) {
+            return Intersection();
+        }
         rayOrigin = gridIntersection.point;
     }
 
-    dvec3 o = (rayOrigin - point1) / cellSize;
+    const dvec3 o = (rayOrigin - point1) / cellSize;
 
     int xPos = int(floor(o.x));
     int yPos = int(floor(o.y));
@@ -130,10 +137,17 @@ Intersection Grid::trace(glm::dvec3 rayOrigin, glm::dvec3 rayDirection) const {
     yPos = std::max(0, std::min(yPos, int(yCells - 1)));
     zPos = std::max(0, std::min(zPos, int(zCells - 1)));
 
+//    cout << endl;
+//    cout << "(x, y, z) = " << xPos << ", " << yPos << ", " << zPos << endl;
+
     // http://www.cs.yorku.ca/~amana/research/grid.pdf
-    int stepX = sgn(rayDirection.x);
-    int stepY = sgn(rayDirection.y);
-    int stepZ = sgn(rayDirection.z);
+    const int stepX = sgn(rayDirection.x);
+    const int stepY = sgn(rayDirection.y);
+    const int stepZ = sgn(rayDirection.z);
+
+//    cout << "rayDirection = " << rayDirection.x << ", " << rayDirection.y << ", " << rayDirection.z << endl;
+//    cout << "(stepX, stepY, stepZ) = " << stepX << ", " << stepY << ", " << stepZ << endl;
+
 
     const Cell& initCell = grid.at(xPos).at(yPos).at(zPos);
 
@@ -141,46 +155,16 @@ Intersection Grid::trace(glm::dvec3 rayOrigin, glm::dvec3 rayDirection) const {
     double tMaxY = solver(rayOrigin.y, rayDirection.y, initCell.p1.y, initCell.p2.y);
     double tMaxZ = solver(rayOrigin.z, rayDirection.z, initCell.p1.z, initCell.p2.z);
 
-    double tDeltaX = fabs(cellSize / rayDirection.x);
-    double tDeltaY = fabs(cellSize / rayDirection.y);
-    double tDeltaZ = fabs(cellSize / rayDirection.z);
+    const double tDeltaX = fabs(cellSize / rayDirection.x);
+    const double tDeltaY = fabs(cellSize / rayDirection.y);
+    const double tDeltaZ = fabs(cellSize / rayDirection.z);
 
+    Intersection closest;
     while (true) {
-        if (tMaxX < tMaxY) {
-            if (tMaxX < tMaxZ) {
-                xPos += stepX;
-                if (xPos < 0 || xPos >= xCells) {
-                    return Intersection();
-                }
-                tMaxX += tDeltaX;
-            }
-            else {
-                zPos += stepZ;
-                if (zPos < 0 || zPos >= zCells) {
-                    return Intersection();
-                }
-                tMaxZ += tDeltaZ;
-            }
-        }
-        else {
-            if (tMaxX < tMaxZ) {
-                yPos += stepY;
-                if (yPos < 0 || yPos >= yCells) {
-                    return Intersection();
-                }
-                tMaxY += tDeltaY;
-            }
-            else {
-                zPos += stepZ;
-                if (zPos < 0 || zPos >= zCells) {
-                    return Intersection();
-                }
-                tMaxZ += tDeltaZ;
-            }
-        }
+//        cout << "(tMaxX, tMaxY, tMaxZ) = " << tMaxX << ", " << tMaxY << ", " << tMaxZ << endl;
+//        cout << "(x, y, z) = " << xPos << ", " << yPos << ", " << zPos << endl;
 
         const Cell& cell = grid.at(xPos).at(yPos).at(zPos);
-        Intersection closest;
         for (Primitive* primitive: cell.primitives) {
             closest = Intersection::min(
                 rayOrigin,
@@ -188,8 +172,30 @@ Intersection Grid::trace(glm::dvec3 rayOrigin, glm::dvec3 rayDirection) const {
                 primitive->getClosestIntersection(rayOrigin, rayDirection)
             );
         }
-        if (closest.intersected) {
-            return closest;
+
+        if (tMaxX <= tMaxY && tMaxX <= tMaxZ) {
+            xPos += stepX;
+            if (xPos < 0 || xPos >= xCells) {
+                return closest;
+            }
+            tMaxX += tDeltaX;
+        }
+        else if (tMaxY <= tMaxX && tMaxY <= tMaxZ) {
+            yPos += stepY;
+            if (yPos < 0 || yPos >= yCells) {
+                return closest;
+            }
+            tMaxY += tDeltaY;
+        }
+        else if (tMaxZ <= tMaxX && tMaxZ <= tMaxY) {
+            zPos += stepZ;
+            if (zPos < 0 || zPos >= zCells) {
+                return closest;
+            }
+            tMaxZ += tDeltaZ;
+        }
+        else {
+            assert(false);
         }
     }
 }

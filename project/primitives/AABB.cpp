@@ -24,9 +24,9 @@ void AABB::transform(const dmat4& T) {
     dvec3 p8(p1.x, p2.y, p2.z);
 
     dvec3 newP1(std::numeric_limits<double>::max());
-    dvec3 newP2(std::numeric_limits<double>::min());
+    dvec3 newP2(std::numeric_limits<double>::lowest());
 
-    for (const dvec3 p: {p1, p2, p3, p4, p5, p6, p7, p8}) {
+    for (const dvec3& p: {p1, p2, p3, p4, p5, p6, p7, p8}) {
         dvec3 transformedP(T * dvec4(p, 1));
 
         for (uint i = 0; i < 3; i++) {

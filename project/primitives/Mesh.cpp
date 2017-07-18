@@ -62,7 +62,7 @@ Mesh::Mesh(const std::string& fname)
     }
 
     glm::dvec3 point1(std::numeric_limits<double>::max());
-    glm::dvec3 point2(std::numeric_limits<double>::min());
+    glm::dvec3 point2(std::numeric_limits<double>::lowest());
 
     for (const glm::dvec3& vertex: m_vertices) {
         for (uint i = 0; i < 3; i++) {
@@ -112,7 +112,7 @@ Intersection Mesh::getClosestIntersection(
 }
 
 Mesh::~Mesh() {
-    delete boundingBox;
+//    delete boundingBox;
 }
 
 std::ostream& operator<<(std::ostream& out, const Mesh& mesh) {
