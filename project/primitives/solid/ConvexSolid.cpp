@@ -33,6 +33,19 @@ ConvexSolid::getCSGSegments(
         return {};
     }
     else if (intersections.size() == 1) {
+        if (isInside(rayOrigin)) {
+            return {
+                LineSegment(
+                    Intersection(
+                        rayOrigin,
+                        -rayDirection,
+                        intersections.front().objCenter,
+                        intersections.front().material
+                    ),
+                    intersections.front()
+                )
+            };
+        }
         return {
             LineSegment(intersections.front(), intersections.front())
         };
