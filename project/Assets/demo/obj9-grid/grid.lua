@@ -10,7 +10,7 @@ root = gr.node('root')
 
 ----------------------------------------
 -- sphere
-size = 10
+size = 30
 step = 1.5
 for i = 0, size do
     for j = 0, size do
@@ -37,5 +37,5 @@ gr.render(
     {0.3, 0.3, 0.3}, { white_light, white_light2 },
     false, -- supersampling
     1, -- distributed sampling
-    false -- grid acceleration
+    true -- grid acceleration
 )
