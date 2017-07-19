@@ -1,3 +1,21 @@
+Compilation
+
+There are no changes to the default build steps. To compile the project, run`premake4 gmake` in the `Project` directory, followed by `make`.
+
+
+Running the Project
+
+Run the `Project` executable **in the directory of the .lua scene script**. The demo scenes are located in Assets/demo.
+
+For example, to run the demo scene for objective 1:
+- cd Assets/demo/obj1-primitives
+- ../../../Project primitives.lua
+
+This will place the output image, primitives.png, in the current folder.
+
+
+
+
 Objectives
 1. Implement 2 additional primitives: cone and cylinder
 2. Implement Constructive Solid Geometry (CSG) to allow more complex shapes to be modeled using primitives
