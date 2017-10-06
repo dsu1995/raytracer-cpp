@@ -13,7 +13,4 @@ imgui.ini
 
 tracer/Tracer
 
-*/Assets/backup
-
-CMakeLists.txt
 cmake-build-debug
