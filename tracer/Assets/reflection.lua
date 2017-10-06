@@ -3,13 +3,13 @@ mat_reflective = gr.material({0.5, 0.5, 0.5}, {0.5, 0.5, 0.5}, 0, 0, 0.75)
 mat2 = gr.material({0, 0, 0}, {0.7, 0.7, 0.7}, 25)
 
 
-wood_tex = gr.texture('../../textures/wood.png')
-marble_tex = gr.texture('../../textures/marble2.png')
-party_tex = gr.texture('../../textures/party-hat2.png')
-mtn_dew_tex = gr.texture('../../textures/mtn-dew.png')
-can_top_tex = gr.texture('../../textures/can-top.png')
-tennis_tex = gr.texture('../../textures/tennis.png')
-pingpong_tex = gr.texture('../../textures/pingpong.png')
+wood_tex = gr.texture('textures/wood.png')
+marble_tex = gr.texture('textures/marble2.png')
+party_tex = gr.texture('textures/party-hat2.png')
+mtn_dew_tex = gr.texture('textures/mtn-dew.png')
+can_top_tex = gr.texture('textures/can-top.png')
+tennis_tex = gr.texture('textures/tennis.png')
+pingpong_tex = gr.texture('textures/pingpong.png')
 
 root = gr.node('root')
 
