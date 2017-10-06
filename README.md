@@ -1,6 +1,6 @@
 C++ Ray Tracer
 
-https://dsu1995.github.io/raytracer-cpp
+Sample images: https://dsu1995.github.io/raytracer-cpp
 
 
 ## Features
