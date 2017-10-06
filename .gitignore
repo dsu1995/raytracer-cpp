@@ -11,7 +11,7 @@ build
 *.idea
 imgui.ini
 
-libs/Tracer
+tracer/Tracer
 
 */Assets/backup
 
